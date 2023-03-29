@@ -11,9 +11,9 @@
     <url>https://ngrok.com</url>
 
     <scm>
-        <connection>scm:git:https://github.com/ngrok-private/ngrok-java</connection>
-        <developerConnection>scm:git:git@github.com:ngrok-private/ngrok-java.git</developerConnection>
-        <url>https://github.com/ngrok-private/ngrok-java</url>
+        <connection>scm:git:https://github.com/ngrok/ngrok-java</connection>
+        <developerConnection>scm:git:git@github.com:ngrok/ngrok-java.git</developerConnection>
+        <url>https://github.com/ngrok/ngrok-java</url>
         <tag>HEAD</tag>
     </scm>
 

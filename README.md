@@ -9,8 +9,8 @@
 [mit-url]: https://github.com/ngrok/ngrok-rs/blob/main/LICENSE-MIT
 [apache-badge]: https://img.shields.io/badge/license-Apache_2.0-blue.svg
 [apache-url]: https://github.com/ngrok/ngrok-rs/blob/main/LICENSE-APACHE
-[ci-badge]: https://github.com/ngrok-private/ngrok-java/actions/workflows/ci.yml/badge.svg
-[ci-url]: https://github.com/ngrok-private/ngrok-java/actions/workflows/ci.yml
+[ci-badge]: https://github.com/ngrok/ngrok-java/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/ngrok/ngrok-java/actions/workflows/ci.yml
 
 [Website](https://ngrok.com)
 
