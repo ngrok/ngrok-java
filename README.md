@@ -25,6 +25,48 @@ This allows you to quickly build ngrok into your application with no separate pr
 
 # Installation
 
+## Maven
+To use `ngrok-java`, you need to add the following to your `pom.xml`:
+
+```xml
+<project>
+   <dependencies>
+      <dependency>
+         <groupId>com.ngrok</groupId>
+         <artifactId>ngrok-java</artifactId>
+         <version>${ngrok.version}</version>
+      </dependency>
+      <dependency>
+         <groupId>com.ngrok</groupId>
+         <artifactId>ngrok-java-native</artifactId>
+         <version>${ngrok.version}</version>
+         <!-- automatically detect classifier, you can also pin manually -->
+         <classifier>${os.detected.classifier}</classifier>
+         <scope>runtime</scope>
+      </dependency>
+   </dependencies>
+   
+   <build>
+     <extensions>
+         <extension>
+             <groupId>kr.motd.maven</groupId>
+             <artifactId>os-maven-plugin</artifactId>
+             <version>1.7.0</version>
+         </extension>
+     </extensions>
+   </build>
+</project>
+```
+
+If you want to use [jetty](https://www.eclipse.org/jetty/) integration, also add:
+```xml
+      <dependency>
+         <groupId>com.ngrok</groupId>
+         <artifactId>ngrok-jetty</artifactId>
+         <version>${ngrok.version}</version>
+      </dependency>
+```
+
 # Documentation
 
 # Quickstart
