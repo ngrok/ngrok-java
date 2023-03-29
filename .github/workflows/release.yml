@@ -32,6 +32,8 @@ jobs:
       
   deploy-api:
     runs-on: ubuntu-latest
+    needs:
+      - release
     permissions:
       contents: read
       packages: write
@@ -43,6 +45,31 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Run mvn deploy
-        run: mvn --batch-mode --projects ngrok-java --also-make deploy
+        run: mvn --batch-mode --projects ngrok-java deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-native-linux-x86:
+    runs-on: ubuntu-latest
+    needs:
+      - release
+      - deploy-api
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+        ref: v${{ github.event.inputs.releaseVersion }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-gnu
+      - uses: ./.github/workflows/rust-cache
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Run mvn deploy
+        run: mvn --batch-mode --projects ngrok-java-native deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
