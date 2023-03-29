@@ -10,6 +10,23 @@
     <name>Ngrok :: Project</name>
     <url>https://ngrok.com</url>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
+    <licenses>
+        <license>
+            <name>Apache Software License - Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+        <license>
+            <name>MIT License</name>
+            <url>http://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+
     <scm>
         <connection>scm:git:https://github.com/ngrok/ngrok-java</connection>
         <developerConnection>scm:git:git@github.com:ngrok/ngrok-java.git</developerConnection>
@@ -22,12 +39,6 @@
         <module>ngrok-java-native</module>
         <module>ngrok-jetty</module>
     </modules>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-    </properties>
 
     <dependencies>
         <dependency>
