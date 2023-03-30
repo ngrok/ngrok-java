@@ -18,7 +18,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v3
-        ref: ${{ github.event.inputs.branch }}
+        ref: "${{ github.event.inputs.branch }}"
       - uses: actions/setup-java@v3
         with:
           java-version: '17'
