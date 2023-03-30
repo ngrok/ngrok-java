@@ -39,7 +39,7 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v3
-        ref: v${{ github.event.inputs.releaseVersion }}
+        ref: "v${{ github.event.inputs.releaseVersion }}"
       - uses: actions/setup-java@v3
         with:
           java-version: '17'
@@ -59,7 +59,7 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v3
-        ref: v${{ github.event.inputs.releaseVersion }}
+        ref: "v${{ github.event.inputs.releaseVersion }}"
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
