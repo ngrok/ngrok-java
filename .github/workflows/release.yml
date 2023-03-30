@@ -34,6 +34,8 @@ jobs:
           git config user.name "GitHub Actions"
       - name: Run mvn release
         run: mvn --batch-mode release:prepare release:perform -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
   deploy-api:
     runs-on: ubuntu-latest
