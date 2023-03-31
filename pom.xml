@@ -117,7 +117,7 @@
         <repository>
             <id>github</id>
             <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/ngrok-private/ngrok-java</url>
+            <url>https://maven.pkg.github.com/ngrok/ngrok-java</url>
         </repository>
     </distributionManagement>
 </project>
