@@ -54,6 +54,8 @@ jobs:
 
   deploy-native-windows-x86:
     runs-on: windows-latest
+    # stopping build until we figure out the dependencies
+    if: false
     needs:
       - release
       - deploy-all-linux-x86
@@ -71,7 +73,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Run mvn deploy
-        run: mvn --batch-mode --projects ngrok-java-native --also-make deploy-file --activate-profiles ci --define "ngrok.native.classifier=windows-x86_64" --define "ngrok.native.target=x86_64-pc-windows-msvc"
+        run: mvn --batch-mode --projects ngrok-java-native --also-make deploy:deploy-file --activate-profiles ci --define "ngrok.native.classifier=windows-x86_64" --define "ngrok.native.target=x86_64-pc-windows-msvc"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -94,6 +96,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Run mvn deploy
-        run: mvn --batch-mode --projects ngrok-java-native --also-make deploy-file --activate-profiles ci --define "ngrok.native.classifier=mac-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
+        run: mvn --batch-mode --projects ngrok-java-native --also-make deploy:deploy-file --activate-profiles ci --define "ngrok.native.classifier=mac-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
