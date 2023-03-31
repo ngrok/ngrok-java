@@ -37,9 +37,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:https://github.com/ngrok/ngrok-java</connection>
-        <developerConnection>scm:git:git@github.com:ngrok/ngrok-java.git</developerConnection>
         <url>https://github.com/ngrok/ngrok-java</url>
+        <connection>scm:git:${project.scm.url}</connection>
+        <developerConnection>scm:git:${project.scm.url}</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
