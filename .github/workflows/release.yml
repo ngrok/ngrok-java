@@ -98,7 +98,7 @@ jobs:
           distribution: 'temurin'
       - name: Build native
         run: |
-          run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package \
+          mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package \
             --activate-profiles ci \
             --define "ngrok.native.classifier=mac-x86_64" \ 
             --define "ngrok.native.target=x86_64-apple-darwin"
