@@ -97,6 +97,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Run mvn deploy
-        run: mvn --batch-mode --projects ngrok-java-native --also-make deploy:deploy-file --activate-profiles ci --define "ngrok.native.classifier=mac-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
+        run: |
+          mvn --batch-mode --projects ngrok-java-native --also-make deploy:deploy-file \
+            --activate-profiles ci \
+            --define "ngrok.native.classifier=mac-x86_64" \
+            --define "ngrok.native.target=x86_64-apple-darwin" \
+            --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}.jar" \
+            --define "classifier=mac-x86_64"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
