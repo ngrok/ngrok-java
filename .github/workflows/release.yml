@@ -53,7 +53,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Run mvn deploy
-        run: mvn --batch-mode --projects ngrok-java --also-make deploy
+        run: mvn --batch-mode --projects ngrok-project,ngrok-java --also-make deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
