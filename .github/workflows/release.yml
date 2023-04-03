@@ -122,9 +122,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=mac-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=osx-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
       - name: Run mvn deploy
-        run: mvn --batch-mode deploy:deploy-file --define "url=https://maven.pkg.github.com/ngrok/ngrok-java" --define "repositoryId=github" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-mac-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=mac-x86_64"
+        run: mvn --batch-mode deploy:deploy-file --define "url=https://maven.pkg.github.com/ngrok/ngrok-java" --define "repositoryId=github" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=osx-x86_64"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -147,8 +147,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=mac-aarch_64" --define "ngrok.native.target=aarch64-apple-darwin" --define "skipTests"
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=osx-aarch_64" --define "ngrok.native.target=aarch64-apple-darwin" --define "skipTests"
       - name: Run mvn deploy
-        run: mvn --batch-mode deploy:deploy-file --define "url=https://maven.pkg.github.com/ngrok/ngrok-java" --define "repositoryId=github" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-mac-aarch_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=mac-aarch_64"
+        run: mvn --batch-mode deploy:deploy-file --define "url=https://maven.pkg.github.com/ngrok/ngrok-java" --define "repositoryId=github" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-aarch_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=osx-aarch_64"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
