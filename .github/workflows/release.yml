@@ -99,13 +99,12 @@ jobs:
       - name: Run mvn package
         run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=mac-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
       - name: Run mvn deploy
-        run: mvn --batch-mode deploy:deploy-file --define "url=https://maven.pkg.github.com/ngrok/ngrok-java" --define "repositoryId=github" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-mac-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=mac-x86_64"
+        run: mvn --batch-mode deploy:deploy-file --define "url=https://maven.pkg.github.com/ngrok/ngrok-java" --define "repositoryId=github" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-mac-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=mac-x86_64"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-native-macos-arm64:
     runs-on: macos-latest
-    if: false
     needs:
       - release
       - deploy-all-linux-x86
@@ -122,7 +121,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Run mvn package
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=mac-aarch_64" --define "ngrok.native.target=aarch64-apple-darwin"
       - name: Run mvn deploy
-        run: mvn --batch-mode --projects ngrok-java-native --also-make deploy --activate-profiles ci,native-deploy --define "ngrok.native.classifier=mac-aarch_64" --define "ngrok.native.target=aarch64-apple-darwin" -DskipTests
+        run: mvn --batch-mode deploy:deploy-file --define "url=https://maven.pkg.github.com/ngrok/ngrok-java" --define "repositoryId=github" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-mac-aarch_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=mac-aarch_64"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
