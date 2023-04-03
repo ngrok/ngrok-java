@@ -99,7 +99,7 @@ jobs:
       - name: Run mvn package
         run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=mac-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
       - name: Run mvn deploy
-        run: mvn --batch-mode deploy:deploy-file --define "pomFile=ngrok-java-native/pom.xml" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}.jar" --define "classifier=mac-x86_64" --define "repositoryId=github" --define "url=https://maven.pkg.github.com/ngrok/ngrok-java"
+        run: mvn --batch-mode deploy:deploy-file --define "pomFile=ngrok-java-native/pom.xml" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-mac-x86_64.jar" --define "classifier=mac-x86_64" --define "repositoryId=github" --define "url=https://maven.pkg.github.com/ngrok/ngrok-java"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
