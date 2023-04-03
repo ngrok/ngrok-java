@@ -78,6 +78,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  deploy-native-windows-x32:
+    runs-on: windows-latest
+    needs:
+      - release
+      - deploy-all-linux-x86
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v${{ github.event.inputs.releaseVersion }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: i686-pc-windows-msvc
+      - uses: ./.github/workflows/rust-cache
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Run mvn package
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=windows-x86_32" --define "ngrok.native.target=i686-pc-windows-msvc" --define "skipTests"
+      - name: Run mvn deploy
+        run: mvn --batch-mode deploy:deploy-file --define "url=https://maven.pkg.github.com/ngrok/ngrok-java" --define "repositoryId=github" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-windows-x86_32.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=windows-x86_32"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   deploy-native-macos-x86:
     runs-on: macos-latest
     needs:
