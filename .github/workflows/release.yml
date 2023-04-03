@@ -96,13 +96,16 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Run mvn package
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=mac-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
       - name: Run mvn deploy
-        run: mvn --batch-mode --projects ngrok-java-native --also-make deploy --activate-profiles ci,native-deploy --define "ngrok.native.classifier=mac-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
+        run: mvn --batch-mode deploy:deploy-file --define "pomFile=ngrok-java-native/pom.xml" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}.jar" --define "classifier=mac-x86_64" --define "repositoryId=github" --define "url=https://maven.pkg.github.com/ngrok/ngrok-java"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-native-macos-arm64:
     runs-on: macos-latest
+    if: false
     needs:
       - release
       - deploy-all-linux-x86
