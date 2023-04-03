@@ -49,7 +49,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Run mvn deploy
-        run: mvn --batch-mode deploy  --activate-profiles ci --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
+        run: mvn --batch-mode deploy --activate-profiles ci --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -97,17 +97,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Build native
-        run: |
-          mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package \
-            --activate-profiles ci \
-            --define "ngrok.native.classifier=mac-x86_64" \ 
-            --define "ngrok.native.target=x86_64-apple-darwin"
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=mac-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
       - name: Run mvn deploy
-        run: |
-          mvn --batch-mode deploy:deploy-file \
-            --define "pomFile=ngrok-java-native/pom.xml"
-            --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}.jar" \
-            --define "classifier=mac-x86_64"
-            --define "repositoryId=github"
+        run: mvn --batch-mode deploy:deploy-file --define "pomFile=ngrok-java-native/pom.xml" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}.jar" --define "classifier=mac-x86_64" --define "repositoryId=github"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
