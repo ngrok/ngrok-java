@@ -100,3 +100,26 @@ jobs:
         run: mvn --batch-mode --projects ngrok-java-native --also-make deploy --activate-profiles ci,native-deploy --define "ngrok.native.classifier=mac-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-native-macos-arm64:
+    runs-on: macos-latest
+    needs:
+      - release
+      - deploy-all-linux-x86
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v${{ github.event.inputs.releaseVersion }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: aarch64-apple-darwin
+      - uses: ./.github/workflows/rust-cache
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Run mvn deploy
+        run: mvn --batch-mode --projects ngrok-java-native --also-make deploy --activate-profiles ci,native-deploy --define "ngrok.native.classifier=mac-aarch_64" --define "ngrok.native.target=aarch64-apple-darwin" -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
