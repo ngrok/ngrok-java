@@ -98,9 +98,8 @@ where
         event.record(&mut visitor);
 
         let jvm = JVM.get().expect("no jvm");
-        let _jenv = jvm.attach_current_thread().expect("cannot attach");
-
-        let jenv = jvm.get_env().expect("cannot get env");
+        let jenv = jvm.attach_current_thread_as_daemon().expect("cannot attach");
+        
         let logref = LOGGER.get().expect("no logger");
         let logger = ComNgrokRuntimeLogger::from(logref.as_obj());
         logger.log(
@@ -166,11 +165,10 @@ struct StopCallback {
 impl CommandHandler<Stop> for StopCallback {
     async fn handle_command(&self, _req: Stop) -> Result<(), String> {
         let jvm = JVM.get().expect("no jvm");
-        let _jenv = jvm.attach_current_thread().expect("cannot attach");
+        let jenv = jvm.attach_current_thread().expect("cannot attach");
 
-        let jenv = jvm.get_env().expect("cannot get env");
         let lcbk = ComNgrokSessionStopCallback::from(self.cbk.as_obj());
-        lcbk.stop(jenv);
+        lcbk.stop(*jenv);
         Ok(())
     }
 }
@@ -183,11 +181,10 @@ struct RestartCallback {
 impl CommandHandler<Restart> for RestartCallback {
     async fn handle_command(&self, _req: Restart) -> Result<(), String> {
         let jvm = JVM.get().expect("no jvm");
-        let _jenv = jvm.attach_current_thread().expect("cannot attach");
+        let jenv = jvm.attach_current_thread().expect("cannot attach");
 
-        let jenv = jvm.get_env().expect("cannot get env");
         let lcbk = ComNgrokSessionRestartCallback::from(self.cbk.as_obj());
-        lcbk.restart(jenv);
+        lcbk.restart(*jenv);
         Ok(())
     }
 }
@@ -200,11 +197,10 @@ struct UpdateCallback {
 impl CommandHandler<Update> for UpdateCallback {
     async fn handle_command(&self, _req: Update) -> Result<(), String> {
         let jvm = JVM.get().expect("no jvm");
-        let _jenv = jvm.attach_current_thread().expect("cannot attach");
+        let jenv = jvm.attach_current_thread().expect("cannot attach");
 
-        let jenv = jvm.get_env().expect("cannot get env");
         let lcbk = ComNgrokSessionUpdateCallback::from(self.cbk.as_obj());
-        lcbk.update(jenv);
+        lcbk.update(*jenv);
         Ok(())
     }
 }
