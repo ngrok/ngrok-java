@@ -67,6 +67,8 @@ public interface Session extends AutoCloseable {
     }
 
     public static class Builder {
+        protected String version;
+
         public String authtoken;
 
         public String metadata;

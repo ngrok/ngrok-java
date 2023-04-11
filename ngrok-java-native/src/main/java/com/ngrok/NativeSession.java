@@ -1,12 +1,24 @@
 package com.ngrok;
 
 import java.io.IOException;
+import java.util.Properties;
 
 public class NativeSession implements Session {
+    private static String version = "0.0.0-UNKNOWN";
+
     static {
         try {
             Runtime.load();
             Runtime.init(new Runtime.Logger());
+        } catch (Throwable th) {
+            // TODO better error handling here?
+            th.printStackTrace();
+        }
+
+        try {
+            Properties props = new Properties();
+            props.load(NativeSession.class.getResourceAsStream("/native.properties"));
+            version = props.getProperty("agent.version", "0.0.0-SNAPSHOT");
         } catch (Throwable th) {
             // TODO better error handling here?
             th.printStackTrace();
@@ -17,7 +29,12 @@ public class NativeSession implements Session {
 
     private String metadata;
 
-    public static native NativeSession connect(Session.Builder builder) throws IOException;
+    public static NativeSession connect(Session.Builder builder) throws IOException {
+        builder.version = version;
+        return connectNative(builder);
+    }
+
+    public static native NativeSession connectNative(Session.Builder builder) throws IOException;
 
     public String metadata() {
         return metadata;

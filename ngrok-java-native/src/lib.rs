@@ -98,8 +98,10 @@ where
         event.record(&mut visitor);
 
         let jvm = JVM.get().expect("no jvm");
-        let jenv = jvm.attach_current_thread_as_daemon().expect("cannot attach");
-        
+        let jenv = jvm
+            .attach_current_thread_as_daemon()
+            .expect("cannot attach");
+
         let logref = LOGGER.get().expect("no logger");
         let logger = ComNgrokRuntimeLogger::from(logref.as_obj());
         logger.log(
@@ -220,7 +222,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         Self { env }
     }
 
-    fn connect(
+    fn connect_native(
         &self,
         _class: ComNgrokNativeSessionClass<'local>,
         jsb: ComNgrokSessionBuilder<'local>,
@@ -230,6 +232,19 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let jsess = ComNgrokNativeSession::new_1com_ngrok_native_session(self.env);
 
         let mut bldr = Session::builder();
+        match self.get_string_field(jsb, "version") {
+            Ok(Some(version)) => {
+                bldr = bldr.child_client("java", version);
+            }
+            Ok(None) => {
+                bldr = bldr.child_client("java", "0.0.0-SNAPSHOT-RUST");
+            }
+            Err(err) => {
+                self.env
+                    .throw(err.to_string())
+                    .expect("could not throw exception");
+            }
+        }
 
         match self.get_string_field(jsb, "authtoken") {
             Ok(Some(authtoken)) => {
