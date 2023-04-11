@@ -30,6 +30,8 @@ To use `ngrok-java`, you need to add the following to your `pom.xml`:
 
 ```xml
 <project>
+   <!-- your project definition -->
+
    <dependencies>
       <dependency>
          <groupId>com.ngrok</groupId>
@@ -60,12 +62,26 @@ To use `ngrok-java`, you need to add the following to your `pom.xml`:
 
 If you want to use [jetty](https://www.eclipse.org/jetty/) integration, also add:
 ```xml
-      <dependency>
-         <groupId>com.ngrok</groupId>
-         <artifactId>ngrok-jetty</artifactId>
-         <version>${ngrok.version}</version>
-      </dependency>
+<dependency>
+   <groupId>com.ngrok</groupId>
+   <artifactId>ngrok-jetty</artifactId>
+   <version>${ngrok.version}</version>
+</dependency>
 ```
+
+At this time, `ngrok-java` is only available from [GitHub Packages](https://github.com/features/packages), you'll need to add the following to your `pom.xml`:
+```xml
+<repositories>
+   <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/ngrok/ngrok-java</url>
+   </repository>
+</repositories>
+```
+And then configure your `~/.m2/settings.xml` as per the [docs](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry#authenticating-to-github-packages)
+
+For example of how to do all that, check out [ngrok-java-demo](https://github.com/ngrok/ngrok-java-demo/blob/main/pom.xml)
 
 # Documentation
 
