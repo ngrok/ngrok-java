@@ -25,12 +25,12 @@ jobs:
     needs:
       - build-api
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: jrobsonchase/direnv-action@v0.7
       - uses: ./.github/workflows/rust-cache
       - name: generate rust files
         run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make process-classes
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v2
         with:
           command: udeps
           args: '--workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml'
@@ -41,9 +41,9 @@ jobs:
     needs:
       - build-api
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: jrobsonchase/direnv-action@v0.7
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v2
         with:
           command: fmt
           args: '--all --manifest-path ngrok-java-native/Cargo.toml -- --check'
@@ -54,12 +54,12 @@ jobs:
     needs:
       - build-api
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: jrobsonchase/direnv-action@v0.7
       - uses: ./.github/workflows/rust-cache
       - name: generate rust files
         run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make process-classes
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/cargo@v2
         with:
           command: clippy
           args: '--all-targets --all-features --workspace --manifest-path ngrok-java-native/Cargo.toml -- -D warnings'
