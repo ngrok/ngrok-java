@@ -128,34 +128,73 @@ impl tracing::field::Visit for TracingEventVisitor {
     }
 }
 
-trait SetStringField<'local> {
-    fn get_env(&self) -> JNIEnv<'local>;
+trait JNIExt<'local> {
+    fn get_env(&self) -> &JNIEnv<'local>;
 
-    fn set_string_field<O>(&self, obj: O, name: &str, value: &str) -> Result<(), anyhow::Error>
+    fn set_native<J, R>(&self, this: J, target: R) 
     where
-        O: Into<JObject<'local>>,
+        J: Into<JObject<'local>>,
+        R: Send + 'static,
     {
-        let jvalue = self.get_env().new_string(value)?;
-        self.get_env().set_field(
-            obj,
-            name,
-            "Ljava/lang/String;",
-            JValue::Object(jvalue.into()),
-        )?;
-        Ok(())
+        self.get_env()
+            .set_rust_field(this, "native_address", target)
+            .expect("cannot set native address")
     }
 
-    fn get_string_field<'env, O>(&self, obj: O, name: &str) -> Result<Option<String>, anyhow::Error>
+    fn get_native<'a, J, R>(&'a self, this: J) -> MutexGuard<'a, R>
+    where
+        'local: 'a,
+        J: Into<JObject<'local>>,
+        R: Send + 'static,
+    {
+        self.get_env()
+            .get_rust_field(this, "native_address")
+            .expect("cannot get native value")
+    }
+
+    fn take_native<J, R>(&self, this: J) -> R
+    where
+        J: Into<JObject<'local>>,
+        R: Send + 'static,
+    {
+        self.get_env()
+            .take_rust_field(this, "native_address")
+            .expect("cannot take native value")
+    }
+
+    fn set_string_field<O>(&self, obj: O, name: &str, value: &str)
     where
         O: Into<JObject<'local>>,
     {
-        let jval = self.get_env().get_field(obj, name, "Ljava/lang/String;")?;
-        let jstr = jval.l().map(JString::from)?;
+        let jvalue: JValue = self
+            .get_env()
+            .new_string(value)
+            .expect("could not convert to string")
+            .into();
+        self.get_env()
+            .set_field(obj, name, "Ljava/lang/String;", jvalue)
+            .expect("could not set string field")
+    }
+
+    fn get_string_field<'env, O>(&self, obj: O, name: &str) -> Option<String>
+    where
+        O: Into<JObject<'local>>,
+    {
+        let jstr: JString = self
+            .get_env()
+            .get_field(obj, name, "Ljava/lang/String;")
+            .and_then(|o| o.l())
+            .expect("could not get string field")
+            .into();
         if jstr.is_null() {
-            Ok(None)
+            None
         } else {
-            let s = self.get_env().get_string(jstr)?.into();
-            Ok(Some(s))
+            Some(
+                self.get_env()
+                    .get_string(jstr)
+                    .expect("could not convert to string")
+                    .into(),
+            )
         }
     }
 }
@@ -212,9 +251,9 @@ struct NativeSessionRsImpl<'local> {
     env: JNIEnv<'local>,
 }
 
-impl<'local> SetStringField<'local> for NativeSessionRsImpl<'local> {
-    fn get_env(&self) -> JNIEnv<'local> {
-        self.env
+impl<'local> JNIExt<'local> for NativeSessionRsImpl<'local> {
+    fn get_env(&self) -> &JNIEnv<'local> {
+        &self.env
     }
 }
 
@@ -229,8 +268,6 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         jsb: ComNgrokSessionBuilder<'local>,
     ) -> Result<ComNgrokNativeSession<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
-
-        let jsess = ComNgrokNativeSession::new_1com_ngrok_native_session(self.env);
 
         let mut bldr = Session::builder();
 
@@ -261,30 +298,14 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        match self.get_string_field(jsb, "authtoken") {
-            Ok(Some(authtoken)) => {
-                bldr = bldr.authtoken(authtoken);
-            }
-            Ok(None) => {}
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        if let Some(authtoken) = self.get_string_field(jsb, "authtoken") {
+            bldr = bldr.authtoken(authtoken);
         }
 
         let mut session_metadata: Option<String> = None;
-        match self.get_string_field(jsb, "metadata") {
-            Ok(Some(metadata)) => {
-                session_metadata = Some(metadata.clone());
-                bldr = bldr.metadata(metadata);
-            }
-            Ok(None) => {}
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        if let Some(metadata) = self.get_string_field(jsb, "metadata") {
+            session_metadata = Some(metadata.clone());
+            bldr = bldr.metadata(metadata);
         }
 
         let stop_obj: ComNgrokSessionStopCallback = self
@@ -333,29 +354,23 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.handle_update_command(UpdateCallback { cbk });
         }
 
-        let sess = rt.block_on(bldr.connect());
-        match sess {
+        match rt.block_on(bldr.connect()) {
             Ok(sess) => {
-                if let Some(metadata) = session_metadata {
-                    self.set_string_field(jsess, "metadata", &metadata)
-                        .expect("cannot set metadata");
-                }
-                self.env
-                    .set_rust_field(jsess, "native_address", sess)
-                    .unwrap_or_else(|err| {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    });
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
-        }
+                let jsess = ComNgrokNativeSession::new_1com_ngrok_native_session(self.env);
 
-        Ok(jsess)
+                if let Some(metadata) = session_metadata {
+                    self.set_string_field(jsess, "metadata", &metadata);
+                }
+
+                self.set_native(jsess, sess);
+
+                Ok(jsess)
+            }
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            )),
+        }
     }
 
     fn tcp_tunnel(
@@ -365,63 +380,33 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
     ) -> Result<ComNgrokNativeTcpTunnel<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let jtunnel = ComNgrokNativeTcpTunnel::new_1com_ngrok_native_tcp_tunnel(self.env);
+        let sess: MutexGuard<Session> = self.get_native(this);
+        let mut bldr = sess.tcp_endpoint();
 
-        let sess: Result<MutexGuard<'_, Session>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match sess {
-            Ok(mu) => {
-                let mut bldr = mu.tcp_endpoint();
-
-                match self.get_string_field(jtb, "metadata") {
-                    Ok(Some(metadata)) => {
-                        bldr = bldr.metadata(metadata);
-                    }
-                    Ok(None) => {}
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-
-                let tun = rt.block_on(bldr.listen());
-                match tun {
-                    Ok(tun) => {
-                        self.set_string_field(jtunnel, "id", tun.id())
-                            .expect("could not set id");
-                        self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to())
-                            .expect("could not set forwards_to");
-                        self.set_string_field(jtunnel, "metadata", tun.metadata())
-                            .expect("could not set metadata");
-                        self.set_string_field(jtunnel, "proto", "tcp")
-                            .expect("could not set proto");
-                        self.set_string_field(jtunnel, "url", tun.url())
-                            .expect("could not set url");
-
-                        self.env
-                            .set_rust_field(jtunnel, "native_address", tun)
-                            .unwrap_or_else(|err| {
-                                self.env
-                                    .throw(err.to_string())
-                                    .expect("could not throw exception");
-                            })
-                    }
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        if let Some(metadata) = self.get_string_field(jtb, "metadata") {
+            bldr = bldr.metadata(metadata);
         }
 
-        Ok(jtunnel)
+        let tun = rt.block_on(bldr.listen());
+        match tun {
+            Ok(tun) => {
+                let jtunnel = ComNgrokNativeTcpTunnel::new_1com_ngrok_native_tcp_tunnel(self.env);
+
+                self.set_string_field(jtunnel, "id", tun.id());
+                self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to());
+                self.set_string_field(jtunnel, "metadata", tun.metadata());
+                self.set_string_field(jtunnel, "proto", "tcp");
+                self.set_string_field(jtunnel, "url", tun.url());
+
+                self.set_native(jtunnel, tun);
+
+                Ok(jtunnel)
+            }
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            )),
+        }
     }
 
     fn tls_tunnel(
@@ -431,75 +416,36 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
     ) -> Result<ComNgrokNativeTlsTunnel<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let jtunnel = ComNgrokNativeTlsTunnel::new_1com_ngrok_native_tls_tunnel(self.env);
+        let sess: MutexGuard<Session> = self.get_native(this);
+        let mut bldr = sess.tls_endpoint();
 
-        let sess: Result<MutexGuard<'_, Session>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match sess {
-            Ok(mu) => {
-                let mut bldr = mu.tls_endpoint();
-
-                match self.get_string_field(jtb, "metadata") {
-                    Ok(Some(metadata)) => {
-                        bldr = bldr.metadata(metadata);
-                    }
-                    Ok(None) => {}
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-
-                match self.get_string_field(jtb, "domain") {
-                    Ok(Some(domain)) => {
-                        bldr = bldr.domain(domain);
-                    }
-                    Ok(None) => {}
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-
-                let tun = rt.block_on(bldr.listen());
-                match tun {
-                    Ok(tun) => {
-                        self.set_string_field(jtunnel, "id", tun.id())
-                            .expect("could not set id");
-                        self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to())
-                            .expect("could not set forwards_to");
-                        self.set_string_field(jtunnel, "metadata", tun.metadata())
-                            .expect("could not set metadata");
-                        self.set_string_field(jtunnel, "proto", "tcp")
-                            .expect("could not set proto");
-                        self.set_string_field(jtunnel, "url", tun.url())
-                            .expect("could not set url");
-
-                        self.env
-                            .set_rust_field(jtunnel, "native_address", tun)
-                            .unwrap_or_else(|err| {
-                                self.env
-                                    .throw(err.to_string())
-                                    .expect("could not throw exception");
-                            })
-                    }
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        if let Some(metadata) = self.get_string_field(jtb, "metadata") {
+            bldr = bldr.metadata(metadata);
         }
 
-        Ok(jtunnel)
+        if let Some(domain) = self.get_string_field(jtb, "domain") {
+            bldr = bldr.domain(domain);
+        }
+
+        match rt.block_on(bldr.listen()) {
+            Ok(tun) => {
+                let jtunnel = ComNgrokNativeTlsTunnel::new_1com_ngrok_native_tls_tunnel(self.env);
+
+                self.set_string_field(jtunnel, "id", tun.id());
+                self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to());
+                self.set_string_field(jtunnel, "metadata", tun.metadata());
+                self.set_string_field(jtunnel, "proto", "tcp");
+                self.set_string_field(jtunnel, "url", tun.url());
+
+                self.set_native(jtunnel, tun);
+
+                Ok(jtunnel)
+            }
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            )),
+        }
     }
 
     fn http_tunnel(
@@ -509,75 +455,36 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
     ) -> Result<ComNgrokNativeHttpTunnel<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let jtunnel = ComNgrokNativeHttpTunnel::new_1com_ngrok_native_http_tunnel(self.env);
+        let sess: MutexGuard<Session> = self.get_native(this);
+        let mut bldr = sess.http_endpoint();
 
-        let sess: Result<MutexGuard<'_, Session>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match sess {
-            Ok(mu) => {
-                let mut bldr = mu.http_endpoint();
-
-                match self.get_string_field(jtb, "metadata") {
-                    Ok(Some(metadata)) => {
-                        bldr = bldr.metadata(metadata);
-                    }
-                    Ok(None) => {}
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-
-                match self.get_string_field(jtb, "domain") {
-                    Ok(Some(domain)) => {
-                        bldr = bldr.domain(domain);
-                    }
-                    Ok(None) => {}
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-
-                let tun = rt.block_on(bldr.listen());
-                match tun {
-                    Ok(tun) => {
-                        self.set_string_field(jtunnel, "id", tun.id())
-                            .expect("could not set id");
-                        self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to())
-                            .expect("could not set forwards_to");
-                        self.set_string_field(jtunnel, "metadata", tun.metadata())
-                            .expect("could not set metadata");
-                        self.set_string_field(jtunnel, "proto", "http")
-                            .expect("could not set proto");
-                        self.set_string_field(jtunnel, "url", tun.url())
-                            .expect("could not set url");
-
-                        self.env
-                            .set_rust_field(jtunnel, "native_address", tun)
-                            .unwrap_or_else(|err| {
-                                self.env
-                                    .throw(err.to_string())
-                                    .expect("could not throw exception");
-                            })
-                    }
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        if let Some(metadata) = self.get_string_field(jtb, "metadata") {
+            bldr = bldr.metadata(metadata);
         }
 
-        Ok(jtunnel)
+        if let Some(domain) = self.get_string_field(jtb, "domain") {
+            bldr = bldr.domain(domain);
+        }
+
+        match rt.block_on(bldr.listen()) {
+            Ok(tun) => {
+                let jtunnel = ComNgrokNativeHttpTunnel::new_1com_ngrok_native_http_tunnel(self.env);
+
+                self.set_string_field(jtunnel, "id", tun.id());
+                self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to());
+                self.set_string_field(jtunnel, "metadata", tun.metadata());
+                self.set_string_field(jtunnel, "proto", "http");
+                self.set_string_field(jtunnel, "url", tun.url());
+
+                self.set_native(jtunnel, tun);
+
+                Ok(jtunnel)
+            }
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            )),
+        }
     }
 
     fn labeled_tunnel(
@@ -587,81 +494,53 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
     ) -> Result<ComNgrokNativeLabeledTunnel<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let jtunnel = ComNgrokNativeLabeledTunnel::new_1com_ngrok_native_labeled_tunnel(self.env);
+        let sess: MutexGuard<Session> = self.get_native(this);
+        let mut bldr = sess.labeled_tunnel();
 
-        let sess: Result<MutexGuard<'_, Session>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match sess {
-            Ok(mu) => {
-                let mut bldr = mu.labeled_tunnel();
+        if let Some(metadata) = self.get_string_field(jtb, "metadata") {
+            bldr = bldr.metadata(metadata);
+        }
 
-                match self.get_string_field(jtb, "metadata") {
-                    Ok(Some(metadata)) => {
-                        bldr = bldr.metadata(metadata);
-                    }
-                    Ok(None) => {}
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-
-                {
-                    let labels = self
-                        .env
-                        .call_method(jtb, "labels", "()Ljava/util/List;", &[])
-                        .and_then(|o| o.l())
-                        .expect("could not get labels");
-                    let labels_count = self
-                        .env
-                        .call_method(labels, "size", "()I", &[])
-                        .and_then(|o| o.i())
-                        .expect("could not get labels size");
-                    for i in 0..labels_count {
-                        let label: ComNgrokLabeledTunnelLabel = self
-                            .env
-                            .call_method(labels, "get", "(I)Ljava/lang/Object;", &[JValue::Int(i)])
-                            .and_then(|o| o.l())
-                            .expect("could not get version object")
-                            .into();
-                        bldr = bldr.label(label.name(self.env), label.value(self.env));
-                    }
-                }
-
-                let tun = rt.block_on(bldr.listen());
-                match tun {
-                    Ok(tun) => {
-                        self.set_string_field(jtunnel, "id", tun.id())
-                            .expect("could not set id");
-                        self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to())
-                            .expect("could not set forwards_to");
-                        self.set_string_field(jtunnel, "metadata", tun.metadata())
-                            .expect("could not set metadata");
-
-                        self.env
-                            .set_rust_field(jtunnel, "native_address", tun)
-                            .unwrap_or_else(|err| {
-                                self.env
-                                    .throw(err.to_string())
-                                    .expect("could not throw exception");
-                            })
-                    }
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
+        {
+            let labels = self
+                .env
+                .call_method(jtb, "labels", "()Ljava/util/List;", &[])
+                .and_then(|o| o.l())
+                .expect("could not get labels");
+            let labels_count = self
+                .env
+                .call_method(labels, "size", "()I", &[])
+                .and_then(|o| o.i())
+                .expect("could not get labels size");
+            for i in 0..labels_count {
+                let label: ComNgrokLabeledTunnelLabel = self
+                    .env
+                    .call_method(labels, "get", "(I)Ljava/lang/Object;", &[JValue::Int(i)])
+                    .and_then(|o| o.l())
+                    .expect("could not get version object")
+                    .into();
+                bldr = bldr.label(label.name(self.env), label.value(self.env));
             }
         }
 
-        Ok(jtunnel)
+        match rt.block_on(bldr.listen()) {
+            Ok(tun) => {
+                let jtunnel =
+                    ComNgrokNativeLabeledTunnel::new_1com_ngrok_native_labeled_tunnel(self.env);
+
+                self.set_string_field(jtunnel, "id", tun.id());
+                self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to());
+                self.set_string_field(jtunnel, "metadata", tun.metadata());
+
+                self.set_native(jtunnel, tun);
+
+                Ok(jtunnel)
+            }
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            )),
+        }
     }
 
     fn close(
@@ -670,27 +549,14 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
     ) -> Result<(), jaffi_support::Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let sess: Result<Session, _> = self.env.take_rust_field(this, "native_address");
-        match sess {
-            Ok(mut sess) => {
-                let closed = rt.block_on(sess.close());
-                match closed {
-                    Ok(_) => {}
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        let mut sess: Session = self.take_native(this);
+        match rt.block_on(sess.close()) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            )),
         }
-
-        Ok(())
     }
 }
 
@@ -698,9 +564,9 @@ struct NativeTcpTunnelRsImpl<'local> {
     env: JNIEnv<'local>,
 }
 
-impl<'local> SetStringField<'local> for NativeTcpTunnelRsImpl<'local> {
-    fn get_env(&self) -> JNIEnv<'local> {
-        self.env
+impl<'local> JNIExt<'local> for NativeTcpTunnelRsImpl<'local> {
+    fn get_env(&self) -> &JNIEnv<'local> {
+        &self.env
     }
 }
 
@@ -715,74 +581,52 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
     ) -> Result<ComNgrokNativeConnection<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
+        let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
+        match rt.block_on(tun.try_next()) {
+            Ok(Some(conn)) => {
+                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
 
-        let tun: Result<MutexGuard<'_, TcpTunnel>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => {
-                let res: Result<Option<Conn>, _> = rt.block_on(mu.try_next());
-                let conn = res.expect("conn result err").expect("conn option err");
+                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string());
 
-                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string())
-                    .expect("cannot set remoteAddr");
+                self.set_native(jconn, conn);
 
-                self.env
-                    .set_rust_field(jconn, "native_address", conn)
-                    .unwrap_or_else(|err| {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    })
+                Ok(jconn)
             }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+            Ok(None) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                "could not get next conn",
+            )),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(jconn)
     }
 
-    fn forward_tcp(&self, this: ComNgrokNativeTcpTunnel<'local>, addr: String) {
+    fn forward_tcp(&self, this: ComNgrokNativeTcpTunnel<'local>, addr: String) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let tun: Result<MutexGuard<'_, TcpTunnel>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => {
-                let res = rt.block_on(mu.forward_tcp(addr));
-                match res {
-                    Ok(()) => {}
-                    Err(err) => self
-                        .env
-                        .throw(err.to_string())
-                        .expect("could not throw exception"),
-                }
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
+        match rt.block_on(tun.forward_tcp(addr)) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
     }
 
     fn close(&self, this: ComNgrokNativeTcpTunnel<'local>) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let tun: Result<TcpTunnel, _> = self.env.take_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => rt.block_on(mu.close()).expect("could not close"),
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        let mut tun: TcpTunnel = self.take_native(this);
+        match rt.block_on(tun.close()) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(())
     }
 }
 
@@ -790,9 +634,9 @@ struct NativeTlsTunnelRsImpl<'local> {
     env: JNIEnv<'local>,
 }
 
-impl<'local> SetStringField<'local> for NativeTlsTunnelRsImpl<'local> {
-    fn get_env(&self) -> JNIEnv<'local> {
-        self.env
+impl<'local> JNIExt<'local> for NativeTlsTunnelRsImpl<'local> {
+    fn get_env(&self) -> &JNIEnv<'local> {
+        &self.env
     }
 }
 
@@ -807,76 +651,52 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
     ) -> Result<ComNgrokNativeConnection<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
+        let mut tun: MutexGuard<TlsTunnel> = self.get_native(this);
+        match rt.block_on(tun.try_next()) {
+            Ok(Some(conn)) => {
+                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
 
-        let tun: Result<MutexGuard<'_, TlsTunnel>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => {
-                let res: Result<Option<Conn>, _> = rt.block_on(mu.try_next());
-                let conn = res.expect("conn result err").expect("conn option err");
+                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string());
 
-                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string())
-                    .expect("cannot set remoteAddr");
+                self.set_native(jconn, conn);
 
-                self.env
-                    .set_rust_field(jconn, "native_address", conn)
-                    .unwrap_or_else(|err| {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    })
+                Ok(jconn)
             }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+            Ok(None) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                "could not get next conn",
+            )),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(jconn)
     }
 
-    fn forward_tcp(&self, this: ComNgrokNativeTlsTunnel<'local>, addr: String) {
+    fn forward_tcp(&self, this: ComNgrokNativeTlsTunnel<'local>, addr: String) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let tun: Result<MutexGuard<'_, TlsTunnel>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => {
-                let res = rt.block_on(mu.forward_tcp(addr));
-                match res {
-                    Ok(()) => {}
-                    Err(err) => self
-                        .env
-                        .throw(err.to_string())
-                        .expect("could not throw exception"),
-                }
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        let mut tun: MutexGuard<TlsTunnel> = self.get_native(this);
+        match rt.block_on(tun.forward_tcp(addr)) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
     }
 
     fn close(&self, this: ComNgrokNativeTlsTunnel<'local>) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let tun: Result<TlsTunnel, _> = self.env.take_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => rt
-                .block_on(async { mu.close().await })
-                .expect("could not close"),
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        let mut tun: TlsTunnel = self.take_native(this);
+        match rt.block_on(tun.close()) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(())
     }
 }
 
@@ -884,9 +704,9 @@ struct NativeHttpTunnelRsImpl<'local> {
     env: JNIEnv<'local>,
 }
 
-impl<'local> SetStringField<'local> for NativeHttpTunnelRsImpl<'local> {
-    fn get_env(&self) -> JNIEnv<'local> {
-        self.env
+impl<'local> JNIExt<'local> for NativeHttpTunnelRsImpl<'local> {
+    fn get_env(&self) -> &JNIEnv<'local> {
+        &self.env
     }
 }
 
@@ -901,57 +721,38 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
     ) -> Result<ComNgrokNativeConnection<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
+        let mut tun: MutexGuard<HttpTunnel> = self.get_native(this);
+        match rt.block_on(tun.try_next()) {
+            Ok(Some(conn)) => {
+                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
 
-        let tun: Result<MutexGuard<'_, HttpTunnel>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => {
-                let res: Result<Option<Conn>, _> = rt.block_on(mu.try_next());
-                let conn = res.expect("conn result err").expect("conn option err");
+                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string());
 
-                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string())
-                    .expect("cannot set remoteAddr");
+                self.set_native(jconn, conn);
 
-                self.env
-                    .set_rust_field(jconn, "native_address", conn)
-                    .unwrap_or_else(|err| {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    })
+                Ok(jconn)
             }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+            Ok(None) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                "could not get next conn",
+            )),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(jconn)
     }
 
-    fn forward_tcp(&self, this: ComNgrokNativeHttpTunnel<'local>, addr: String) {
+    fn forward_tcp(&self, this: ComNgrokNativeHttpTunnel<'local>, addr: String) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let tun: Result<MutexGuard<'_, HttpTunnel>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => {
-                let res = rt.block_on(mu.forward_tcp(addr));
-                match res {
-                    Ok(()) => {}
-                    Err(err) => self
-                        .env
-                        .throw(err.to_string())
-                        .expect("could not throw exception"),
-                }
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        let mut tun: MutexGuard<HttpTunnel> = self.get_native(this);
+        match rt.block_on(tun.forward_tcp(addr)) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
     }
 
@@ -961,17 +762,14 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
     ) -> Result<(), jaffi_support::Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let tun: Result<HttpTunnel, _> = self.env.take_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => rt.block_on(mu.close()).expect("could not close"),
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        let mut tun: HttpTunnel = self.take_native(this);
+        match rt.block_on(tun.close()) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(())
     }
 }
 
@@ -979,9 +777,9 @@ struct NativeLabeledTunnelRsImpl<'local> {
     env: JNIEnv<'local>,
 }
 
-impl<'local> SetStringField<'local> for NativeLabeledTunnelRsImpl<'local> {
-    fn get_env(&self) -> JNIEnv<'local> {
-        self.env
+impl<'local> JNIExt<'local> for NativeLabeledTunnelRsImpl<'local> {
+    fn get_env(&self) -> &JNIEnv<'local> {
+        &self.env
     }
 }
 
@@ -996,57 +794,38 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
     ) -> Result<ComNgrokNativeConnection<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
+        let mut tun: MutexGuard<LabeledTunnel> = self.get_native(this);
+        match rt.block_on(tun.try_next()) {
+            Ok(Some(conn)) => {
+                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
 
-        let tun: Result<MutexGuard<'_, LabeledTunnel>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => {
-                let res: Result<Option<Conn>, _> = rt.block_on(mu.try_next());
-                let conn = res.expect("conn result err").expect("conn option err");
+                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string());
 
-                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string())
-                    .expect("cannot set remoteAddr");
+                self.set_native(jconn, conn);
 
-                self.env
-                    .set_rust_field(jconn, "native_address", conn)
-                    .unwrap_or_else(|err| {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    })
+                Ok(jconn)
             }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+            Ok(None) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                "could not get next conn",
+            )),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(jconn)
     }
 
-    fn forward_tcp(&self, this: ComNgrokNativeLabeledTunnel<'local>, addr: String) {
+    fn forward_tcp(&self, this: ComNgrokNativeLabeledTunnel<'local>, addr: String) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let tun: Result<MutexGuard<'_, LabeledTunnel>, _> =
-            self.env.get_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => {
-                let res = rt.block_on(mu.forward_tcp(addr));
-                match res {
-                    Ok(()) => {}
-                    Err(err) => self
-                        .env
-                        .throw(err.to_string())
-                        .expect("could not throw exception"),
-                }
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        let mut tun: MutexGuard<LabeledTunnel> = self.get_native(this);
+        match rt.block_on(tun.forward_tcp(addr)) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
     }
 
@@ -1056,22 +835,25 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
     ) -> Result<(), jaffi_support::Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let tun: Result<LabeledTunnel, _> = self.env.take_rust_field(this, "native_address");
-        match tun {
-            Ok(mut mu) => rt.block_on(mu.close()).expect("could not close"),
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        let mut tun: LabeledTunnel = self.take_native(this);
+        match rt.block_on(tun.close()) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(())
     }
 }
 
 struct NativeConnectionRsImpl<'local> {
     env: JNIEnv<'local>,
+}
+
+impl<'local> JNIExt<'local> for NativeConnectionRsImpl<'local> {
+    fn get_env(&self) -> &JNIEnv<'local> {
+        &self.env
+    }
 }
 
 impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'local> {
@@ -1086,40 +868,25 @@ impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'l
     ) -> Result<i32, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let mut readsz: i32 = 0;
-        let conn: Result<MutexGuard<'_, Conn>, _> = self.env.get_rust_field(this, "native_address");
-        match conn {
-            Ok(mut mu) => {
-                let addr = self
-                    .env
-                    .get_direct_buffer_address(jbuff)
-                    .expect("cannot get buff addr");
-                let res = rt.block_on(mu.read(addr));
-                match res {
-                    Ok(0) => {
-                        return Err(Error::new(
-                            IOExceptionErr::IOException(IOException),
-                            "closed",
-                        ));
-                    }
-                    Ok(sz) => {
-                        readsz = sz.try_into().expect("cannot convert to i32");
-                    }
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
+        let mut conn: MutexGuard<Conn> = self.get_native(this);
+        let addr = self
+            .env
+            .get_direct_buffer_address(jbuff)
+            .expect("cannot get buff addr");
+        match rt.block_on(conn.read(addr)) {
+            Ok(0) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                "closed",
+            )),
+            Ok(sz) => {
+                let readsz: i32 = sz.try_into().expect("size must be i32");
+                Ok(readsz)
             }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(readsz)
     }
 
     fn write_native(
@@ -1130,60 +897,34 @@ impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'l
     ) -> Result<i32, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let mut writesz: i32 = 0;
-        let conn: Result<MutexGuard<'_, Conn>, _> = self.env.get_rust_field(this, "native_address");
-        match conn {
-            Ok(mut mu) => {
-                let addr = self
-                    .env
-                    .get_direct_buffer_address(jbuff)
-                    .expect("cannot get buff addr");
-                let act = &addr[..limit.try_into().expect("xxx")];
-                let res = rt.block_on(mu.write(act));
-                match res {
-                    Ok(sz) => {
-                        writesz = sz.try_into().expect("cannot convert to i32");
-                    }
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
+        let mut conn: MutexGuard<Conn> = self.get_native(this);
+        let addr = self
+            .env
+            .get_direct_buffer_address(jbuff)
+            .expect("cannot get buff addr");
+        let act = &addr[..limit.try_into().expect("xxx")];
+        match rt.block_on(conn.write(act)) {
+            Ok(sz) => {
+                let writesz: i32 = sz.try_into().expect("cannot convert to i32");
+                Ok(writesz)
             }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(writesz)
     }
 
     fn close(&self, this: ComNgrokNativeConnection<'local>) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let conn: Result<Conn, _> = self.env.take_rust_field(this, "native_address");
-        match conn {
-            Ok(mut mu) => {
-                let res = rt.block_on(mu.shutdown());
-                match res {
-                    Ok(()) => {}
-                    Err(err) => {
-                        self.env
-                            .throw(err.to_string())
-                            .expect("could not throw exception");
-                    }
-                }
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
-            }
+        let mut conn: Conn = self.take_native(this);
+        match rt.block_on(conn.shutdown()) {
+            Ok(()) => Ok(()),
+            Err(err) => Err(Error::new(
+                IOExceptionErr::IOException(IOException),
+                err.to_string(),
+            ))
         }
-
-        Ok(())
     }
 }

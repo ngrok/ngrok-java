@@ -9,7 +9,7 @@ public class NativeTcpTunnel extends TcpTunnel {
     public native NativeConnection accept() throws IOException;
 
     @Override
-    public native void forwardTcp(String addr);
+    public native void forwardTcp(String addr) throws IOException;
 
     @Override
     public native void close() throws IOException;
