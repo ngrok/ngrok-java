@@ -26,6 +26,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.Runtime$Logger"),
         Cow::from("com.ngrok.Session"),
         Cow::from("com.ngrok.Session$Builder"),
+        Cow::from("com.ngrok.Session$UserAgent"),
         Cow::from("com.ngrok.Session$StopCallback"),
         Cow::from("com.ngrok.Session$RestartCallback"),
         Cow::from("com.ngrok.Session$UpdateCallback"),
@@ -36,6 +37,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.HttpTunnel"),
         Cow::from("com.ngrok.HttpTunnel$Builder"),
         Cow::from("com.ngrok.LabeledTunnel"),
+        Cow::from("com.ngrok.LabeledTunnel$Label"),
         Cow::from("com.ngrok.LabeledTunnel$Builder"),
         Cow::from("com.ngrok.Connection"),
     ];

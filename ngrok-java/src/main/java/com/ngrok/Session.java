@@ -2,6 +2,8 @@ package com.ngrok;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface Session extends AutoCloseable {
 
@@ -66,8 +68,27 @@ public interface Session extends AutoCloseable {
         public void update();
     }
 
+    class UserAgent {
+        public final String name;
+
+        public final String version;
+
+        public UserAgent(String name, String version) {
+            this.name = name;
+            this.version = version;
+        }
+
+        public String name() {
+            return name;
+        }
+
+        public String version() {
+            return version;
+        }
+    }
+
     public static class Builder {
-        protected String version;
+        public final List<UserAgent> userAgents = new ArrayList<>();
 
         public String authtoken;
 
@@ -78,6 +99,11 @@ public interface Session extends AutoCloseable {
         public UpdateCallback updateCallback;
 
         public Builder() {
+        }
+
+        public Builder addUserAgent(String name, String version) {
+            this.userAgents.add(new UserAgent(name, version));
+            return this;
         }
 
         public Builder authtoken(String authtoken) {

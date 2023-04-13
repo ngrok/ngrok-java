@@ -30,7 +30,7 @@ public class NativeSession implements Session {
     private String metadata;
 
     public static NativeSession connect(Session.Builder builder) throws IOException {
-        builder.version = version;
+        builder.userAgents.add(0, new UserAgent("ngrok-java", version));
         return connectNative(builder);
     }
 

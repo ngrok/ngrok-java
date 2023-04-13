@@ -16,6 +16,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'maven'
       - name: Run mvn package
         run: mvn --batch-mode --update-snapshots --projects ngrok-java --also-make package
 
@@ -75,6 +76,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'maven'
       - name: Run mvn package
         run: mvn --batch-mode --update-snapshots --projects ngrok-jetty --also-make package
 

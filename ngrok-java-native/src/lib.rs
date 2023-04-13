@@ -1,11 +1,12 @@
 use async_trait::async_trait;
 use com_ngrok::{
-    ComNgrokHttpTunnelBuilder, ComNgrokLabeledTunnelBuilder, ComNgrokNativeConnection,
-    ComNgrokNativeHttpTunnel, ComNgrokNativeLabeledTunnel, ComNgrokNativeSession,
-    ComNgrokNativeSessionClass, ComNgrokNativeTcpTunnel, ComNgrokNativeTlsTunnel,
-    ComNgrokRuntimeLogger, ComNgrokSessionBuilder, ComNgrokSessionRestartCallback,
-    ComNgrokSessionStopCallback, ComNgrokSessionUpdateCallback, ComNgrokTcpTunnelBuilder,
-    ComNgrokTlsTunnelBuilder, IOException, IOExceptionErr,
+    ComNgrokHttpTunnelBuilder, ComNgrokLabeledTunnelBuilder, ComNgrokLabeledTunnelLabel,
+    ComNgrokNativeConnection, ComNgrokNativeHttpTunnel, ComNgrokNativeLabeledTunnel,
+    ComNgrokNativeSession, ComNgrokNativeSessionClass, ComNgrokNativeTcpTunnel,
+    ComNgrokNativeTlsTunnel, ComNgrokRuntimeLogger, ComNgrokSessionBuilder,
+    ComNgrokSessionRestartCallback, ComNgrokSessionStopCallback, ComNgrokSessionUpdateCallback,
+    ComNgrokSessionUserAgent, ComNgrokTcpTunnelBuilder, ComNgrokTlsTunnelBuilder, IOException,
+    IOExceptionErr,
 };
 use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
@@ -232,17 +233,31 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let jsess = ComNgrokNativeSession::new_1com_ngrok_native_session(self.env);
 
         let mut bldr = Session::builder();
-        match self.get_string_field(jsb, "version") {
-            Ok(Some(version)) => {
-                bldr = bldr.child_client("java", version);
-            }
-            Ok(None) => {
-                bldr = bldr.child_client("java", "0.0.0-SNAPSHOT-RUST");
-            }
-            Err(err) => {
-                self.env
-                    .throw(err.to_string())
-                    .expect("could not throw exception");
+
+        {
+            let user_agents = self
+                .env
+                .get_field(jsb, "userAgents", "Ljava/util/List;")
+                .and_then(|o| o.l())
+                .expect("could not get versions field");
+            let user_agents_count = self
+                .env
+                .call_method(user_agents, "size", "()I", &[])
+                .and_then(|o| o.i())
+                .expect("could not get versions size");
+            for i in 0..user_agents_count {
+                let user_agent: ComNgrokSessionUserAgent = self
+                    .env
+                    .call_method(
+                        user_agents,
+                        "get",
+                        "(I)Ljava/lang/Object;",
+                        &[JValue::Int(i)],
+                    )
+                    .and_then(|o| o.l())
+                    .expect("could not get version object")
+                    .into();
+                bldr = bldr.child_client(user_agent.name(self.env), user_agent.version(self.env));
             }
         }
 
@@ -272,14 +287,12 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        let stop_value = self
-            .get_env()
+        let stop_obj: ComNgrokSessionStopCallback = self
+            .env
             .get_field(jsb, "stopCallback", "Lcom/ngrok/Session$StopCallback;")
-            .unwrap();
-        let stop_obj = stop_value
-            .l()
-            .map(ComNgrokSessionStopCallback::from)
-            .unwrap();
+            .and_then(|o| o.l())
+            .expect("could not get stopCallback")
+            .into();
         if !stop_obj.is_null() {
             let cbk = self
                 .env
@@ -288,18 +301,16 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.handle_stop_command(StopCallback { cbk });
         }
 
-        let restart_value = self
-            .get_env()
+        let restart_obj: ComNgrokSessionRestartCallback = self
+            .env
             .get_field(
                 jsb,
                 "restartCallback",
                 "Lcom/ngrok/Session$RestartCallback;",
             )
-            .unwrap();
-        let restart_obj = restart_value
-            .l()
-            .map(ComNgrokSessionRestartCallback::from)
-            .unwrap();
+            .and_then(|o| o.l())
+            .expect("could not get restartCallback")
+            .into();
         if !restart_obj.is_null() {
             let cbk = self
                 .env
@@ -308,14 +319,12 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.handle_restart_command(RestartCallback { cbk });
         }
 
-        let update_value = self
-            .get_env()
+        let update_obj: ComNgrokSessionUpdateCallback = self
+            .env
             .get_field(jsb, "updateCallback", "Lcom/ngrok/Session$UpdateCallback;")
-            .unwrap();
-        let update_obj = update_value
-            .l()
-            .map(ComNgrokSessionUpdateCallback::from)
-            .unwrap();
+            .and_then(|o| o.l())
+            .expect("could not get updateCallback")
+            .into();
         if !update_obj.is_null() {
             let cbk = self
                 .env
@@ -599,49 +608,24 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 }
 
                 {
-                    let labels_arr = self
-                        .get_env()
-                        .call_method(jtb, "nativeLabels", "()[[Ljava/lang/String;", &[])
-                        .and_then(|o| o.l());
-                    match labels_arr {
-                        Ok(obj) => {
-                            let labels_count = self
-                                .env
-                                .get_array_length(*obj)
-                                .expect("cannot get arr size");
-                            for i in 0..labels_count {
-                                let label_arr = self
-                                    .env
-                                    .get_object_array_element(*obj, i)
-                                    .expect("cannot get label element");
-                                let label_key = self
-                                    .env
-                                    .get_object_array_element(*label_arr, 0)
-                                    .map(JString::from)
-                                    .expect("cannot get label key");
-                                let label_val = self
-                                    .env
-                                    .get_object_array_element(*label_arr, 1)
-                                    .map(JString::from)
-                                    .expect("cannot get label value");
-                                let str_key: String = self
-                                    .env
-                                    .get_string(label_key)
-                                    .expect("key is not a string")
-                                    .into();
-                                let str_val: String = self
-                                    .env
-                                    .get_string(label_val)
-                                    .expect("value is not a string")
-                                    .into();
-                                bldr = bldr.label(str_key, str_val);
-                            }
-                        }
-                        Err(err) => {
-                            self.env
-                                .throw(err.to_string())
-                                .expect("could not throw exception");
-                        }
+                    let labels = self
+                        .env
+                        .call_method(jtb, "labels", "()Ljava/util/List;", &[])
+                        .and_then(|o| o.l())
+                        .expect("could not get labels");
+                    let labels_count = self
+                        .env
+                        .call_method(labels, "size", "()I", &[])
+                        .and_then(|o| o.i())
+                        .expect("could not get labels size");
+                    for i in 0..labels_count {
+                        let label: ComNgrokLabeledTunnelLabel = self
+                            .env
+                            .call_method(labels, "get", "(I)Ljava/lang/Object;", &[JValue::Int(i)])
+                            .and_then(|o| o.l())
+                            .expect("could not get version object")
+                            .into();
+                        bldr = bldr.label(label.name(self.env), label.value(self.env));
                     }
                 }
 
