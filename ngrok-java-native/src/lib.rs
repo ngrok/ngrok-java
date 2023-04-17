@@ -131,7 +131,7 @@ impl tracing::field::Visit for TracingEventVisitor {
 trait JNIExt<'local> {
     fn get_env(&self) -> &JNIEnv<'local>;
 
-    fn set_native<J, R>(&self, this: J, target: R) 
+    fn set_native<J, R>(&self, this: J, target: R)
     where
         J: Into<JObject<'local>>,
         R: Send + 'static,
@@ -599,11 +599,15 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 
-    fn forward_tcp(&self, this: ComNgrokNativeTcpTunnel<'local>, addr: String) -> Result<(), Error<IOExceptionErr>> {
+    fn forward_tcp(
+        &self,
+        this: ComNgrokNativeTcpTunnel<'local>,
+        addr: String,
+    ) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
@@ -612,7 +616,7 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 
@@ -625,7 +629,7 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 }
@@ -669,11 +673,15 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 
-    fn forward_tcp(&self, this: ComNgrokNativeTlsTunnel<'local>, addr: String) -> Result<(), Error<IOExceptionErr>> {
+    fn forward_tcp(
+        &self,
+        this: ComNgrokNativeTlsTunnel<'local>,
+        addr: String,
+    ) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<TlsTunnel> = self.get_native(this);
@@ -682,7 +690,7 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 
@@ -695,7 +703,7 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 }
@@ -739,11 +747,15 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 
-    fn forward_tcp(&self, this: ComNgrokNativeHttpTunnel<'local>, addr: String) -> Result<(), Error<IOExceptionErr>> {
+    fn forward_tcp(
+        &self,
+        this: ComNgrokNativeHttpTunnel<'local>,
+        addr: String,
+    ) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<HttpTunnel> = self.get_native(this);
@@ -752,7 +764,7 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 
@@ -768,7 +780,7 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 }
@@ -812,11 +824,15 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 
-    fn forward_tcp(&self, this: ComNgrokNativeLabeledTunnel<'local>, addr: String) -> Result<(), Error<IOExceptionErr>> {
+    fn forward_tcp(
+        &self,
+        this: ComNgrokNativeLabeledTunnel<'local>,
+        addr: String,
+    ) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<LabeledTunnel> = self.get_native(this);
@@ -825,7 +841,7 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 
@@ -841,7 +857,7 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 }
@@ -885,7 +901,7 @@ impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'l
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 
@@ -911,7 +927,7 @@ impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'l
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 
@@ -924,7 +940,7 @@ impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'l
             Err(err) => Err(Error::new(
                 IOExceptionErr::IOException(IOException),
                 err.to_string(),
-            ))
+            )),
         }
     }
 }
