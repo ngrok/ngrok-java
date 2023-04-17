@@ -176,7 +176,7 @@ trait JNIExt<'local> {
             .expect("could not set string field")
     }
 
-    fn get_string_field<'env, O>(&self, obj: O, name: &str) -> Option<String>
+    fn get_string_field<O>(&self, obj: O, name: &str) -> Option<String>
     where
         O: Into<JObject<'local>>,
     {
@@ -186,6 +186,11 @@ trait JNIExt<'local> {
             .and_then(|o| o.l())
             .expect("could not get string field")
             .into();
+
+        self.as_string(jstr)
+    }
+
+    fn as_string(&self, jstr: JString) -> Option<String> {
         if jstr.is_null() {
             None
         } else {
@@ -196,6 +201,35 @@ trait JNIExt<'local> {
                     .into(),
             )
         }
+    }
+
+    fn get_list_field<'env, O>(&self, obj: O, name: &str) -> (JObject<'env>, i32)
+    where
+        'local: 'env,
+        O: Into<JObject<'local>>,
+    {
+        let list = self
+            .get_env()
+            .get_field(obj, name, "Ljava/util/List;")
+            .and_then(|o| o.l())
+            .expect("could not get list field");
+        let list_size = self
+            .get_env()
+            .call_method(list, "size", "()I", &[])
+            .and_then(|o| o.i())
+            .expect("could not get list size");
+        (list, list_size)
+    }
+
+    fn get_list_item<'env, O>(&self, obj: O, idx: i32) -> JObject<'env>
+    where
+        'local: 'env,
+        O: Into<JObject<'local>>,
+    {
+        self.get_env()
+            .call_method(obj, "get", "(I)Ljava/lang/Object;", &[JValue::Int(idx)])
+            .and_then(|o| o.l())
+            .expect("could not get version object")
     }
 }
 
@@ -280,28 +314,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let mut bldr = Session::builder();
 
         {
-            let user_agents = self
-                .env
-                .get_field(jsb, "userAgents", "Ljava/util/List;")
-                .and_then(|o| o.l())
-                .expect("could not get versions field");
-            let user_agents_count = self
-                .env
-                .call_method(user_agents, "size", "()I", &[])
-                .and_then(|o| o.i())
-                .expect("could not get versions size");
-            for i in 0..user_agents_count {
-                let user_agent: ComNgrokSessionUserAgent = self
-                    .env
-                    .call_method(
-                        user_agents,
-                        "get",
-                        "(I)Ljava/lang/Object;",
-                        &[JValue::Int(i)],
-                    )
-                    .and_then(|o| o.l())
-                    .expect("could not get version object")
-                    .into();
+            let (user_agents, user_agents_size) = self.get_list_field(jsb, "userAgents");
+            for i in 0..user_agents_size {
+                let user_agent: ComNgrokSessionUserAgent =
+                    self.get_list_item(user_agents, i).into();
                 bldr = bldr.child_client(user_agent.name(self.env), user_agent.version(self.env));
             }
         }
@@ -392,6 +408,26 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.metadata(metadata);
         }
 
+        {
+            let (allow_cidr, allow_cidr_size) = self.get_list_field(jtb, "allowCIDR");
+            for i in 0..allow_cidr_size {
+                let cidr: JString = self.get_list_item(allow_cidr, i).into();
+                if let Some(cidr) = self.as_string(cidr) {
+                    bldr = bldr.allow_cidr(cidr);
+                }
+            }
+        }
+
+        {
+            let (deny_cidr, deny_cidr_size) = self.get_list_field(jtb, "denyCIDR");
+            for i in 0..deny_cidr_size {
+                let cidr: JString = self.get_list_item(deny_cidr, i).into();
+                if let Some(cidr) = self.as_string(cidr) {
+                    bldr = bldr.deny_cidr(cidr);
+                }
+            }
+        }
+
         if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
             bldr = bldr.forwards_to(forwards_to);
         }
@@ -427,6 +463,26 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         if let Some(metadata) = self.get_string_field(jtb, "metadata") {
             bldr = bldr.metadata(metadata);
+        }
+
+        {
+            let (allow_cidr, allow_cidr_size) = self.get_list_field(jtb, "allowCIDR");
+            for i in 0..allow_cidr_size {
+                let cidr: JString = self.get_list_item(allow_cidr, i).into();
+                if let Some(cidr) = self.as_string(cidr) {
+                    bldr = bldr.allow_cidr(cidr);
+                }
+            }
+        }
+
+        {
+            let (deny_cidr, deny_cidr_size) = self.get_list_field(jtb, "denyCIDR");
+            for i in 0..deny_cidr_size {
+                let cidr: JString = self.get_list_item(deny_cidr, i).into();
+                if let Some(cidr) = self.as_string(cidr) {
+                    bldr = bldr.deny_cidr(cidr);
+                }
+            }
         }
 
         if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
@@ -467,6 +523,26 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         if let Some(metadata) = self.get_string_field(jtb, "metadata") {
             bldr = bldr.metadata(metadata);
+        }
+
+        {
+            let (allow_cidr, allow_cidr_size) = self.get_list_field(jtb, "allowCIDR");
+            for i in 0..allow_cidr_size {
+                let cidr: JString = self.get_list_item(allow_cidr, i).into();
+                if let Some(cidr) = self.as_string(cidr) {
+                    bldr = bldr.allow_cidr(cidr);
+                }
+            }
+        }
+
+        {
+            let (deny_cidr, deny_cidr_size) = self.get_list_field(jtb, "denyCIDR");
+            for i in 0..deny_cidr_size {
+                let cidr: JString = self.get_list_item(deny_cidr, i).into();
+                if let Some(cidr) = self.as_string(cidr) {
+                    bldr = bldr.deny_cidr(cidr);
+                }
+            }
         }
 
         if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
