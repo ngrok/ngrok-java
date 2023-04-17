@@ -199,6 +199,12 @@ trait JNIExt<'local> {
     }
 }
 
+macro_rules! io_exc {
+    ($e: ident) => {
+        Error::new(IOExceptionErr::IOException(IOException), $e.to_string())
+    };
+}
+
 struct StopCallback {
     cbk: GlobalRef,
 }
@@ -366,10 +372,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
                 Ok(jsess)
             }
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
+            Err(err) => Err(io_exc!(err)),
         }
     }
 
@@ -402,10 +405,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
                 Ok(jtunnel)
             }
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
+            Err(err) => Err(io_exc!(err)),
         }
     }
 
@@ -441,10 +441,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
                 Ok(jtunnel)
             }
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
+            Err(err) => Err(io_exc!(err)),
         }
     }
 
@@ -480,10 +477,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
                 Ok(jtunnel)
             }
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
+            Err(err) => Err(io_exc!(err)),
         }
     }
 
@@ -536,10 +530,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
                 Ok(jtunnel)
             }
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
+            Err(err) => Err(io_exc!(err)),
         }
     }
 
@@ -550,13 +541,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let rt = RT.get().expect("runtime not initialized");
 
         let mut sess: Session = self.take_native(this);
-        match rt.block_on(sess.close()) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
-        }
+        rt.block_on(sess.close()).map_err(|err| io_exc!(err))
     }
 }
 
@@ -596,10 +581,7 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
                 IOExceptionErr::IOException(IOException),
                 "could not get next conn",
             )),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
+            Err(err) => Err(io_exc!(err)),
         }
     }
 
@@ -611,26 +593,15 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
-        match rt.block_on(tun.forward_tcp(addr)) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
-        }
+        rt.block_on(tun.forward_tcp(addr))
+            .map_err(|err| io_exc!(err))
     }
 
     fn close(&self, this: ComNgrokNativeTcpTunnel<'local>) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: TcpTunnel = self.take_native(this);
-        match rt.block_on(tun.close()) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
-        }
+        rt.block_on(tun.close()).map_err(|err| io_exc!(err))
     }
 }
 
@@ -670,10 +641,7 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
                 IOExceptionErr::IOException(IOException),
                 "could not get next conn",
             )),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
+            Err(err) => Err(io_exc!(err)),
         }
     }
 
@@ -685,26 +653,15 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<TlsTunnel> = self.get_native(this);
-        match rt.block_on(tun.forward_tcp(addr)) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
-        }
+        rt.block_on(tun.forward_tcp(addr))
+            .map_err(|err| io_exc!(err))
     }
 
     fn close(&self, this: ComNgrokNativeTlsTunnel<'local>) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: TlsTunnel = self.take_native(this);
-        match rt.block_on(tun.close()) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
-        }
+        rt.block_on(tun.close()).map_err(|err| io_exc!(err))
     }
 }
 
@@ -759,13 +716,8 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<HttpTunnel> = self.get_native(this);
-        match rt.block_on(tun.forward_tcp(addr)) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
-        }
+        rt.block_on(tun.forward_tcp(addr))
+            .map_err(|err| io_exc!(err))
     }
 
     fn close(
@@ -775,13 +727,7 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: HttpTunnel = self.take_native(this);
-        match rt.block_on(tun.close()) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
-        }
+        rt.block_on(tun.close()).map_err(|err| io_exc!(err))
     }
 }
 
@@ -821,10 +767,7 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
                 IOExceptionErr::IOException(IOException),
                 "could not get next conn",
             )),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
+            Err(err) => Err(io_exc!(err)),
         }
     }
 
@@ -836,13 +779,8 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<LabeledTunnel> = self.get_native(this);
-        match rt.block_on(tun.forward_tcp(addr)) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
-        }
+        rt.block_on(tun.forward_tcp(addr))
+            .map_err(|err| io_exc!(err))
     }
 
     fn close(
@@ -852,13 +790,7 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: LabeledTunnel = self.take_native(this);
-        match rt.block_on(tun.close()) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
-        }
+        rt.block_on(tun.close()).map_err(|err| io_exc!(err))
     }
 }
 
@@ -894,14 +826,8 @@ impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'l
                 IOExceptionErr::IOException(IOException),
                 "closed",
             )),
-            Ok(sz) => {
-                let readsz: i32 = sz.try_into().expect("size must be i32");
-                Ok(readsz)
-            }
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
+            Ok(sz) => Ok(sz.try_into().expect("size must be i32")),
+            Err(err) => Err(io_exc!(err)),
         }
     }
 
@@ -920,14 +846,8 @@ impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'l
             .expect("cannot get buff addr");
         let act = &addr[..limit.try_into().expect("xxx")];
         match rt.block_on(conn.write(act)) {
-            Ok(sz) => {
-                let writesz: i32 = sz.try_into().expect("cannot convert to i32");
-                Ok(writesz)
-            }
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
+            Ok(sz) => Ok(sz.try_into().expect("cannot convert to i32")),
+            Err(err) => Err(io_exc!(err)),
         }
     }
 
@@ -935,12 +855,6 @@ impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'l
         let rt = RT.get().expect("runtime not initialized");
 
         let mut conn: Conn = self.take_native(this);
-        match rt.block_on(conn.shutdown()) {
-            Ok(()) => Ok(()),
-            Err(err) => Err(Error::new(
-                IOExceptionErr::IOException(IOException),
-                err.to_string(),
-            )),
-        }
+        rt.block_on(conn.shutdown()).map_err(|err| io_exc!(err))
     }
 }
