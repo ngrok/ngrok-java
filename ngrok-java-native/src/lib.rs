@@ -390,6 +390,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.metadata(metadata);
         }
 
+        if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
+            bldr = bldr.forwards_to(forwards_to);
+        }
+
         let tun = rt.block_on(bldr.listen());
         match tun {
             Ok(tun) => {
@@ -421,6 +425,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         if let Some(metadata) = self.get_string_field(jtb, "metadata") {
             bldr = bldr.metadata(metadata);
+        }
+
+        if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
+            bldr = bldr.forwards_to(forwards_to);
         }
 
         if let Some(domain) = self.get_string_field(jtb, "domain") {
@@ -457,6 +465,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         if let Some(metadata) = self.get_string_field(jtb, "metadata") {
             bldr = bldr.metadata(metadata);
+        }
+
+        if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
+            bldr = bldr.forwards_to(forwards_to);
         }
 
         if let Some(domain) = self.get_string_field(jtb, "domain") {

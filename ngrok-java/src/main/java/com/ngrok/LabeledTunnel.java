@@ -25,7 +25,7 @@ public abstract class LabeledTunnel extends Tunnel {
         }
     }
 
-    public static class Builder extends AgentTunnel.Builder {
+    public static class Builder extends Tunnel.Builder {
         public final Map<String, String> labels = new HashMap<>();
 
         public Builder label(String key, String value) {
