@@ -313,7 +313,7 @@ struct NativeSessionRsImpl<'local> {
 }
 
 impl<'local> NativeSessionRsImpl<'local> {
-    fn get_proxy_proto<O>(&self, obj: O) -> ProxyProto
+    fn get_proxy_proto<O>(&self, obj: O) -> Option<ProxyProto>
     where
         O: Into<JObject<'local>>,
     {
@@ -324,7 +324,7 @@ impl<'local> NativeSessionRsImpl<'local> {
             .expect("could not get proxy proto field");
 
         if proxy_proto.is_null() {
-            return ProxyProto::None;
+            return None;
         }
 
         let version = self
@@ -332,7 +332,7 @@ impl<'local> NativeSessionRsImpl<'local> {
             .get_field(proxy_proto, "version", "I")
             .and_then(|o| o.i())
             .expect("could not get version field");
-        ProxyProto::from(i64::from(version))
+        Some(ProxyProto::from(i64::from(version)))
     }
 }
 
@@ -473,7 +473,9 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        bldr = bldr.proxy_proto(self.get_proxy_proto(jtb));
+        if let Some(proxy_proto) = self.get_proxy_proto(jtb) {
+            bldr = bldr.proxy_proto(proxy_proto);
+        }
 
         if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
             bldr = bldr.forwards_to(forwards_to);
@@ -539,7 +541,9 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        bldr = bldr.proxy_proto(self.get_proxy_proto(jtb));
+        if let Some(proxy_proto) = self.get_proxy_proto(jtb) {
+            bldr = bldr.proxy_proto(proxy_proto);
+        }
 
         if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
             bldr = bldr.forwards_to(forwards_to);
@@ -604,7 +608,9 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        bldr = bldr.proxy_proto(self.get_proxy_proto(jtb));
+        if let Some(proxy_proto) = self.get_proxy_proto(jtb) {
+            bldr = bldr.proxy_proto(proxy_proto);
+        }
 
         if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
             bldr = bldr.forwards_to(forwards_to);
