@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use bytes::Bytes;
 use com_ngrok::{
     ComNgrokHttpTunnelBuilder, ComNgrokLabeledTunnelBuilder, ComNgrokLabeledTunnelLabel,
     ComNgrokNativeConnection, ComNgrokNativeHttpTunnel, ComNgrokNativeLabeledTunnel,
@@ -554,6 +555,28 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.domain(domain);
         }
 
+        let mtls = jtb.mutual_tlsca(self.env);
+        if !mtls.is_null() {
+            let mtls_data = mtls.as_slice(&self.env).expect("cannot get mtls data");
+            bldr = bldr.mutual_tlsca(Bytes::copy_from_slice(&mtls_data));
+        }
+
+        match (
+            jtb.termination_cert_pem(self.env),
+            jtb.termination_key_pem(self.env),
+        ) {
+            (cert, key) if !cert.is_null() && !key.is_null() => {
+                let cert_pem_data = cert.as_slice(&self.env).expect("cannot get cert data");
+                let key_pem_data = key.as_slice(&self.env).expect("cannot get key data");
+                bldr = bldr.termination(
+                    Bytes::copy_from_slice(&cert_pem_data),
+                    Bytes::copy_from_slice(&key_pem_data),
+                );
+            }
+            (cert, key) if cert.is_null() && key.is_null() => {}
+            _ => return io_exc_err("requires both terminationCertPEM and terminationKeyPEM"),
+        }
+
         match rt.block_on(bldr.listen()) {
             Ok(tun) => {
                 let jtunnel = ComNgrokNativeTlsTunnel::new_1com_ngrok_native_tls_tunnel(self.env);
@@ -619,6 +642,12 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         // from HttpTunnel.Builder
         if let Some(domain) = self.get_string_field(jtb, "domain") {
             bldr = bldr.domain(domain);
+        }
+
+        let mtls = jtb.mutual_tlsca(self.env);
+        if !mtls.is_null() {
+            let slice = mtls.as_slice(&self.env).expect("cannot get mtls data");
+            bldr = bldr.mutual_tlsca(Bytes::copy_from_slice(&slice));
         }
 
         match rt.block_on(bldr.listen()) {
