@@ -24,6 +24,7 @@ use jaffi_support::{
 };
 
 use ngrok::{
+    config::ProxyProto,
     prelude::{TunnelBuilder, TunnelExt},
     session::{CommandHandler, Restart, Stop, Update},
     tunnel::{HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel, UrlTunnel},
@@ -213,23 +214,41 @@ trait JNIExt<'local> {
             .get_field(obj, name, "Ljava/util/List;")
             .and_then(|o| o.l())
             .expect("could not get list field");
-        let list_size = self
-            .get_env()
-            .call_method(list, "size", "()I", &[])
-            .and_then(|o| o.i())
-            .expect("could not get list size");
-        (list, list_size)
+        (list, self.get_list_size(list))
     }
 
-    fn get_list_item<'env, O>(&self, obj: O, idx: i32) -> JObject<'env>
+    fn get_list_method<'env, O>(&self, obj: O, name: &str) -> (JObject<'env>, i32)
+    where
+        'local: 'env,
+        O: Into<JObject<'local>>,
+    {
+        let list = self
+            .get_env()
+            .call_method(obj, name, "()Ljava/util/List;", &[])
+            .and_then(|o| o.l())
+            .expect("could not get list method");
+        (list, self.get_list_size(list))
+    }
+
+    fn get_list_size<O>(&self, list: O) -> i32
+    where
+        O: Into<JObject<'local>>,
+    {
+        self.get_env()
+            .call_method(list, "size", "()I", &[])
+            .and_then(|o| o.i())
+            .expect("could not get list size")
+    }
+
+    fn get_list_item<'env, O>(&self, list: O, idx: i32) -> JObject<'env>
     where
         'local: 'env,
         O: Into<JObject<'local>>,
     {
         self.get_env()
-            .call_method(obj, "get", "(I)Ljava/lang/Object;", &[JValue::Int(idx)])
+            .call_method(list, "get", "(I)Ljava/lang/Object;", &[JValue::Int(idx)])
             .and_then(|o| o.l())
-            .expect("could not get version object")
+            .expect("could not get list item")
     }
 }
 
@@ -291,6 +310,30 @@ impl CommandHandler<Update> for UpdateCallback {
 
 struct NativeSessionRsImpl<'local> {
     env: JNIEnv<'local>,
+}
+
+impl<'local> NativeSessionRsImpl<'local> {
+    fn get_proxy_proto<O>(&self, obj: O) -> ProxyProto
+    where
+        O: Into<JObject<'local>>,
+    {
+        let proxy_proto = self
+            .env
+            .get_field(obj, "proxyProto", "Lcom/ngrok/ProxyProto;")
+            .and_then(|o| o.l())
+            .expect("could not get proxy proto field");
+
+        if proxy_proto.is_null() {
+            return ProxyProto::None;
+        }
+
+        let version = self
+            .env
+            .get_field(proxy_proto, "version", "I")
+            .and_then(|o| o.i())
+            .expect("could not get version field");
+        ProxyProto::from(i64::from(version))
+    }
 }
 
 impl<'local> JNIExt<'local> for NativeSessionRsImpl<'local> {
@@ -404,10 +447,12 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.tcp_endpoint();
 
+        // from Tunnel.Builder
         if let Some(metadata) = self.get_string_field(jtb, "metadata") {
             bldr = bldr.metadata(metadata);
         }
 
+        // from AgentTunnel.Builder
         {
             let (allow_cidr, allow_cidr_size) = self.get_list_field(jtb, "allowCIDR");
             for i in 0..allow_cidr_size {
@@ -428,8 +473,15 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
+        bldr = bldr.proxy_proto(self.get_proxy_proto(jtb));
+
         if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
             bldr = bldr.forwards_to(forwards_to);
+        }
+
+        // from TcpTunnel.Builder
+        if let Some(remote_address) = self.get_string_field(jtb, "remoteAddress") {
+            bldr = bldr.remote_addr(remote_address);
         }
 
         let tun = rt.block_on(bldr.listen());
@@ -461,10 +513,12 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.tls_endpoint();
 
+        // from Tunnel.Builder
         if let Some(metadata) = self.get_string_field(jtb, "metadata") {
             bldr = bldr.metadata(metadata);
         }
 
+        // from AgentTunnel.Builder
         {
             let (allow_cidr, allow_cidr_size) = self.get_list_field(jtb, "allowCIDR");
             for i in 0..allow_cidr_size {
@@ -485,10 +539,13 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
+        bldr = bldr.proxy_proto(self.get_proxy_proto(jtb));
+
         if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
             bldr = bldr.forwards_to(forwards_to);
         }
 
+        // from TlsTunnel.Builder
         if let Some(domain) = self.get_string_field(jtb, "domain") {
             bldr = bldr.domain(domain);
         }
@@ -521,10 +578,12 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.http_endpoint();
 
+        // from Tunnel.Builder
         if let Some(metadata) = self.get_string_field(jtb, "metadata") {
             bldr = bldr.metadata(metadata);
         }
 
+        // from AgentTunnel.Builder
         {
             let (allow_cidr, allow_cidr_size) = self.get_list_field(jtb, "allowCIDR");
             for i in 0..allow_cidr_size {
@@ -545,10 +604,13 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
+        bldr = bldr.proxy_proto(self.get_proxy_proto(jtb));
+
         if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
             bldr = bldr.forwards_to(forwards_to);
         }
 
+        // from HttpTunnel.Builder
         if let Some(domain) = self.get_string_field(jtb, "domain") {
             bldr = bldr.domain(domain);
         }
@@ -581,28 +643,16 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.labeled_tunnel();
 
+        // from Tunnel.Builder
         if let Some(metadata) = self.get_string_field(jtb, "metadata") {
             bldr = bldr.metadata(metadata);
         }
 
+        // from LabeledTunnel.Builder
         {
-            let labels = self
-                .env
-                .call_method(jtb, "labels", "()Ljava/util/List;", &[])
-                .and_then(|o| o.l())
-                .expect("could not get labels");
-            let labels_count = self
-                .env
-                .call_method(labels, "size", "()I", &[])
-                .and_then(|o| o.i())
-                .expect("could not get labels size");
-            for i in 0..labels_count {
-                let label: ComNgrokLabeledTunnelLabel = self
-                    .env
-                    .call_method(labels, "get", "(I)Ljava/lang/Object;", &[JValue::Int(i)])
-                    .and_then(|o| o.l())
-                    .expect("could not get version object")
-                    .into();
+            let (labels, labels_size) = self.get_list_method(jtb, "labels");
+            for i in 0..labels_size {
+                let label: ComNgrokLabeledTunnelLabel = self.get_list_item(labels, i).into();
                 bldr = bldr.label(label.name(self.env), label.value(self.env));
             }
         }

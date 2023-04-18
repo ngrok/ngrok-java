@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public abstract class LabeledTunnel extends Tunnel {
-
     public static class Label {
         public final String name;
         public final String value;
@@ -25,7 +24,7 @@ public abstract class LabeledTunnel extends Tunnel {
         }
     }
 
-    public static class Builder extends Tunnel.Builder {
+    public static class Builder extends Tunnel.Builder<Builder> {
         public final Map<String, String> labels = new HashMap<>();
 
         public Builder label(String key, String value) {

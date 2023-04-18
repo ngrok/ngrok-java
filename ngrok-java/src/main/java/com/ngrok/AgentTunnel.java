@@ -15,23 +15,28 @@ public abstract class AgentTunnel extends Tunnel {
         return url;
     }
 
-    public static abstract class Builder extends Tunnel.Builder {
+    public static abstract class Builder<T extends Builder> extends Tunnel.Builder<T> {
         public final List<String> allowCIDR = new ArrayList<>();
         public final List<String> denyCIDR = new ArrayList<>();
+        public ProxyProto proxyProto;
         public String forwardsTo;
-        // proxyProto
 
-        public <T extends Builder> T allowCIDR(String allowCIDR) {
+        public T allowCIDR(String allowCIDR) {
             this.allowCIDR.add(allowCIDR);
             return (T) this;
         }
 
-        public <T extends Builder> T denyCIDR(String denyCIDR) {
+        public T denyCIDR(String denyCIDR) {
             this.denyCIDR.add(denyCIDR);
             return (T) this;
         }
 
-        public <T extends Builder> T forwardsTo(String forwardsTo) {
+        public T proxyProto(ProxyProto proxyProto) {
+            this.proxyProto = proxyProto;
+            return (T) this;
+        }
+
+        public T forwardsTo(String forwardsTo) {
             this.forwardsTo = forwardsTo;
             return (T) this;
         }

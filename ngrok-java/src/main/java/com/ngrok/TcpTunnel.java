@@ -1,7 +1,7 @@
 package com.ngrok;
 
 public abstract class TcpTunnel extends AgentTunnel {
-    public static class Builder extends AgentTunnel.Builder {
+    public static class Builder extends AgentTunnel.Builder<Builder> {
         public String remoteAddress;
 
         public Builder remoteAddress(String remoteAddress) {

@@ -25,10 +25,10 @@ public abstract class Tunnel implements AutoCloseable {
 
     public abstract void close() throws IOException;
 
-    public static abstract class Builder {
+    public static abstract class Builder<T extends Builder> {
         public String metadata;
 
-        public <T extends Builder> T metadata(String metadata) {
+        public T metadata(String metadata) {
             this.metadata = metadata;
             return (T) this;
         }
