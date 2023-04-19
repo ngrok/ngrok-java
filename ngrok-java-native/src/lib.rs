@@ -265,6 +265,16 @@ struct StopCallback {
     cbk: GlobalRef,
 }
 
+impl StopCallback {
+    fn from(env: JNIEnv<'_>, obj: ComNgrokSessionStopCallback) -> Self {
+        StopCallback {
+            cbk: env
+                .new_global_ref(obj)
+                .expect("cannot get global reference"),
+        }
+    }
+}
+
 #[async_trait]
 impl CommandHandler<Stop> for StopCallback {
     async fn handle_command(&self, _req: Stop) -> Result<(), String> {
@@ -279,6 +289,16 @@ impl CommandHandler<Stop> for StopCallback {
 
 struct RestartCallback {
     cbk: GlobalRef,
+}
+
+impl RestartCallback {
+    fn from(env: JNIEnv<'_>, obj: ComNgrokSessionRestartCallback) -> Self {
+        RestartCallback {
+            cbk: env
+                .new_global_ref(obj)
+                .expect("cannot get global reference"),
+        }
+    }
 }
 
 #[async_trait]
@@ -297,6 +317,16 @@ struct UpdateCallback {
     cbk: GlobalRef,
 }
 
+impl UpdateCallback {
+    fn from(env: JNIEnv<'_>, obj: ComNgrokSessionUpdateCallback) -> Self {
+        UpdateCallback {
+            cbk: env
+                .new_global_ref(obj)
+                .expect("cannot get global reference"),
+        }
+    }
+}
+
 #[async_trait]
 impl CommandHandler<Update> for UpdateCallback {
     async fn handle_command(&self, _req: Update) -> Result<(), String> {
@@ -311,6 +341,16 @@ impl CommandHandler<Update> for UpdateCallback {
 
 struct HeartbeatCallback {
     cbk: GlobalRef,
+}
+
+impl HeartbeatCallback {
+    fn from(env: JNIEnv<'_>, obj: ComNgrokSessionHeartbeatHandler) -> Self {
+        HeartbeatCallback {
+            cbk: env
+                .new_global_ref(obj)
+                .expect("cannot get global reference"),
+        }
+    }
 }
 
 #[async_trait]
@@ -400,38 +440,22 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         let stop_obj = jsb.stop_callback(self.env);
         if !stop_obj.is_null() {
-            let cbk = self
-                .env
-                .new_global_ref(stop_obj)
-                .expect("cannot get global reference");
-            bldr = bldr.handle_stop_command(StopCallback { cbk });
+            bldr = bldr.handle_stop_command(StopCallback::from(self.env, stop_obj));
         }
 
         let restart_obj = jsb.restart_callback(self.env);
         if !restart_obj.is_null() {
-            let cbk = self
-                .env
-                .new_global_ref(restart_obj)
-                .expect("cannot get global reference");
-            bldr = bldr.handle_restart_command(RestartCallback { cbk });
+            bldr = bldr.handle_restart_command(RestartCallback::from(self.env, restart_obj));
         }
 
         let update_obj = jsb.update_callback(self.env);
         if !update_obj.is_null() {
-            let cbk = self
-                .env
-                .new_global_ref(update_obj)
-                .expect("cannot get global reference");
-            bldr = bldr.handle_update_command(UpdateCallback { cbk });
+            bldr = bldr.handle_update_command(UpdateCallback::from(self.env, update_obj));
         }
 
         let heartbeat_obj = jsb.heartbeat_handler(self.env);
         if !heartbeat_obj.is_null() {
-            let cbk = self
-                .env
-                .new_global_ref(heartbeat_obj)
-                .expect("cannot get global reference");
-            bldr = bldr.handle_heartbeat(HeartbeatCallback { cbk });
+            bldr = bldr.handle_heartbeat(HeartbeatCallback::from(self.env, heartbeat_obj));
         }
 
         match rt.block_on(bldr.connect()) {
