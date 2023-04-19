@@ -5,13 +5,13 @@ use com_ngrok::{
     ComNgrokNativeConnection, ComNgrokNativeHttpTunnel, ComNgrokNativeLabeledTunnel,
     ComNgrokNativeSession, ComNgrokNativeSessionClass, ComNgrokNativeTcpTunnel,
     ComNgrokNativeTlsTunnel, ComNgrokRuntimeLogger, ComNgrokSessionBuilder,
-    ComNgrokSessionRestartCallback, ComNgrokSessionStopCallback, ComNgrokSessionUpdateCallback,
-    ComNgrokSessionUserAgent, ComNgrokTcpTunnelBuilder, ComNgrokTlsTunnelBuilder, IOException,
-    IOExceptionErr,
+    ComNgrokSessionHeartbeatHandler, ComNgrokSessionRestartCallback, ComNgrokSessionStopCallback,
+    ComNgrokSessionUpdateCallback, ComNgrokSessionUserAgent, ComNgrokTcpTunnelBuilder,
+    ComNgrokTlsTunnelBuilder, IOException, IOExceptionErr,
 };
 use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
-use std::sync::MutexGuard;
+use std::{sync::MutexGuard, time::Duration};
 use tokio::{io::AsyncReadExt, io::AsyncWriteExt, runtime::Runtime};
 use tracing::metadata::LevelFilter;
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
@@ -27,7 +27,7 @@ use jaffi_support::{
 use ngrok::{
     config::ProxyProto,
     prelude::{TunnelBuilder, TunnelExt},
-    session::{CommandHandler, Restart, Stop, Update},
+    session::{CommandHandler, HeartbeatHandler, Restart, Stop, Update},
     tunnel::{HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel, UrlTunnel},
     Conn, Session, Tunnel,
 };
@@ -309,6 +309,28 @@ impl CommandHandler<Update> for UpdateCallback {
     }
 }
 
+struct HeartbeatCallback {
+    cbk: GlobalRef,
+}
+
+#[async_trait]
+impl HeartbeatHandler for HeartbeatCallback {
+    async fn handle_heartbeat(
+        &self,
+        latency: Option<Duration>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let jvm = JVM.get().expect("no jvm");
+        let jenv = jvm.attach_current_thread()?;
+
+        let lcbk = ComNgrokSessionHeartbeatHandler::from(self.cbk.as_obj());
+        match latency {
+            Some(latency) => lcbk.heartbeat(*jenv, i64::try_from(latency.as_millis())?),
+            None => lcbk.timeout(*jenv),
+        }
+        Ok(())
+    }
+}
+
 struct NativeSessionRsImpl<'local> {
     env: JNIEnv<'local>,
 }
@@ -376,12 +398,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.metadata(metadata);
         }
 
-        let stop_obj: ComNgrokSessionStopCallback = self
-            .env
-            .get_field(jsb, "stopCallback", "Lcom/ngrok/Session$StopCallback;")
-            .and_then(|o| o.l())
-            .expect("could not get stopCallback")
-            .into();
+        let stop_obj = jsb.stop_callback(self.env);
         if !stop_obj.is_null() {
             let cbk = self
                 .env
@@ -390,16 +407,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.handle_stop_command(StopCallback { cbk });
         }
 
-        let restart_obj: ComNgrokSessionRestartCallback = self
-            .env
-            .get_field(
-                jsb,
-                "restartCallback",
-                "Lcom/ngrok/Session$RestartCallback;",
-            )
-            .and_then(|o| o.l())
-            .expect("could not get restartCallback")
-            .into();
+        let restart_obj = jsb.restart_callback(self.env);
         if !restart_obj.is_null() {
             let cbk = self
                 .env
@@ -408,18 +416,22 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.handle_restart_command(RestartCallback { cbk });
         }
 
-        let update_obj: ComNgrokSessionUpdateCallback = self
-            .env
-            .get_field(jsb, "updateCallback", "Lcom/ngrok/Session$UpdateCallback;")
-            .and_then(|o| o.l())
-            .expect("could not get updateCallback")
-            .into();
+        let update_obj = jsb.update_callback(self.env);
         if !update_obj.is_null() {
             let cbk = self
                 .env
                 .new_global_ref(update_obj)
                 .expect("cannot get global reference");
             bldr = bldr.handle_update_command(UpdateCallback { cbk });
+        }
+
+        let heartbeat_obj = jsb.heartbeat_handler(self.env);
+        if !heartbeat_obj.is_null() {
+            let cbk = self
+                .env
+                .new_global_ref(heartbeat_obj)
+                .expect("cannot get global reference");
+            bldr = bldr.handle_heartbeat(HeartbeatCallback { cbk });
         }
 
         match rt.block_on(bldr.connect()) {

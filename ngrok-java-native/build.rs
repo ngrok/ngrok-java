@@ -30,6 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.Session$StopCallback"),
         Cow::from("com.ngrok.Session$RestartCallback"),
         Cow::from("com.ngrok.Session$UpdateCallback"),
+        Cow::from("com.ngrok.Session$HeartbeatHandler"),
         Cow::from("com.ngrok.TcpTunnel"),
         Cow::from("com.ngrok.TcpTunnel$Builder"),
         Cow::from("com.ngrok.TlsTunnel"),

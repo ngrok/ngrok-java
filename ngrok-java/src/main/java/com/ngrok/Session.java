@@ -68,6 +68,12 @@ public interface Session extends AutoCloseable {
         public void update();
     }
 
+    public interface HeartbeatHandler {
+        public void heartbeat(long durationMs);
+
+        public default void timeout() {}
+    }
+
     class UserAgent {
         public final String name;
 
@@ -98,6 +104,8 @@ public interface Session extends AutoCloseable {
         public RestartCallback restartCallback;
         public UpdateCallback updateCallback;
 
+        public HeartbeatHandler heartbeatHandler;
+
         public Builder() {
         }
 
@@ -116,19 +124,40 @@ public interface Session extends AutoCloseable {
             return this;
         }
 
-        public Builder setStopCallback(StopCallback callback) {
+        public Builder stopCallback(StopCallback callback) {
             this.stopCallback = callback;
             return this;
         }
 
-        public Builder setRestartCallback(RestartCallback callback) {
+        public StopCallback stopCallback() {
+            return stopCallback;
+        }
+
+        public Builder restartCallback(RestartCallback callback) {
             this.restartCallback = callback;
             return this;
         }
 
-        public Builder setUpdateCallback(UpdateCallback callback) {
+        public RestartCallback restartCallback() {
+            return restartCallback;
+        }
+
+        public Builder updateCallback(UpdateCallback callback) {
             this.updateCallback = callback;
             return this;
+        }
+
+        public UpdateCallback updateCallback() {
+            return updateCallback;
+        }
+
+        public Builder heartbeatHandler(HeartbeatHandler heartbeatHandler) {
+            this.heartbeatHandler = heartbeatHandler;
+            return this;
+        }
+
+        public HeartbeatHandler heartbeatHandler() {
+            return heartbeatHandler;
         }
     }
 }
