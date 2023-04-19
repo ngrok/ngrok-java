@@ -36,6 +36,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.TlsTunnel"),
         Cow::from("com.ngrok.TlsTunnel$Builder"),
         Cow::from("com.ngrok.HttpTunnel"),
+        Cow::from("com.ngrok.HttpTunnel$Header"),
+        Cow::from("com.ngrok.HttpTunnel$BasicAuthOptions"),
         Cow::from("com.ngrok.HttpTunnel$Builder"),
         Cow::from("com.ngrok.LabeledTunnel"),
         Cow::from("com.ngrok.LabeledTunnel$Label"),

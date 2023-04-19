@@ -1,13 +1,13 @@
 use async_trait::async_trait;
 use bytes::Bytes;
 use com_ngrok::{
-    ComNgrokHttpTunnelBuilder, ComNgrokLabeledTunnelBuilder, ComNgrokLabeledTunnelLabel,
-    ComNgrokNativeConnection, ComNgrokNativeHttpTunnel, ComNgrokNativeLabeledTunnel,
-    ComNgrokNativeSession, ComNgrokNativeSessionClass, ComNgrokNativeTcpTunnel,
-    ComNgrokNativeTlsTunnel, ComNgrokRuntimeLogger, ComNgrokSessionBuilder,
-    ComNgrokSessionHeartbeatHandler, ComNgrokSessionRestartCallback, ComNgrokSessionStopCallback,
-    ComNgrokSessionUpdateCallback, ComNgrokSessionUserAgent, ComNgrokTcpTunnelBuilder,
-    ComNgrokTlsTunnelBuilder, IOException, IOExceptionErr,
+    ComNgrokHttpTunnelBuilder, ComNgrokHttpTunnelHeader, ComNgrokLabeledTunnelBuilder,
+    ComNgrokLabeledTunnelLabel, ComNgrokNativeConnection, ComNgrokNativeHttpTunnel,
+    ComNgrokNativeLabeledTunnel, ComNgrokNativeSession, ComNgrokNativeSessionClass,
+    ComNgrokNativeTcpTunnel, ComNgrokNativeTlsTunnel, ComNgrokRuntimeLogger,
+    ComNgrokSessionBuilder, ComNgrokSessionHeartbeatHandler, ComNgrokSessionRestartCallback,
+    ComNgrokSessionStopCallback, ComNgrokSessionUpdateCallback, ComNgrokSessionUserAgent,
+    ComNgrokTcpTunnelBuilder, ComNgrokTlsTunnelBuilder, IOException, IOExceptionErr,
 };
 use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
@@ -432,11 +432,19 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.authtoken(authtoken);
         }
 
+        // TODO: heartbeat_interval
+        // TODO: heartbeat_tolerance
+
         let mut session_metadata: Option<String> = None;
         if let Some(metadata) = self.get_string_field(jsb, "metadata") {
             session_metadata = Some(metadata.clone());
             bldr = bldr.metadata(metadata);
         }
+
+        // TODO: server_addr
+        // TODO: ca_cert
+        // TODO: tls_config
+        // TODO: connector?
 
         let stop_obj = jsb.stop_callback(self.env);
         if !stop_obj.is_null() {
@@ -676,6 +684,9 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         }
 
         // from HttpTunnel.Builder
+
+        // TODO: scheme
+
         if let Some(domain) = self.get_string_field(jtb, "domain") {
             bldr = bldr.domain(domain);
         }
@@ -685,6 +696,48 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             let slice = mtls.as_slice(&self.env).expect("cannot get mtls data");
             bldr = bldr.mutual_tlsca(Bytes::copy_from_slice(&slice));
         }
+
+        // TODO: compression
+        // TODO: websocket_tcp_conversion
+        // TODO: circuit_breaker
+
+        let (request_headers, request_headers_size) = self.get_list_field(jtb, "requestHeaders");
+        for i in 0..request_headers_size {
+            let header: ComNgrokHttpTunnelHeader = self.get_list_item(request_headers, i).into();
+            bldr = bldr.request_header(header.name(self.env), header.value(self.env));
+        }
+
+        let (response_header, response_headers_size) = self.get_list_field(jtb, "responseHeaders");
+        for i in 0..response_headers_size {
+            let header: ComNgrokHttpTunnelHeader = self.get_list_item(response_header, i).into();
+            bldr = bldr.response_header(header.name(self.env), header.value(self.env));
+        }
+
+        let (remove_request_headers, remove_request_headers_size) =
+            self.get_list_field(jtb, "removeRequestHeaders");
+        for i in 0..remove_request_headers_size {
+            let header: JString = self.get_list_item(remove_request_headers, i).into();
+            if let Some(name) = self.as_string(header) {
+                bldr = bldr.remove_request_header(name);
+            }
+        }
+
+        let (remove_response_headers, remove_response_headers_size) =
+            self.get_list_field(jtb, "removeResponseHeaders");
+        for i in 0..remove_response_headers_size {
+            let header: JString = self.get_list_item(remove_response_headers, i).into();
+            if let Some(name) = self.as_string(header) {
+                bldr = bldr.remove_response_header(name);
+            }
+        }
+
+        let basic_auth = jtb.basic_auth_options(self.env);
+        if !basic_auth.is_null() {
+            bldr = bldr.basic_auth(basic_auth.username(self.env), basic_auth.password(self.env));
+        }
+        // TODO: oauth
+        // TODO: oidc
+        // TODO: webhook_verification
 
         match rt.block_on(bldr.listen()) {
             Ok(tun) => {
