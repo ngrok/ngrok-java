@@ -424,7 +424,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             for i in 0..user_agents_size {
                 let user_agent: ComNgrokSessionUserAgent =
                     self.get_list_item(user_agents, i).into();
-                bldr = bldr.child_client(user_agent.get_name(self.env), user_agent.get_version(self.env));
+                bldr = bldr.child_client(
+                    user_agent.get_name(self.env),
+                    user_agent.get_version(self.env),
+                );
             }
         }
 
@@ -733,7 +736,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         let basic_auth = jtb.basic_auth_options(self.env);
         if !basic_auth.is_null() {
-            bldr = bldr.basic_auth(basic_auth.get_username(self.env), basic_auth.get_password(self.env));
+            bldr = bldr.basic_auth(
+                basic_auth.get_username(self.env),
+                basic_auth.get_password(self.env),
+            );
         }
         // TODO: oauth
         // TODO: oidc
