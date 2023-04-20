@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 public abstract class Connection implements AutoCloseable {
     private String remoteAddr;
 
-    public String remoteAddr() {
+    public String getRemoteAddr() {
         return remoteAddr;
     }
 

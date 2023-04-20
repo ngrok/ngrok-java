@@ -10,7 +10,7 @@ public class DataTest {
     @Test
     public void testSessionClose() throws Exception {
         try (var session = Session.connect(Session.newBuilder().metadata("java-session"))) {
-            assertEquals("java-session", session.metadata());
+            assertEquals("java-session", session.getMetadata());
         }
     }
 
@@ -18,8 +18,8 @@ public class DataTest {
     public void testTunnelClose() throws Exception {
         try (var session = Session.connect(Session.newBuilder());
             var tunnel = session.httpTunnel(new HttpTunnel.Builder().metadata("java-tunnel"))) {
-            assertEquals("java-tunnel", tunnel.metadata());
-            System.out.println(tunnel.url());
+            assertEquals("java-tunnel", tunnel.getMetadata());
+            System.out.println(tunnel.getUrl());
         }
     }
 

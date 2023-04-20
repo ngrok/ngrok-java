@@ -36,7 +36,7 @@ public class NativeSession implements Session {
 
     public static native NativeSession connectNative(Session.Builder builder) throws IOException;
 
-    public String metadata() {
+    public String getMetadata() {
         return metadata;
     }
 

@@ -3,32 +3,33 @@ package com.ngrok;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class LabeledTunnel extends Tunnel {
     public static class Label {
-        public final String name;
-        public final String value;
+        private final String name;
+        private final String value;
 
         public Label(String name, String value) {
-            this.name = name;
-            this.value = value;
+            this.name = Objects.requireNonNull(name);
+            this.value = Objects.requireNonNull(value);
         }
 
-        public String name() {
+        public String getName() {
             return name;
         }
 
-        public String value() {
+        public String getValue() {
             return value;
         }
     }
 
     public static class Builder extends Tunnel.Builder<Builder> {
-        public final Map<String, String> labels = new HashMap<>();
+        private final Map<String, String> labels = new HashMap<>();
 
         public Builder label(String key, String value) {
-            labels.put(key, value);
+            labels.put(Objects.requireNonNull(key), Objects.requireNonNull(value));
             return this;
         }
 

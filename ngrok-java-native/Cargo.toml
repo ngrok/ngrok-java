@@ -21,3 +21,6 @@ tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 
 [lib]
 crate_type = ["cdylib"]
+
+[patch.crates-io]
+jaffi_support = { git = 'https://github.com/ngrok-oss/jaffi.git', branch = 'nikolay/add-bool-support' }

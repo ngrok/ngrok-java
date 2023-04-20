@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public interface Session extends AutoCloseable {
 
@@ -30,7 +31,7 @@ public interface Session extends AutoCloseable {
         }
     }
 
-    public String metadata();
+    public String getMetadata();
 
     public default TcpTunnel tcpTunnel() throws IOException {
         return tcpTunnel(new TcpTunnel.Builder());
@@ -75,36 +76,36 @@ public interface Session extends AutoCloseable {
     }
 
     class UserAgent {
-        public final String name;
+        private final String name;
 
-        public final String version;
+        private final String version;
 
         public UserAgent(String name, String version) {
-            this.name = name;
-            this.version = version;
+            this.name = Objects.requireNonNull(name);
+            this.version = Objects.requireNonNull(version);
         }
 
-        public String name() {
+        public String getName() {
             return name;
         }
 
-        public String version() {
+        public String getVersion() {
             return version;
         }
     }
 
     public static class Builder {
-        public final List<UserAgent> userAgents = new ArrayList<>();
+        protected final List<UserAgent> userAgents = new ArrayList<>();
 
-        public String authtoken;
+        private String authtoken;
 
-        public String metadata;
+        private String metadata;
 
-        public StopCallback stopCallback;
-        public RestartCallback restartCallback;
-        public UpdateCallback updateCallback;
+        private StopCallback stopCallback;
+        private RestartCallback restartCallback;
+        private UpdateCallback updateCallback;
 
-        public HeartbeatHandler heartbeatHandler;
+        private HeartbeatHandler heartbeatHandler;
 
         public Builder() {
         }
@@ -119,9 +120,25 @@ public interface Session extends AutoCloseable {
             return this;
         }
 
+        public String getAuthtoken() {
+            return authtoken;
+        }
+
+        public boolean hasAuthtoken() {
+            return authtoken != null;
+        }
+
         public Builder metadata(String metadata) {
             this.metadata = metadata;
             return this;
+        }
+
+        public String getMetadata() {
+            return metadata;
+        }
+
+        public boolean hasMetadata() {
+            return metadata != null;
         }
 
         public Builder stopCallback(StopCallback callback) {

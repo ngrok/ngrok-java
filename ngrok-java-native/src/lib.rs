@@ -424,21 +424,21 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             for i in 0..user_agents_size {
                 let user_agent: ComNgrokSessionUserAgent =
                     self.get_list_item(user_agents, i).into();
-                bldr = bldr.child_client(user_agent.name(self.env), user_agent.version(self.env));
+                bldr = bldr.child_client(user_agent.get_name(self.env), user_agent.get_version(self.env));
             }
         }
 
-        if let Some(authtoken) = self.get_string_field(jsb, "authtoken") {
-            bldr = bldr.authtoken(authtoken);
+        if jsb.has_authtoken(self.env) {
+            bldr = bldr.authtoken(jsb.get_authtoken(self.env));
         }
 
         // TODO: heartbeat_interval
         // TODO: heartbeat_tolerance
 
         let mut session_metadata: Option<String> = None;
-        if let Some(metadata) = self.get_string_field(jsb, "metadata") {
-            session_metadata = Some(metadata.clone());
-            bldr = bldr.metadata(metadata);
+        if jsb.has_metadata(self.env) {
+            session_metadata = Some(jsb.get_metadata(self.env));
+            bldr = bldr.metadata(jsb.get_metadata(self.env));
         }
 
         // TODO: server_addr
@@ -527,8 +527,8 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         }
 
         // from TcpTunnel.Builder
-        if let Some(remote_address) = self.get_string_field(jtb, "remoteAddress") {
-            bldr = bldr.remote_addr(remote_address);
+        if jtb.has_remote_address(self.env) {
+            bldr = bldr.remote_addr(jtb.get_remote_address(self.env));
         }
 
         let tun = rt.block_on(bldr.listen());
@@ -595,19 +595,19 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         }
 
         // from TlsTunnel.Builder
-        if let Some(domain) = self.get_string_field(jtb, "domain") {
-            bldr = bldr.domain(domain);
+        if jtb.has_domain(self.env) {
+            bldr = bldr.domain(jtb.get_domain(self.env));
         }
 
-        let mtls = jtb.mutual_tlsca(self.env);
+        let mtls = jtb.get_mutual_tlsca(self.env);
         if !mtls.is_null() {
             let mtls_data = mtls.as_slice(&self.env).expect("cannot get mtls data");
             bldr = bldr.mutual_tlsca(Bytes::copy_from_slice(&mtls_data));
         }
 
         match (
-            jtb.termination_cert_pem(self.env),
-            jtb.termination_key_pem(self.env),
+            jtb.get_termination_cert_pem(self.env),
+            jtb.get_termination_key_pem(self.env),
         ) {
             (cert, key) if !cert.is_null() && !key.is_null() => {
                 let cert_pem_data = cert.as_slice(&self.env).expect("cannot get cert data");
@@ -687,11 +687,11 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         // TODO: scheme
 
-        if let Some(domain) = self.get_string_field(jtb, "domain") {
-            bldr = bldr.domain(domain);
+        if jtb.has_domain(self.env) {
+            bldr = bldr.domain(jtb.get_domain(self.env));
         }
 
-        let mtls = jtb.mutual_tlsca(self.env);
+        let mtls = jtb.get_mutual_tlsca(self.env);
         if !mtls.is_null() {
             let slice = mtls.as_slice(&self.env).expect("cannot get mtls data");
             bldr = bldr.mutual_tlsca(Bytes::copy_from_slice(&slice));
@@ -704,13 +704,13 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let (request_headers, request_headers_size) = self.get_list_field(jtb, "requestHeaders");
         for i in 0..request_headers_size {
             let header: ComNgrokHttpTunnelHeader = self.get_list_item(request_headers, i).into();
-            bldr = bldr.request_header(header.name(self.env), header.value(self.env));
+            bldr = bldr.request_header(header.get_name(self.env), header.get_value(self.env));
         }
 
         let (response_header, response_headers_size) = self.get_list_field(jtb, "responseHeaders");
         for i in 0..response_headers_size {
             let header: ComNgrokHttpTunnelHeader = self.get_list_item(response_header, i).into();
-            bldr = bldr.response_header(header.name(self.env), header.value(self.env));
+            bldr = bldr.response_header(header.get_name(self.env), header.get_value(self.env));
         }
 
         let (remove_request_headers, remove_request_headers_size) =
@@ -733,7 +733,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         let basic_auth = jtb.basic_auth_options(self.env);
         if !basic_auth.is_null() {
-            bldr = bldr.basic_auth(basic_auth.username(self.env), basic_auth.password(self.env));
+            bldr = bldr.basic_auth(basic_auth.get_username(self.env), basic_auth.get_password(self.env));
         }
         // TODO: oauth
         // TODO: oidc
@@ -777,7 +777,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             let (labels, labels_size) = self.get_list_method(jtb, "labels");
             for i in 0..labels_size {
                 let label: ComNgrokLabeledTunnelLabel = self.get_list_item(labels, i).into();
-                bldr = bldr.label(label.name(self.env), label.value(self.env));
+                bldr = bldr.label(label.get_name(self.env), label.get_value(self.env));
             }
         }
 

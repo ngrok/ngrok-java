@@ -33,7 +33,7 @@ public class NgrokConnector extends AbstractConnector {
         this.session = sessionSupplier.get();
         this.tunnel = tunnelFunction.apply(this.session);
         if (this.tunnel instanceof AgentTunnel agentTunnel) {
-            System.out.printf("URL: %s\n", agentTunnel.url());
+            System.out.printf("URL: %s\n", agentTunnel.getUrl());
         }
 
         super.doStart();
@@ -42,7 +42,7 @@ public class NgrokConnector extends AbstractConnector {
     @Override
     protected void accept(int i) throws IOException, InterruptedException {
         var nconn = tunnel.accept();
-        System.out.printf("[%s] Accepted for %d\n", nconn.remoteAddr(), i);
+        System.out.printf("[%s] Accepted for %d\n", nconn.getRemoteAddr(), i);
         var ep = new NgrokEndpoint(getScheduler(), nconn);
 
         var conn = getDefaultConnectionFactory().newConnection(this, ep);

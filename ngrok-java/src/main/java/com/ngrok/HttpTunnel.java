@@ -2,48 +2,49 @@ package com.ngrok;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class HttpTunnel extends AgentTunnel {
     public static class Header {
-        public final String name;
-        public final String value;
+        private final String name;
+        private final String value;
 
         public Header(String name, String value) {
-            this.name = name;
-            this.value = value;
+            this.name = Objects.requireNonNull(name);
+            this.value = Objects.requireNonNull(value);
         }
 
-        public String name() {
+        public String getName() {
             return name;
         }
 
-        public String value() {
+        public String getValue() {
             return value;
         }
     }
 
     public static class BasicAuthOptions {
-        public final String username;
-        public final String password;
+        private final String username;
+        private final String password;
 
         public BasicAuthOptions(String username, String password) {
-            this.username = username;
-            this.password = password;
+            this.username = Objects.requireNonNull(username);
+            this.password = Objects.requireNonNull(password);
         }
 
-        public String username() {
+        public String getUsername() {
             return username;
         }
 
-        public String password() {
+        public String getPassword() {
             return password;
         }
     }
 
     public static class Builder extends AgentTunnel.Builder<Builder> {
-        public String domain;
+        private String domain;
 
-        public byte[] mutualTLSCA;
+        private byte[] mutualTLSCA;
 
         public final List<Header> requestHeaders = new ArrayList<>();
         public final List<Header> responseHeaders = new ArrayList<>();
@@ -53,16 +54,24 @@ public abstract class HttpTunnel extends AgentTunnel {
         public BasicAuthOptions basicAuthOptions;
 
         public Builder domain(String domain) {
-            this.domain = domain;
+            this.domain = Objects.requireNonNull(domain);
             return this;
+        }
+
+        public boolean hasDomain() {
+            return domain != null;
+        }
+
+        public String getDomain() {
+            return domain;
         }
 
         public Builder mutualTLSCA(byte[] mutualTLSCA) {
-            this.mutualTLSCA = mutualTLSCA;
+            this.mutualTLSCA = Objects.requireNonNull(mutualTLSCA);
             return this;
         }
 
-        public byte[] mutualTLSCA() {
+        public byte[] getMutualTLSCA() {
             return mutualTLSCA;
         }
 
@@ -77,12 +86,12 @@ public abstract class HttpTunnel extends AgentTunnel {
         }
 
         public Builder removeRequestHeader(String name) {
-            this.removeRequestHeaders.add(name);
+            this.removeRequestHeaders.add(Objects.requireNonNull(name));
             return this;
         }
 
         public Builder removeResponseHeader(String name) {
-            this.removeResponseHeaders.add(name);
+            this.removeResponseHeaders.add(Objects.requireNonNull(name));
             return this;
         }
 

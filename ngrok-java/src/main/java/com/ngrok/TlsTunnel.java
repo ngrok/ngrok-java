@@ -1,40 +1,50 @@
 package com.ngrok;
 
+import java.util.Objects;
+
 public abstract class TlsTunnel extends AgentTunnel {
     public static class Builder extends AgentTunnel.Builder<Builder> {
-        public String domain;
+        private String domain;
 
-        public byte[] mutualTLSCA;
+        private byte[] mutualTLSCA;
 
-        public byte[] terminationCertPEM;
-        public byte[] terminationKeyPEM;
+        private byte[] terminationCertPEM;
+        private byte[] terminationKeyPEM;
 
         public Builder domain(String domain) {
-            this.domain = domain;
+            this.domain = Objects.requireNonNull(domain);
             return this;
         }
 
         public Builder mutualTLSCA(byte[] mutualTLSCA) {
-            this.mutualTLSCA = mutualTLSCA;
+            this.mutualTLSCA = Objects.requireNonNull(mutualTLSCA);
             return this;
         }
 
         public Builder termination(byte[] terminationCertPEM, byte[] terminationKeyPEM) {
-            this.terminationCertPEM = terminationCertPEM;
-            this.terminationKeyPEM = terminationKeyPEM;
+            this.terminationCertPEM = Objects.requireNonNull(terminationCertPEM);
+            this.terminationKeyPEM = Objects.requireNonNull(terminationKeyPEM);
             return this;
         }
 
-        public byte[] mutualTLSCA() {
+        public byte[] getMutualTLSCA() {
             return mutualTLSCA;
         }
 
-        public byte[] terminationCertPEM() {
+        public byte[] getTerminationCertPEM() {
             return terminationCertPEM;
         }
 
-        public byte[] terminationKeyPEM() {
+        public byte[] getTerminationKeyPEM() {
             return terminationKeyPEM;
+        }
+
+        public boolean hasDomain() {
+            return domain != null;
+        }
+
+        public String getDomain() {
+            return domain;
         }
     }
 }

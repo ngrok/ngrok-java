@@ -7,15 +7,15 @@ public abstract class Tunnel implements AutoCloseable {
     private String forwardsTo;
     private String metadata;
 
-    public String id() {
+    public String getId() {
         return id;
     }
 
-    public String forwardsTo() {
+    public String getForwardsTo() {
         return forwardsTo;
     }
 
-    public String metadata() {
+    public String getMetadata() {
         return metadata;
     }
 
@@ -26,11 +26,19 @@ public abstract class Tunnel implements AutoCloseable {
     public abstract void close() throws IOException;
 
     public static abstract class Builder<T extends Builder> {
-        public String metadata;
+        private String metadata;
 
         public T metadata(String metadata) {
             this.metadata = metadata;
             return (T) this;
+        }
+
+        public boolean hasMetadata() {
+            return metadata != null;
+        }
+
+        public String getMetadata() {
+            return metadata;
         }
     }
 }

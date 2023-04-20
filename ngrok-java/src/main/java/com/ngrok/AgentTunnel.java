@@ -7,19 +7,19 @@ public abstract class AgentTunnel extends Tunnel {
     private String proto;
     private String url;
 
-    public String proto() {
+    public String getProto() {
         return proto;
     }
 
-    public String url() {
+    public String getUrl() {
         return url;
     }
 
     public static abstract class Builder<T extends Builder> extends Tunnel.Builder<T> {
-        public final List<String> allowCIDR = new ArrayList<>();
-        public final List<String> denyCIDR = new ArrayList<>();
-        public ProxyProto proxyProto;
-        public String forwardsTo;
+        private final List<String> allowCIDR = new ArrayList<>();
+        private final List<String> denyCIDR = new ArrayList<>();
+        private ProxyProto proxyProto;
+        private String forwardsTo;
 
         public T allowCIDR(String allowCIDR) {
             this.allowCIDR.add(allowCIDR);
@@ -39,6 +39,14 @@ public abstract class AgentTunnel extends Tunnel {
         public T forwardsTo(String forwardsTo) {
             this.forwardsTo = forwardsTo;
             return (T) this;
+        }
+
+        public boolean hasForwardsTo() {
+            return forwardsTo != null;
+        }
+
+        public String getForwardsTo() {
+            return forwardsTo;
         }
     }
 }

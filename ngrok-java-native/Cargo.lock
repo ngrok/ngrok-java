@@ -303,8 +303,7 @@ dependencies = [
 [[package]]
 name = "jaffi_support"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f84be2ba0099941003d3d84d25c9d5718cec25acee07ad404def760f6268b9e"
+source = "git+https://github.com/ngrok-oss/jaffi.git?branch=nikolay/add-bool-support#e1ad672ac2ade60757b843c9b92bf6d1dad90c63"
 dependencies = [
  "jni",
 ]
