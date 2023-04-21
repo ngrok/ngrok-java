@@ -25,7 +25,7 @@ use jaffi_support::{
 };
 
 use ngrok::{
-    config::ProxyProto,
+    config::{OauthOptions, OidcOptions, ProxyProto},
     prelude::{TunnelBuilder, TunnelExt},
     session::{CommandHandler, HeartbeatHandler, Restart, Stop, Update},
     tunnel::{HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel, UrlTunnel},
@@ -700,9 +700,17 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.mutual_tlsca(Bytes::copy_from_slice(&slice));
         }
 
-        // TODO: compression
-        // TODO: websocket_tcp_conversion
-        // TODO: circuit_breaker
+        if jtb.is_compression(self.env) {
+            bldr = bldr.compression();
+        }
+
+        if jtb.is_websocket_tcp_conversion(self.env) {
+            bldr = bldr.websocket_tcp_conversion();
+        }
+
+        if jtb.has_circuit_breaker(self.env) {
+            bldr = bldr.circuit_breaker(jtb.get_circuit_breaker(self.env));
+        }
 
         let (request_headers, request_headers_size) = self.get_list_field(jtb, "requestHeaders");
         for i in 0..request_headers_size {
@@ -734,16 +742,56 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        let basic_auth = jtb.basic_auth_options(self.env);
+        let basic_auth = jtb.get_basic_auth_options(self.env);
         if !basic_auth.is_null() {
             bldr = bldr.basic_auth(
                 basic_auth.get_username(self.env),
                 basic_auth.get_password(self.env),
             );
         }
-        // TODO: oauth
-        // TODO: oidc
-        // TODO: webhook_verification
+
+        let joauth = jtb.get_oauth_options(self.env);
+        if !joauth.is_null() {
+            let mut oauth = OauthOptions::new(joauth.get_provider(self.env));
+            if joauth.has_client_id(self.env) {
+                oauth = oauth.client_id(joauth.get_client_id(self.env));
+                oauth = oauth.client_secret(joauth.get_client_secret(self.env));
+            }
+            if joauth.has_allow_email(self.env) {
+                oauth = oauth.allow_email(joauth.get_allow_email(self.env));
+            }
+            if joauth.has_allow_domain(self.env) {
+                oauth = oauth.allow_domain(joauth.get_allow_domain(self.env));
+            }
+            if joauth.has_scope(self.env) {
+                oauth = oauth.scope(joauth.get_scope(self.env));
+            }
+            bldr = bldr.oauth(oauth);
+        }
+
+        let joidc = jtb.get_oidc_options(self.env);
+        if !joidc.is_null() {
+            let mut oidc = OidcOptions::new(
+                joidc.get_issuer_url(self.env),
+                joidc.get_client_id(self.env),
+                joidc.get_client_secret(self.env),
+            );
+            if joidc.has_allow_email(self.env) {
+                oidc = oidc.allow_email(joidc.get_allow_email(self.env));
+            }
+            if joidc.has_allow_domain(self.env) {
+                oidc = oidc.allow_domain(joidc.get_allow_domain(self.env));
+            }
+            if joidc.has_scope(self.env) {
+                oidc = oidc.scope(joidc.get_scope(self.env));
+            }
+            bldr = bldr.oidc(oidc);
+        }
+
+        let jwv = jtb.get_webhook_verification(self.env);
+        if !jwv.is_null() {
+            bldr = bldr.webhook_verification(jwv.get_provider(self.env), jwv.get_secret(self.env));
+        }
 
         match rt.block_on(bldr.listen()) {
             Ok(tun) => {
