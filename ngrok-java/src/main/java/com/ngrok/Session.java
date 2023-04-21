@@ -95,7 +95,7 @@ public interface Session extends AutoCloseable {
     }
 
     public static class Builder {
-        protected final List<UserAgent> userAgents = new ArrayList<>();
+        private final List<UserAgent> userAgents = new ArrayList<>();
 
         private String authtoken;
 
@@ -115,17 +115,21 @@ public interface Session extends AutoCloseable {
             return this;
         }
 
+        public List<UserAgent> getUserAgents() {
+            return userAgents;
+        }
+
         public Builder authtoken(String authtoken) {
             this.authtoken = authtoken;
             return this;
         }
 
-        public String getAuthtoken() {
-            return authtoken;
-        }
-
         public boolean hasAuthtoken() {
             return authtoken != null;
+        }
+
+        public String getAuthtoken() {
+            return authtoken;
         }
 
         public Builder metadata(String metadata) {
@@ -133,12 +137,12 @@ public interface Session extends AutoCloseable {
             return this;
         }
 
-        public String getMetadata() {
-            return metadata;
-        }
-
         public boolean hasMetadata() {
             return metadata != null;
+        }
+
+        public String getMetadata() {
+            return metadata;
         }
 
         public Builder stopCallback(StopCallback callback) {

@@ -33,7 +33,7 @@ public abstract class LabeledTunnel extends Tunnel {
             return this;
         }
 
-        protected List<Label> labels() {
+        public List<Label> getLabels() {
             return this.labels.entrySet().stream()
                     .map((e) -> new Label(e.getKey(), e.getValue()))
                     .collect(Collectors.toList());

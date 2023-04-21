@@ -7,7 +7,7 @@ use com_ngrok::{
     ComNgrokNativeTcpTunnel, ComNgrokNativeTlsTunnel, ComNgrokRuntimeLogger,
     ComNgrokSessionBuilder, ComNgrokSessionHeartbeatHandler, ComNgrokSessionRestartCallback,
     ComNgrokSessionStopCallback, ComNgrokSessionUpdateCallback, ComNgrokSessionUserAgent,
-    ComNgrokTcpTunnelBuilder, ComNgrokTlsTunnelBuilder, IOException, IOExceptionErr,
+    ComNgrokTcpTunnelBuilder, ComNgrokTlsTunnelBuilder, IOException, IOExceptionErr, JavaUtilList,
 };
 use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
@@ -253,6 +253,20 @@ trait JNIExt<'local> {
     }
 }
 
+impl<'local> JavaUtilList<'local> {
+    fn size(self, env: JNIEnv<'local>) -> i32 {
+        env.call_method(self, "size", "()I", &[])
+            .and_then(|o| o.i())
+            .expect("could not get list size")
+    }
+
+    fn get(self, env: JNIEnv<'local>, idx: i32) -> JObject<'local> {
+        env.call_method(self, "get", "(I)Ljava/lang/Object;", &[JValue::Int(idx)])
+            .and_then(|o| o.l())
+            .expect("could not get list item")
+    }
+}
+
 fn io_exc<E: ToString>(e: E) -> Error<IOExceptionErr> {
     Error::new(IOExceptionErr::IOException(IOException), e.to_string())
 }
@@ -419,16 +433,13 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         let mut bldr = Session::builder();
 
-        {
-            let (user_agents, user_agents_size) = self.get_list_field(jsb, "userAgents");
-            for i in 0..user_agents_size {
-                let user_agent: ComNgrokSessionUserAgent =
-                    self.get_list_item(user_agents, i).into();
-                bldr = bldr.child_client(
-                    user_agent.get_name(self.env),
-                    user_agent.get_version(self.env),
-                );
-            }
+        let user_agents = jsb.get_user_agents(self.env);
+        for i in 0..user_agents.size(self.env) {
+            let user_agent: ComNgrokSessionUserAgent = user_agents.get(self.env, i).into();
+            bldr = bldr.child_client(
+                user_agent.get_name(self.env),
+                user_agent.get_version(self.env),
+            );
         }
 
         if jsb.has_authtoken(self.env) {
@@ -712,31 +723,29 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.circuit_breaker(jtb.get_circuit_breaker(self.env));
         }
 
-        let (request_headers, request_headers_size) = self.get_list_field(jtb, "requestHeaders");
-        for i in 0..request_headers_size {
-            let header: ComNgrokHttpTunnelHeader = self.get_list_item(request_headers, i).into();
+        let request_headers = jtb.get_request_headers(self.env);
+        for i in 0..request_headers.size(self.env) {
+            let header: ComNgrokHttpTunnelHeader = request_headers.get(self.env, i).into();
             bldr = bldr.request_header(header.get_name(self.env), header.get_value(self.env));
         }
 
-        let (response_header, response_headers_size) = self.get_list_field(jtb, "responseHeaders");
-        for i in 0..response_headers_size {
-            let header: ComNgrokHttpTunnelHeader = self.get_list_item(response_header, i).into();
+        let response_headers = jtb.get_response_headers(self.env);
+        for i in 0..response_headers.size(self.env) {
+            let header: ComNgrokHttpTunnelHeader = response_headers.get(self.env, i).into();
             bldr = bldr.response_header(header.get_name(self.env), header.get_value(self.env));
         }
 
-        let (remove_request_headers, remove_request_headers_size) =
-            self.get_list_field(jtb, "removeRequestHeaders");
-        for i in 0..remove_request_headers_size {
-            let header: JString = self.get_list_item(remove_request_headers, i).into();
+        let remove_request_headers = jtb.get_remove_request_headers(self.env);
+        for i in 0..remove_request_headers.size(self.env) {
+            let header: JString = remove_request_headers.get(self.env, i).into();
             if let Some(name) = self.as_string(header) {
                 bldr = bldr.remove_request_header(name);
             }
         }
 
-        let (remove_response_headers, remove_response_headers_size) =
-            self.get_list_field(jtb, "removeResponseHeaders");
-        for i in 0..remove_response_headers_size {
-            let header: JString = self.get_list_item(remove_response_headers, i).into();
+        let remove_response_headers = jtb.get_remove_response_headers(self.env);
+        for i in 0..remove_response_headers.size(self.env) {
+            let header: JString = remove_response_headers.get(self.env, i).into();
             if let Some(name) = self.as_string(header) {
                 bldr = bldr.remove_response_header(name);
             }
@@ -827,12 +836,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         }
 
         // from LabeledTunnel.Builder
-        {
-            let (labels, labels_size) = self.get_list_method(jtb, "labels");
-            for i in 0..labels_size {
-                let label: ComNgrokLabeledTunnelLabel = self.get_list_item(labels, i).into();
-                bldr = bldr.label(label.get_name(self.env), label.get_value(self.env));
-            }
+        let labels = jtb.get_labels(self.env);
+        for i in 0..labels.size(self.env) {
+            let label: ComNgrokLabeledTunnelLabel = labels.get(self.env, i).into();
+            bldr = bldr.label(label.get_name(self.env), label.get_value(self.env));
         }
 
         match rt.block_on(bldr.listen()) {

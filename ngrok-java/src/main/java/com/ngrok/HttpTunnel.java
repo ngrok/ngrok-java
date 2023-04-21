@@ -284,9 +284,17 @@ public abstract class HttpTunnel extends AgentTunnel {
             return this;
         }
 
+        public List<Header> getRequestHeaders() {
+            return requestHeaders;
+        }
+
         public Builder addResponseHeader(String name, String value) {
             this.responseHeaders.add(new Header(name, value));
             return this;
+        }
+
+        public List<Header> getResponseHeaders() {
+            return responseHeaders;
         }
 
         public Builder removeRequestHeader(String name) {
@@ -294,9 +302,17 @@ public abstract class HttpTunnel extends AgentTunnel {
             return this;
         }
 
+        public List<String> getRemoveRequestHeaders() {
+            return removeRequestHeaders;
+        }
+
         public Builder removeResponseHeader(String name) {
             this.removeResponseHeaders.add(Objects.requireNonNull(name));
             return this;
+        }
+
+        public List<String> getRemoveResponseHeaders() {
+            return removeResponseHeaders;
         }
 
         public Builder basicAuthOptions(BasicAuthOptions options) {
