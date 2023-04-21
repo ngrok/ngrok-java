@@ -6,6 +6,10 @@ import java.nio.ByteBuffer;
 public class NativeConnection extends Connection {
     private long native_address;
 
+    public NativeConnection(String remoteAddr) {
+        super(remoteAddr);
+    }
+
     @Override
     public int read(ByteBuffer dst) throws IOException {
         var sz = readNative(dst);

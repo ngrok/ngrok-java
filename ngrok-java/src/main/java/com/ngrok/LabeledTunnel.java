@@ -7,6 +7,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class LabeledTunnel extends Tunnel {
+    public LabeledTunnel(String id, String forwardsTo, String metadata) {
+        super(id, forwardsTo, metadata);
+    }
+
     public static class Label {
         private final String name;
         private final String value;

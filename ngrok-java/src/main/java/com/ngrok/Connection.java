@@ -5,7 +5,11 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 public abstract class Connection implements AutoCloseable {
-    private String remoteAddr;
+    private final String remoteAddr;
+
+    public Connection(String remoteAddr) {
+        this.remoteAddr = remoteAddr;
+    }
 
     public String getRemoteAddr() {
         return remoteAddr;

@@ -3,6 +3,10 @@ package com.ngrok;
 import java.util.Objects;
 
 public abstract class TlsTunnel extends AgentTunnel {
+    public TlsTunnel(String id, String forwardsTo, String metadata, String proto, String url) {
+        super(id, forwardsTo, metadata, proto, url);
+    }
+
     public static class Builder extends AgentTunnel.Builder<Builder> {
         private String domain;
 

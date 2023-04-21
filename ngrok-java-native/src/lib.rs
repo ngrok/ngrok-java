@@ -164,34 +164,6 @@ trait JNIExt<'local> {
             .expect("cannot take native value")
     }
 
-    fn set_string_field<O>(&self, obj: O, name: &str, value: &str)
-    where
-        O: Into<JObject<'local>>,
-    {
-        let jvalue: JValue = self
-            .get_env()
-            .new_string(value)
-            .expect("could not convert to string")
-            .into();
-        self.get_env()
-            .set_field(obj, name, "Ljava/lang/String;", jvalue)
-            .expect("could not set string field")
-    }
-
-    fn get_string_field<O>(&self, obj: O, name: &str) -> Option<String>
-    where
-        O: Into<JObject<'local>>,
-    {
-        let jstr: JString = self
-            .get_env()
-            .get_field(obj, name, "Ljava/lang/String;")
-            .and_then(|o| o.l())
-            .expect("could not get string field")
-            .into();
-
-        self.as_string(jstr)
-    }
-
     fn as_string(&self, jstr: JString) -> Option<String> {
         if jstr.is_null() {
             None
@@ -203,53 +175,6 @@ trait JNIExt<'local> {
                     .into(),
             )
         }
-    }
-
-    fn get_list_field<'env, O>(&self, obj: O, name: &str) -> (JObject<'env>, i32)
-    where
-        'local: 'env,
-        O: Into<JObject<'local>>,
-    {
-        let list = self
-            .get_env()
-            .get_field(obj, name, "Ljava/util/List;")
-            .and_then(|o| o.l())
-            .expect("could not get list field");
-        (list, self.get_list_size(list))
-    }
-
-    fn get_list_method<'env, O>(&self, obj: O, name: &str) -> (JObject<'env>, i32)
-    where
-        'local: 'env,
-        O: Into<JObject<'local>>,
-    {
-        let list = self
-            .get_env()
-            .call_method(obj, name, "()Ljava/util/List;", &[])
-            .and_then(|o| o.l())
-            .expect("could not get list method");
-        (list, self.get_list_size(list))
-    }
-
-    fn get_list_size<O>(&self, list: O) -> i32
-    where
-        O: Into<JObject<'local>>,
-    {
-        self.get_env()
-            .call_method(list, "size", "()I", &[])
-            .and_then(|o| o.i())
-            .expect("could not get list size")
-    }
-
-    fn get_list_item<'env, O>(&self, list: O, idx: i32) -> JObject<'env>
-    where
-        'local: 'env,
-        O: Into<JObject<'local>>,
-    {
-        self.get_env()
-            .call_method(list, "get", "(I)Ljava/lang/Object;", &[JValue::Int(idx)])
-            .and_then(|o| o.l())
-            .expect("could not get list item")
     }
 }
 
@@ -409,15 +334,6 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         let mut bldr = Session::builder();
 
-        let user_agents = jsb.get_user_agents(self.env);
-        for i in 0..user_agents.size(self.env) {
-            let user_agent: ComNgrokSessionUserAgent = user_agents.get(self.env, i).into();
-            bldr = bldr.child_client(
-                user_agent.get_name(self.env),
-                user_agent.get_version(self.env),
-            );
-        }
-
         if jsb.has_authtoken(self.env) {
             bldr = bldr.authtoken(jsb.get_authtoken(self.env));
         }
@@ -425,10 +341,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         // TODO: heartbeat_interval
         // TODO: heartbeat_tolerance
 
-        let mut session_metadata: Option<String> = None;
+        let mut session_metadata = String::from("");
         if jsb.has_metadata(self.env) {
-            session_metadata = Some(jsb.get_metadata(self.env));
-            bldr = bldr.metadata(jsb.get_metadata(self.env));
+            session_metadata = jsb.get_metadata(self.env);
+            bldr = bldr.metadata(session_metadata.clone());
         }
 
         // TODO: server_addr
@@ -456,16 +372,22 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.handle_heartbeat(HeartbeatCallback::from(self.env, heartbeat_obj));
         }
 
+        let user_agents = jsb.get_user_agents(self.env);
+        for i in 0..user_agents.size(self.env) {
+            let user_agent: ComNgrokSessionUserAgent = user_agents.get(self.env, i).into();
+            bldr = bldr.child_client(
+                user_agent.get_name(self.env),
+                user_agent.get_version(self.env),
+            );
+        }
+
         match rt.block_on(bldr.connect()) {
             Ok(sess) => {
-                let jsess = ComNgrokNativeSession::new_1com_ngrok_native_session(self.env);
-
-                if let Some(metadata) = session_metadata {
-                    self.set_string_field(jsess, "metadata", &metadata);
-                }
-
+                let jsess = ComNgrokNativeSession::new_1com_ngrok_native_session(
+                    self.env,
+                    session_metadata,
+                );
                 self.set_native(jsess, sess);
-
                 Ok(jsess)
             }
             Err(err) => io_exc_err(err),
@@ -523,16 +445,15 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let tun = rt.block_on(bldr.listen());
         match tun {
             Ok(tun) => {
-                let jtunnel = ComNgrokNativeTcpTunnel::new_1com_ngrok_native_tcp_tunnel(self.env);
-
-                self.set_string_field(jtunnel, "id", tun.id());
-                self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to());
-                self.set_string_field(jtunnel, "metadata", tun.metadata());
-                self.set_string_field(jtunnel, "proto", "tcp");
-                self.set_string_field(jtunnel, "url", tun.url());
-
+                let jtunnel = ComNgrokNativeTcpTunnel::new_1com_ngrok_native_tcp_tunnel(
+                    self.env,
+                    tun.id().into(),
+                    tun.forwards_to().into(),
+                    tun.metadata().into(),
+                    "tcp".into(),
+                    tun.url().into(),
+                );
                 self.set_native(jtunnel, tun);
-
                 Ok(jtunnel)
             }
             Err(err) => io_exc_err(err),
@@ -611,16 +532,15 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         match rt.block_on(bldr.listen()) {
             Ok(tun) => {
-                let jtunnel = ComNgrokNativeTlsTunnel::new_1com_ngrok_native_tls_tunnel(self.env);
-
-                self.set_string_field(jtunnel, "id", tun.id());
-                self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to());
-                self.set_string_field(jtunnel, "metadata", tun.metadata());
-                self.set_string_field(jtunnel, "proto", "tcp");
-                self.set_string_field(jtunnel, "url", tun.url());
-
+                let jtunnel = ComNgrokNativeTlsTunnel::new_1com_ngrok_native_tls_tunnel(
+                    self.env,
+                    tun.id().into(),
+                    tun.forwards_to().into(),
+                    tun.metadata().into(),
+                    "tls".into(),
+                    tun.url().into(),
+                );
                 self.set_native(jtunnel, tun);
-
                 Ok(jtunnel)
             }
             Err(err) => io_exc_err(err),
@@ -671,12 +591,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         }
 
         // from HttpTunnel.Builder
-
         if jhtb.has_scheme(self.env) {
-            bldr = bldr.scheme(
-                Scheme::from_str(jhtb.get_scheme_name(self.env).as_str())
-                    .expect("invalid scheme name"),
-            );
+            let scheme = Scheme::from_str(jhtb.get_scheme_name(self.env).as_str())
+                .expect("invalid scheme name");
+            bldr = bldr.scheme(scheme);
         }
 
         if jhtb.has_domain(self.env) {
@@ -782,16 +700,15 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         match rt.block_on(bldr.listen()) {
             Ok(tun) => {
-                let jtunnel = ComNgrokNativeHttpTunnel::new_1com_ngrok_native_http_tunnel(self.env);
-
-                self.set_string_field(jtunnel, "id", tun.id());
-                self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to());
-                self.set_string_field(jtunnel, "metadata", tun.metadata());
-                self.set_string_field(jtunnel, "proto", "http");
-                self.set_string_field(jtunnel, "url", tun.url());
-
+                let jtunnel = ComNgrokNativeHttpTunnel::new_1com_ngrok_native_http_tunnel(
+                    self.env,
+                    tun.id().into(),
+                    tun.forwards_to().into(),
+                    tun.metadata().into(),
+                    "http".into(),
+                    tun.url().into(),
+                );
                 self.set_native(jtunnel, tun);
-
                 Ok(jtunnel)
             }
             Err(err) => io_exc_err(err),
@@ -824,15 +741,13 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         match rt.block_on(bldr.listen()) {
             Ok(tun) => {
-                let jtunnel =
-                    ComNgrokNativeLabeledTunnel::new_1com_ngrok_native_labeled_tunnel(self.env);
-
-                self.set_string_field(jtunnel, "id", tun.id());
-                self.set_string_field(jtunnel, "forwardsTo", tun.forwards_to());
-                self.set_string_field(jtunnel, "metadata", tun.metadata());
-
+                let jtunnel = ComNgrokNativeLabeledTunnel::new_1com_ngrok_native_labeled_tunnel(
+                    self.env,
+                    tun.id().into(),
+                    tun.forwards_to().into(),
+                    tun.metadata().into(),
+                );
                 self.set_native(jtunnel, tun);
-
                 Ok(jtunnel)
             }
             Err(err) => io_exc_err(err),
@@ -874,12 +789,11 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
         let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
-
-                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string());
-
+                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(
+                    self.env,
+                    conn.remote_addr().to_string(),
+                );
                 self.set_native(jconn, conn);
-
                 Ok(jconn)
             }
             Ok(None) => io_exc_err("could not get next conn"),
@@ -930,12 +844,11 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
         let mut tun: MutexGuard<TlsTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
-
-                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string());
-
+                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(
+                    self.env,
+                    conn.remote_addr().to_string(),
+                );
                 self.set_native(jconn, conn);
-
                 Ok(jconn)
             }
             Ok(None) => io_exc_err("could not get next conn"),
@@ -986,12 +899,11 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
         let mut tun: MutexGuard<HttpTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
-
-                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string());
-
+                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(
+                    self.env,
+                    conn.remote_addr().to_string(),
+                );
                 self.set_native(jconn, conn);
-
                 Ok(jconn)
             }
             Ok(None) => io_exc_err("could not get next conn"),
@@ -1045,12 +957,11 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
         let mut tun: MutexGuard<LabeledTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(self.env);
-
-                self.set_string_field(jconn, "remoteAddr", &conn.remote_addr().to_string());
-
+                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(
+                    self.env,
+                    conn.remote_addr().to_string(),
+                );
                 self.set_native(jconn, conn);
-
                 Ok(jconn)
             }
             Ok(None) => io_exc_err("could not get next conn"),

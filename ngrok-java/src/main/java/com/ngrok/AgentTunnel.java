@@ -4,8 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AgentTunnel extends Tunnel {
-    private String proto;
-    private String url;
+    private final String proto;
+    private final String url;
+
+    public AgentTunnel(String id, String forwardsTo, String metadata, String proto, String url) {
+        super(id, forwardsTo, metadata);
+        this.proto = proto;
+        this.url = url;
+    }
 
     public String getProto() {
         return proto;

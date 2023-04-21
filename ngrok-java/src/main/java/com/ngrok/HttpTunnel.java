@@ -6,6 +6,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 public abstract class HttpTunnel extends AgentTunnel {
+    public HttpTunnel(String id, String forwardsTo, String metadata, String proto, String url) {
+        super(id, forwardsTo, metadata, proto, url);
+    }
+
     public enum Scheme {
         HTTP("HTTP"),
         HTTPS("HTTPS");

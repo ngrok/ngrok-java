@@ -27,7 +27,11 @@ public class NativeSession implements Session {
 
     private long native_address;
 
-    private String metadata;
+    private final String metadata;
+
+    public NativeSession(String metadata) {
+        this.metadata = metadata;
+    }
 
     public static NativeSession connect(Session.Builder builder) throws IOException {
         builder.getUserAgents().add(0, new UserAgent("ngrok-java", version));
@@ -36,6 +40,7 @@ public class NativeSession implements Session {
 
     public static native NativeSession connectNative(Session.Builder builder) throws IOException;
 
+    @Override
     public String getMetadata() {
         return metadata;
     }

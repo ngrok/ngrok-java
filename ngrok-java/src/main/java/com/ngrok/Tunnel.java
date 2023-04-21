@@ -3,9 +3,15 @@ package com.ngrok;
 import java.io.IOException;
 
 public abstract class Tunnel implements AutoCloseable {
-    private String id;
-    private String forwardsTo;
-    private String metadata;
+    private final String id;
+    private final String forwardsTo;
+    private final String metadata;
+
+    public Tunnel(String id, String forwardsTo, String metadata) {
+        this.id = id;
+        this.forwardsTo = forwardsTo;
+        this.metadata = metadata;
+    }
 
     public String getId() {
         return id;
