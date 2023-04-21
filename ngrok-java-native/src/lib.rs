@@ -499,50 +499,49 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
     fn tcp_tunnel(
         &self,
         this: ComNgrokNativeSession<'local>,
-        jtb: ComNgrokTcpTunnelBuilder<'local>,
+        jttb: ComNgrokTcpTunnelBuilder<'local>,
     ) -> Result<ComNgrokNativeTcpTunnel<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.tcp_endpoint();
 
+        let jatb = jttb.as_com_ngrok_agent_tunnel_builder();
+        let jtb = jatb.as_com_ngrok_tunnel_builder();
+
         // from Tunnel.Builder
-        if let Some(metadata) = self.get_string_field(jtb, "metadata") {
-            bldr = bldr.metadata(metadata);
+        if jtb.has_metadata(self.env) {
+            bldr = bldr.metadata(jtb.get_metadata(self.env));
         }
 
         // from AgentTunnel.Builder
-        {
-            let (allow_cidr, allow_cidr_size) = self.get_list_field(jtb, "allowCIDR");
-            for i in 0..allow_cidr_size {
-                let cidr: JString = self.get_list_item(allow_cidr, i).into();
-                if let Some(cidr) = self.as_string(cidr) {
-                    bldr = bldr.allow_cidr(cidr);
-                }
+        let allow_cidr = jatb.get_allow_cidr(self.env);
+        for i in 0..allow_cidr.size(self.env) {
+            let cidr: JString = allow_cidr.get(self.env, i).into();
+            if let Some(cidr) = self.as_string(cidr) {
+                bldr = bldr.allow_cidr(cidr);
             }
         }
 
-        {
-            let (deny_cidr, deny_cidr_size) = self.get_list_field(jtb, "denyCIDR");
-            for i in 0..deny_cidr_size {
-                let cidr: JString = self.get_list_item(deny_cidr, i).into();
-                if let Some(cidr) = self.as_string(cidr) {
-                    bldr = bldr.deny_cidr(cidr);
-                }
+        let deny_cidr = jatb.get_deny_cidr(self.env);
+        for i in 0..deny_cidr.size(self.env) {
+            let cidr: JString = deny_cidr.get(self.env, i).into();
+            if let Some(cidr) = self.as_string(cidr) {
+                bldr = bldr.deny_cidr(cidr);
             }
         }
 
-        if let Some(proxy_proto) = self.get_proxy_proto(jtb) {
+        if let Some(proxy_proto) = self.get_proxy_proto(jttb) {
             bldr = bldr.proxy_proto(proxy_proto);
         }
 
-        if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
-            bldr = bldr.forwards_to(forwards_to);
+        if jatb.has_forwards_to(self.env) {
+            bldr = bldr.forwards_to(jatb.get_forwards_to(self.env));
         }
 
         // from TcpTunnel.Builder
-        if jtb.has_remote_address(self.env) {
-            bldr = bldr.remote_addr(jtb.get_remote_address(self.env));
+        if jttb.has_remote_address(self.env) {
+            bldr = bldr.remote_addr(jttb.get_remote_address(self.env));
         }
 
         let tun = rt.block_on(bldr.listen());
@@ -567,61 +566,60 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
     fn tls_tunnel(
         &self,
         this: ComNgrokNativeSession<'local>,
-        jtb: ComNgrokTlsTunnelBuilder<'local>,
+        jttb: ComNgrokTlsTunnelBuilder<'local>,
     ) -> Result<ComNgrokNativeTlsTunnel<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.tls_endpoint();
 
+        let jatb = jttb.as_com_ngrok_agent_tunnel_builder();
+        let jtb = jatb.as_com_ngrok_tunnel_builder();
+
         // from Tunnel.Builder
-        if let Some(metadata) = self.get_string_field(jtb, "metadata") {
-            bldr = bldr.metadata(metadata);
+        if jtb.has_metadata(self.env) {
+            bldr = bldr.metadata(jtb.get_metadata(self.env));
         }
 
         // from AgentTunnel.Builder
-        {
-            let (allow_cidr, allow_cidr_size) = self.get_list_field(jtb, "allowCIDR");
-            for i in 0..allow_cidr_size {
-                let cidr: JString = self.get_list_item(allow_cidr, i).into();
-                if let Some(cidr) = self.as_string(cidr) {
-                    bldr = bldr.allow_cidr(cidr);
-                }
+        let allow_cidr = jatb.get_allow_cidr(self.env);
+        for i in 0..allow_cidr.size(self.env) {
+            let cidr: JString = allow_cidr.get(self.env, i).into();
+            if let Some(cidr) = self.as_string(cidr) {
+                bldr = bldr.allow_cidr(cidr);
             }
         }
 
-        {
-            let (deny_cidr, deny_cidr_size) = self.get_list_field(jtb, "denyCIDR");
-            for i in 0..deny_cidr_size {
-                let cidr: JString = self.get_list_item(deny_cidr, i).into();
-                if let Some(cidr) = self.as_string(cidr) {
-                    bldr = bldr.deny_cidr(cidr);
-                }
+        let deny_cidr = jatb.get_deny_cidr(self.env);
+        for i in 0..deny_cidr.size(self.env) {
+            let cidr: JString = deny_cidr.get(self.env, i).into();
+            if let Some(cidr) = self.as_string(cidr) {
+                bldr = bldr.deny_cidr(cidr);
             }
         }
 
-        if let Some(proxy_proto) = self.get_proxy_proto(jtb) {
+        if let Some(proxy_proto) = self.get_proxy_proto(jttb) {
             bldr = bldr.proxy_proto(proxy_proto);
         }
 
-        if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
-            bldr = bldr.forwards_to(forwards_to);
+        if jatb.has_forwards_to(self.env) {
+            bldr = bldr.forwards_to(jatb.get_forwards_to(self.env));
         }
 
         // from TlsTunnel.Builder
-        if jtb.has_domain(self.env) {
-            bldr = bldr.domain(jtb.get_domain(self.env));
+        if jttb.has_domain(self.env) {
+            bldr = bldr.domain(jttb.get_domain(self.env));
         }
 
-        let mtls = jtb.get_mutual_tlsca(self.env);
+        let mtls = jttb.get_mutual_tlsca(self.env);
         if !mtls.is_null() {
             let mtls_data = mtls.as_slice(&self.env).expect("cannot get mtls data");
             bldr = bldr.mutual_tlsca(Bytes::copy_from_slice(&mtls_data));
         }
 
         match (
-            jtb.get_termination_cert_pem(self.env),
-            jtb.get_termination_key_pem(self.env),
+            jttb.get_termination_cert_pem(self.env),
+            jttb.get_termination_key_pem(self.env),
         ) {
             (cert, key) if !cert.is_null() && !key.is_null() => {
                 let cert_pem_data = cert.as_slice(&self.env).expect("cannot get cert data");
@@ -656,86 +654,85 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
     fn http_tunnel(
         &self,
         this: ComNgrokNativeSession<'local>,
-        jtb: ComNgrokHttpTunnelBuilder<'local>,
+        jhtb: ComNgrokHttpTunnelBuilder<'local>,
     ) -> Result<ComNgrokNativeHttpTunnel<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.http_endpoint();
 
+        let jatb = jhtb.as_com_ngrok_agent_tunnel_builder();
+        let jtb = jatb.as_com_ngrok_tunnel_builder();
+
         // from Tunnel.Builder
-        if let Some(metadata) = self.get_string_field(jtb, "metadata") {
-            bldr = bldr.metadata(metadata);
+        if jtb.has_metadata(self.env) {
+            bldr = bldr.metadata(jtb.get_metadata(self.env));
         }
 
         // from AgentTunnel.Builder
-        {
-            let (allow_cidr, allow_cidr_size) = self.get_list_field(jtb, "allowCIDR");
-            for i in 0..allow_cidr_size {
-                let cidr: JString = self.get_list_item(allow_cidr, i).into();
-                if let Some(cidr) = self.as_string(cidr) {
-                    bldr = bldr.allow_cidr(cidr);
-                }
+        let allow_cidr = jatb.get_allow_cidr(self.env);
+        for i in 0..allow_cidr.size(self.env) {
+            let cidr: JString = allow_cidr.get(self.env, i).into();
+            if let Some(cidr) = self.as_string(cidr) {
+                bldr = bldr.allow_cidr(cidr);
             }
         }
 
-        {
-            let (deny_cidr, deny_cidr_size) = self.get_list_field(jtb, "denyCIDR");
-            for i in 0..deny_cidr_size {
-                let cidr: JString = self.get_list_item(deny_cidr, i).into();
-                if let Some(cidr) = self.as_string(cidr) {
-                    bldr = bldr.deny_cidr(cidr);
-                }
+        let deny_cidr = jatb.get_deny_cidr(self.env);
+        for i in 0..deny_cidr.size(self.env) {
+            let cidr: JString = deny_cidr.get(self.env, i).into();
+            if let Some(cidr) = self.as_string(cidr) {
+                bldr = bldr.deny_cidr(cidr);
             }
         }
 
-        if let Some(proxy_proto) = self.get_proxy_proto(jtb) {
+        if let Some(proxy_proto) = self.get_proxy_proto(jhtb) {
             bldr = bldr.proxy_proto(proxy_proto);
         }
 
-        if let Some(forwards_to) = self.get_string_field(jtb, "forwardsTo") {
-            bldr = bldr.forwards_to(forwards_to);
+        if jatb.has_forwards_to(self.env) {
+            bldr = bldr.forwards_to(jatb.get_forwards_to(self.env));
         }
 
         // from HttpTunnel.Builder
 
         // TODO: scheme
 
-        if jtb.has_domain(self.env) {
-            bldr = bldr.domain(jtb.get_domain(self.env));
+        if jhtb.has_domain(self.env) {
+            bldr = bldr.domain(jhtb.get_domain(self.env));
         }
 
-        let mtls = jtb.get_mutual_tlsca(self.env);
+        let mtls = jhtb.get_mutual_tlsca(self.env);
         if !mtls.is_null() {
             let slice = mtls.as_slice(&self.env).expect("cannot get mtls data");
             bldr = bldr.mutual_tlsca(Bytes::copy_from_slice(&slice));
         }
 
-        if jtb.is_compression(self.env) {
+        if jhtb.is_compression(self.env) {
             bldr = bldr.compression();
         }
 
-        if jtb.is_websocket_tcp_conversion(self.env) {
+        if jhtb.is_websocket_tcp_conversion(self.env) {
             bldr = bldr.websocket_tcp_conversion();
         }
 
-        if jtb.has_circuit_breaker(self.env) {
-            bldr = bldr.circuit_breaker(jtb.get_circuit_breaker(self.env));
+        if jhtb.has_circuit_breaker(self.env) {
+            bldr = bldr.circuit_breaker(jhtb.get_circuit_breaker(self.env));
         }
 
-        let request_headers = jtb.get_request_headers(self.env);
+        let request_headers = jhtb.get_request_headers(self.env);
         for i in 0..request_headers.size(self.env) {
             let header: ComNgrokHttpTunnelHeader = request_headers.get(self.env, i).into();
             bldr = bldr.request_header(header.get_name(self.env), header.get_value(self.env));
         }
 
-        let response_headers = jtb.get_response_headers(self.env);
+        let response_headers = jhtb.get_response_headers(self.env);
         for i in 0..response_headers.size(self.env) {
             let header: ComNgrokHttpTunnelHeader = response_headers.get(self.env, i).into();
             bldr = bldr.response_header(header.get_name(self.env), header.get_value(self.env));
         }
 
-        let remove_request_headers = jtb.get_remove_request_headers(self.env);
+        let remove_request_headers = jhtb.get_remove_request_headers(self.env);
         for i in 0..remove_request_headers.size(self.env) {
             let header: JString = remove_request_headers.get(self.env, i).into();
             if let Some(name) = self.as_string(header) {
@@ -743,7 +740,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        let remove_response_headers = jtb.get_remove_response_headers(self.env);
+        let remove_response_headers = jhtb.get_remove_response_headers(self.env);
         for i in 0..remove_response_headers.size(self.env) {
             let header: JString = remove_response_headers.get(self.env, i).into();
             if let Some(name) = self.as_string(header) {
@@ -751,7 +748,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        let basic_auth = jtb.get_basic_auth_options(self.env);
+        let basic_auth = jhtb.get_basic_auth_options(self.env);
         if !basic_auth.is_null() {
             bldr = bldr.basic_auth(
                 basic_auth.get_username(self.env),
@@ -759,7 +756,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             );
         }
 
-        let joauth = jtb.get_oauth_options(self.env);
+        let joauth = jhtb.get_oauth_options(self.env);
         if !joauth.is_null() {
             let mut oauth = OauthOptions::new(joauth.get_provider(self.env));
             if joauth.has_client_id(self.env) {
@@ -778,7 +775,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.oauth(oauth);
         }
 
-        let joidc = jtb.get_oidc_options(self.env);
+        let joidc = jhtb.get_oidc_options(self.env);
         if !joidc.is_null() {
             let mut oidc = OidcOptions::new(
                 joidc.get_issuer_url(self.env),
@@ -797,7 +794,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.oidc(oidc);
         }
 
-        let jwv = jtb.get_webhook_verification(self.env);
+        let jwv = jhtb.get_webhook_verification(self.env);
         if !jwv.is_null() {
             bldr = bldr.webhook_verification(jwv.get_provider(self.env), jwv.get_secret(self.env));
         }
@@ -823,20 +820,22 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
     fn labeled_tunnel(
         &self,
         this: ComNgrokNativeSession<'local>,
-        jtb: ComNgrokLabeledTunnelBuilder<'local>,
+        jltb: ComNgrokLabeledTunnelBuilder<'local>,
     ) -> Result<ComNgrokNativeLabeledTunnel<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.labeled_tunnel();
 
+        let jtb = jltb.as_com_ngrok_tunnel_builder();
+
         // from Tunnel.Builder
-        if let Some(metadata) = self.get_string_field(jtb, "metadata") {
-            bldr = bldr.metadata(metadata);
+        if jtb.has_metadata(self.env) {
+            bldr = bldr.metadata(jtb.get_metadata(self.env));
         }
 
         // from LabeledTunnel.Builder
-        let labels = jtb.get_labels(self.env);
+        let labels = jltb.get_labels(self.env);
         for i in 0..labels.size(self.env) {
             let label: ComNgrokLabeledTunnelLabel = labels.get(self.env, i).into();
             bldr = bldr.label(label.get_name(self.env), label.get_value(self.env));

@@ -26,9 +26,17 @@ public abstract class AgentTunnel extends Tunnel {
             return (T) this;
         }
 
+        public List<String> getAllowCIDR() {
+            return allowCIDR;
+        }
+
         public T denyCIDR(String denyCIDR) {
             this.denyCIDR.add(denyCIDR);
             return (T) this;
+        }
+
+        public List<String> getDenyCIDR() {
+            return denyCIDR;
         }
 
         public T proxyProto(ProxyProto proxyProto) {
