@@ -338,8 +338,15 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.authtoken(jsb.get_authtoken(self.env));
         }
 
-        // TODO: heartbeat_interval
-        // TODO: heartbeat_tolerance
+        if jsb.has_heartbeat_interval(self.env) {
+            let d: u64 = jsb.get_heartbeat_interval_ms(self.env).try_into().unwrap();
+            bldr = bldr.heartbeat_interval(Duration::from_millis(d));
+        }
+
+        if jsb.has_heartbeat_tolerance(self.env) {
+            let d: u64 = jsb.get_heartbeat_tolerance_ms(self.env).try_into().unwrap();
+            bldr = bldr.heartbeat_tolerance(Duration::from_millis(d));
+        }
 
         let mut session_metadata = String::from("");
         if jsb.has_metadata(self.env) {
@@ -347,8 +354,18 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.metadata(session_metadata.clone());
         }
 
-        // TODO: server_addr
-        // TODO: ca_cert
+        if jsb.has_server_addr(self.env) {
+            bldr = bldr.server_addr(jsb.get_server_addr(self.env));
+        }
+
+        let ca_cert = jsb.get_ca_cert(self.env);
+        if !ca_cert.is_null() {
+            let ca_cert_data = ca_cert
+                .as_slice(&self.env)
+                .expect("cannot get ca cert data");
+            bldr = bldr.ca_cert(Bytes::copy_from_slice(&ca_cert_data));
+        }
+
         // TODO: tls_config
         // TODO: connector?
 

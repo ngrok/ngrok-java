@@ -2,6 +2,7 @@ package com.ngrok;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -95,11 +96,16 @@ public interface Session extends AutoCloseable {
     }
 
     public static class Builder {
-        private final List<UserAgent> userAgents = new ArrayList<>();
 
         private String authtoken;
 
+        private Duration heartbeatInterval;
+        private Duration heartbeatTolerance;
+
         private String metadata;
+
+        private String serverAddr;
+        private byte[] caCert;
 
         private StopCallback stopCallback;
         private RestartCallback restartCallback;
@@ -107,16 +113,9 @@ public interface Session extends AutoCloseable {
 
         private HeartbeatHandler heartbeatHandler;
 
+        private final List<UserAgent> userAgents = new ArrayList<>();
+
         public Builder() {
-        }
-
-        public Builder addUserAgent(String name, String version) {
-            this.userAgents.add(new UserAgent(name, version));
-            return this;
-        }
-
-        public List<UserAgent> getUserAgents() {
-            return userAgents;
         }
 
         public Builder authtoken(String authtoken) {
@@ -132,6 +131,32 @@ public interface Session extends AutoCloseable {
             return authtoken;
         }
 
+        public Builder heartbeatInterval(Duration duration) {
+            this.heartbeatInterval = duration;
+            return this;
+        }
+
+        public boolean hasHeartbeatInterval() {
+            return heartbeatInterval != null;
+        }
+
+        public long getHeartbeatIntervalMs() {
+            return heartbeatInterval.toMillis();
+        }
+
+        public Builder heartbeatTolerance(Duration duration) {
+            this.heartbeatTolerance = duration;
+            return this;
+        }
+
+        public boolean hasHeartbeatTolerance() {
+            return heartbeatTolerance != null;
+        }
+
+        public long getHeartbeatToleranceMs() {
+            return heartbeatTolerance.toMillis();
+        }
+
         public Builder metadata(String metadata) {
             this.metadata = metadata;
             return this;
@@ -143,6 +168,28 @@ public interface Session extends AutoCloseable {
 
         public String getMetadata() {
             return metadata;
+        }
+
+        public Builder serverAddr(String addr) {
+            this.serverAddr = addr;
+            return this;
+        }
+
+        public boolean hasServerAddr() {
+            return serverAddr != null;
+        }
+
+        public String getServerAddr() {
+            return serverAddr;
+        }
+
+        public Builder caCert(byte[] data) {
+            this.caCert = data;
+            return this;
+        }
+
+        public byte[] getCaCert() {
+            return caCert;
         }
 
         public Builder stopCallback(StopCallback callback) {
@@ -179,6 +226,15 @@ public interface Session extends AutoCloseable {
 
         public HeartbeatHandler heartbeatHandler() {
             return heartbeatHandler;
+        }
+
+        public Builder addUserAgent(String name, String version) {
+            this.userAgents.add(new UserAgent(name, version));
+            return this;
+        }
+
+        public List<UserAgent> getUserAgents() {
+            return userAgents;
         }
     }
 }
