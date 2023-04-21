@@ -11,7 +11,7 @@ use com_ngrok::{
 };
 use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
-use std::{sync::MutexGuard, time::Duration};
+use std::{str::FromStr, sync::MutexGuard, time::Duration};
 use tokio::{io::AsyncReadExt, io::AsyncWriteExt, runtime::Runtime};
 use tracing::metadata::LevelFilter;
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
@@ -25,7 +25,7 @@ use jaffi_support::{
 };
 
 use ngrok::{
-    config::{OauthOptions, OidcOptions, ProxyProto},
+    config::{OauthOptions, OidcOptions, ProxyProto, Scheme},
     prelude::{TunnelBuilder, TunnelExt},
     session::{CommandHandler, HeartbeatHandler, Restart, Stop, Update},
     tunnel::{HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel, UrlTunnel},
@@ -389,30 +389,6 @@ struct NativeSessionRsImpl<'local> {
     env: JNIEnv<'local>,
 }
 
-impl<'local> NativeSessionRsImpl<'local> {
-    fn get_proxy_proto<O>(&self, obj: O) -> Option<ProxyProto>
-    where
-        O: Into<JObject<'local>>,
-    {
-        let proxy_proto = self
-            .env
-            .get_field(obj, "proxyProto", "Lcom/ngrok/ProxyProto;")
-            .and_then(|o| o.l())
-            .expect("could not get proxy proto field");
-
-        if proxy_proto.is_null() {
-            return None;
-        }
-
-        let version = self
-            .env
-            .get_field(proxy_proto, "version", "I")
-            .and_then(|o| o.i())
-            .expect("could not get version field");
-        Some(ProxyProto::from(i64::from(version)))
-    }
-}
-
 impl<'local> JNIExt<'local> for NativeSessionRsImpl<'local> {
     fn get_env(&self) -> &JNIEnv<'local> {
         &self.env
@@ -531,8 +507,8 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        if let Some(proxy_proto) = self.get_proxy_proto(jttb) {
-            bldr = bldr.proxy_proto(proxy_proto);
+        if jatb.has_proxy_proto(self.env) {
+            bldr = bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
         }
 
         if jatb.has_forwards_to(self.env) {
@@ -598,8 +574,8 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        if let Some(proxy_proto) = self.get_proxy_proto(jttb) {
-            bldr = bldr.proxy_proto(proxy_proto);
+        if jatb.has_proxy_proto(self.env) {
+            bldr = bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
         }
 
         if jatb.has_forwards_to(self.env) {
@@ -686,8 +662,8 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             }
         }
 
-        if let Some(proxy_proto) = self.get_proxy_proto(jhtb) {
-            bldr = bldr.proxy_proto(proxy_proto);
+        if jatb.has_proxy_proto(self.env) {
+            bldr = bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
         }
 
         if jatb.has_forwards_to(self.env) {
@@ -696,7 +672,12 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         // from HttpTunnel.Builder
 
-        // TODO: scheme
+        if jhtb.has_scheme(self.env) {
+            bldr = bldr.scheme(
+                Scheme::from_str(jhtb.get_scheme_name(self.env).as_str())
+                    .expect("invalid scheme name"),
+            );
+        }
 
         if jhtb.has_domain(self.env) {
             bldr = bldr.domain(jhtb.get_domain(self.env));

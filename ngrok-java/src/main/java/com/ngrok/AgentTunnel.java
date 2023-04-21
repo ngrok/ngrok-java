@@ -44,6 +44,14 @@ public abstract class AgentTunnel extends Tunnel {
             return (T) this;
         }
 
+        public boolean hasProxyProto() {
+            return proxyProto != null && proxyProto != ProxyProto.None;
+        }
+
+        public long getProxyProtoVersion() {
+            return proxyProto == null ? 0 : proxyProto.version;
+        }
+
         public T forwardsTo(String forwardsTo) {
             this.forwardsTo = forwardsTo;
             return (T) this;

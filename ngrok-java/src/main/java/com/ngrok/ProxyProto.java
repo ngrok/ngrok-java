@@ -5,13 +5,13 @@ public enum ProxyProto {
     V1(1),
     V2(2);
 
-    public final int version;
+    public final long version;
 
     ProxyProto(int version) {
         this.version = version;
     }
 
-    public int version() {
+    public long version() {
         return version;
     }
 }

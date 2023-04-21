@@ -6,6 +6,17 @@ import java.util.Objects;
 import java.util.Optional;
 
 public abstract class HttpTunnel extends AgentTunnel {
+    public enum Scheme {
+        HTTP("HTTP"),
+        HTTPS("HTTPS");
+
+        public final String name;
+
+        private Scheme(String name) {
+            this.name = name;
+        }
+    }
+
     public static class Header {
         private final String name;
         private final String value;
@@ -208,6 +219,8 @@ public abstract class HttpTunnel extends AgentTunnel {
     }
 
     public static class Builder extends AgentTunnel.Builder<Builder> {
+        private Scheme scheme;
+
         private String domain;
 
         private byte[] mutualTLSCA;
@@ -225,6 +238,19 @@ public abstract class HttpTunnel extends AgentTunnel {
         private OAuthOptions oauthOptions;
         private OIDCOptions oidcOptions;
         private WebhookVerification webhookVerification;
+
+        public Builder scheme(Scheme scheme) {
+            this.scheme = scheme;
+            return this;
+        }
+
+        public boolean hasScheme() {
+            return scheme != null;
+        }
+
+        public String getSchemeName() {
+            return scheme.name;
+        }
 
         public Builder domain(String domain) {
             this.domain = Objects.requireNonNull(domain);
