@@ -7,8 +7,9 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Ngrok :: Project</name>
+    <name>ngrok :: Project</name>
     <url>https://ngrok.com</url>
+    <description>This is the ngrok agent in library form, suitable for integrating directly into Java applications.</description>
 
     <properties>
         <!-- build -->
@@ -25,17 +26,6 @@
         <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
         <maven.release.plugin.version>3.0.0</maven.release.plugin.version>
     </properties>
-
-    <licenses>
-        <license>
-            <name>Apache Software License - Version 2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
-        </license>
-        <license>
-            <name>MIT License</name>
-            <url>http://opensource.org/licenses/MIT</url>
-        </license>
-    </licenses>
 
     <scm>
         <url>https://github.com/ngrok/ngrok-java</url>
@@ -114,18 +104,47 @@
         </pluginManagement>
     </build>
 
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/ngrok/ngrok-java</url>
-        </repository>
-    </distributionManagement>
-    <repositories>
-        <repository>
-            <id>github</id>
-            <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/ngrok/ngrok-java</url>
-        </repository>
-    </repositories>
+    <profiles>
+        <profile>
+            <id>github-distro</id>
+            <distributionManagement>
+                <repository>
+                    <id>github</id>
+                    <name>GitHub Packages</name>
+                    <url>https://maven.pkg.github.com/ngrok/ngrok-java</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
+
+    <organization>
+        <name>ngrok</name>
+        <url>https://ngrok.com</url>
+    </organization>
+
+    <issueManagement>
+        <system>GitHub issues</system>
+        <url>https://github.com/ngrok/ngrok-java/issues</url>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>Apache Software License - Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+        <license>
+            <name>MIT License</name>
+            <url>http://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>niki</id>
+            <name>Nikolay Petrov</name>
+            <email>nikolay@ngrok.com</email>
+            <organization>ngrok</organization>
+            <organizationUrl>https://ngrok.com</organizationUrl>
+        </developer>
+    </developers>
 </project>

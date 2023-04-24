@@ -8,7 +8,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ngrok-jetty</artifactId>
-    <name>Ngrok :: Java Jetty integration</name>
+    <name>ngrok :: Java Jetty integration</name>
     <packaging>jar</packaging>
 
     <dependencies>

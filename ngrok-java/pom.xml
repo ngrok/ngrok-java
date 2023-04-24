@@ -8,6 +8,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ngrok-java</artifactId>
-    <name>Ngrok :: Java</name>
+    <name>ngrok :: Java</name>
     <packaging>jar</packaging>
 </project>

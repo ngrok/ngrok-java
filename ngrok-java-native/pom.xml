@@ -8,7 +8,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ngrok-java-native</artifactId>
-    <name>Ngrok :: Java Native</name>
+    <name>ngrok :: Java Native</name>
     <packaging>jar</packaging>
 
     <dependencies>
