@@ -105,6 +105,7 @@ public class Echo {
                                                      .oauthOptions(new HttpTunnel.OAuthOptions("google")));
          // Now start the tunnel with the above configuration
          try (var tunnel = session.httpTunnel(tunnelBuilder)) {
+            System.out.println("ngrok url: " + tunnel.getUrl());
             var buf = ByteBuffer.allocateDirect(1024);
 
             while (true) {
