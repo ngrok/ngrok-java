@@ -54,10 +54,22 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Run mvn deploy
+      - name: Run mvn deploy (github)
         run: mvn --batch-mode deploy --activate-profiles ci,github-distro --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          server-id: ossrh
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+      - name: Run mvn deploy (ossrh)
+        run: mvn --batch-mode deploy --activate-profiles ci --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
 
   deploy-native-windows-x86:
     runs-on: windows-latest
