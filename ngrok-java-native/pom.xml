@@ -122,6 +122,7 @@
         <profile>
             <id>ci</id>
             <build>
+                <finalName>${artifactId}-${version}-${ngrok.native.classifier}</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
