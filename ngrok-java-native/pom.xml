@@ -90,6 +90,18 @@
                     <classifier>${os.detected.classifier}</classifier>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <classifier>${os.detected.classifier}-javadoc</classifier>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <configuration>
+                    <classifier>${os.detected.classifier}-sources</classifier>
+                </configuration>
+            </plugin>
         </plugins>
         <extensions>
             <extension>
@@ -156,6 +168,18 @@
                         <artifactId>maven-jar-plugin</artifactId>
                         <configuration>
                             <classifier>${ngrok.native.classifier}</classifier>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <classifier>${ngrok.native.classifier}-javadoc</classifier>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <configuration>
+                            <classifier>${ngrok.native.classifier}-sources</classifier>
                         </configuration>
                     </plugin>
                 </plugins>
