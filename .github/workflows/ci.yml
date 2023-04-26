@@ -98,7 +98,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
 
   build-native-linux-arm64:
     name: Build Native linux-arm64
@@ -121,7 +121,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=linux-aarch_64" --define "ngrok.native.target=aarch64-unknown-linux-gnu" --define "skipTests"
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-aarch_64" --define "ngrok.native.target=aarch64-unknown-linux-gnu" --define "skipTests"
 
   build-native-linux-x32:
     name: Build Native linux-x32
@@ -143,7 +143,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=linux-x86_32" --define "ngrok.native.target=i686-unknown-linux-gnu" --define "skipTests"
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_32" --define "ngrok.native.target=i686-unknown-linux-gnu" --define "skipTests"
 
   build-native-windows-x86:
     name: Build Native windows-x86
@@ -163,7 +163,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=windows-x86_64" --define "ngrok.native.target=x86_64-pc-windows-msvc"
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=windows-x86_64" --define "ngrok.native.target=x86_64-pc-windows-msvc"
 
   build-native-windows-x32:
     name: Build Native windows-x32
@@ -183,7 +183,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=windows-x86_32" --define "ngrok.native.target=i686-pc-windows-msvc" --define "skipTests"
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=windows-x86_32" --define "ngrok.native.target=i686-pc-windows-msvc" --define "skipTests"
 
   build-native-macos-x86:
     name: Build Native mac-x86
@@ -203,7 +203,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=osx-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=osx-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
 
   build-native-macos-arm64:
     name: Build Native mac-arm
@@ -223,4 +223,4 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci --define "ngrok.native.classifier=osx-aarch_64" --define "ngrok.native.target=aarch64-apple-darwin" --define "skipTests"
+        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=osx-aarch_64" --define "ngrok.native.target=aarch64-apple-darwin" --define "skipTests"
