@@ -62,6 +62,8 @@ jobs:
         run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
       - name: Run mvn deploy native (github)
         run: mvn --batch-mode deploy:deploy-file --activate-profiles github-distro --define "url=https://maven.pkg.github.com/ngrok/ngrok-java" --define "repositoryId=github" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=linux-x86_64"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-java@v3
         with:
           java-version: '17'
