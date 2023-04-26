@@ -82,7 +82,7 @@ jobs:
       - name: Run mvn package native (ossrh)
         run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
       - name: Run mvn deploy native (ossrh)
-        run: mvn --batch-mode deploy:deploy-file --activate-profiles central-distro --define "url=https://s01.oss.sonatype.org:443/service/local/staging/deployByRepositoryId/comngrok-1022" --define "repositoryId=ossrh" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=linux-x86_64"
+        run: mvn --batch-mode deploy:deploy-file --activate-profiles central-distro --define "url=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/" --define "repositoryId=ossrh" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=linux-x86_64"
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
