@@ -139,7 +139,12 @@
                         <executions>
                             <execution>
                                 <id>build-rust</id>
+                                <phase>process-classes</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
                                 <configuration>
+                                    <executable>cargo</executable>
                                     <arguments>
                                         <argument>build</argument>
                                         <argument>--release</argument>
@@ -157,6 +162,10 @@
                         <executions>
                             <execution>
                                 <id>copy-rust</id>
+                                <phase>process-classes</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
                                 <configuration>
                                     <outputDirectory>${project.basedir}/target/classes/</outputDirectory>
                                     <resources>
