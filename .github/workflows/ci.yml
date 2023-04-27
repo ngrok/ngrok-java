@@ -7,84 +7,9 @@ on:
   pull_request: null
 
 jobs:
-  build-api:
-    name: Build Ngrok
+  build:
+    name: Build Ngrok Java
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java --also-make package
-
-  udeps:
-    name: Udeps
-    runs-on: ubuntu-latest
-    needs:
-      - build-api
-    steps:
-      - uses: actions/checkout@v3
-      - uses: jrobsonchase/direnv-action@v0.7
-      - uses: ./.github/workflows/rust-cache
-      - name: generate rust files
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make process-classes
-      - uses: actions-rs/cargo@v1
-        with:
-          command: udeps
-          args: '--workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml'
-
-  fmt:
-    name: Rustfmt
-    runs-on: ubuntu-latest
-    needs:
-      - build-api
-    steps:
-      - uses: actions/checkout@v3
-      - uses: jrobsonchase/direnv-action@v0.7
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: '--all --manifest-path ngrok-java-native/Cargo.toml -- --check'
-
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    needs:
-      - build-api
-    steps:
-      - uses: actions/checkout@v3
-      - uses: jrobsonchase/direnv-action@v0.7
-      - uses: ./.github/workflows/rust-cache
-      - name: generate rust files
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make process-classes
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: '--all-targets --all-features --workspace --manifest-path ngrok-java-native/Cargo.toml -- -D warnings'
-
-  build-jetty:
-    name: Build Jetty
-    runs-on: ubuntu-latest
-    needs:
-      - build-api
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-jetty --also-make package
-
-  build-native-linux-x86:
-    name: Build Native linux-x86
-    runs-on: ubuntu-latest
-    needs:
-      - build-api
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
@@ -98,129 +23,49 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
+        run: mvn --batch-mode verify
 
-  build-native-linux-arm64:
-    name: Build Native linux-arm64
-    # issues compiling https://github.com/briansmith/ring
-    if: false
+  udeps:
+    name: Udeps
     runs-on: ubuntu-latest
     needs:
-      - build-api
+      - build
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: aarch64-unknown-linux-gnu
-          default: true
+      - uses: jrobsonchase/direnv-action@v0.7
       - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
+      - name: generate rust files
+        run: mvn --batch-mode --projects ngrok-java-native --also-make process-classes
+      - uses: actions-rs/cargo@v1
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-aarch_64" --define "ngrok.native.target=aarch64-unknown-linux-gnu" --define "skipTests"
+          command: udeps
+          args: '--workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml'
 
-  build-native-linux-x32:
-    name: Build Native linux-x32
-    # issues compiling https://github.com/briansmith/ring
-    if: false
+  fmt:
+    name: Rustfmt
     runs-on: ubuntu-latest
     needs:
-      - build-api
+      - build
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@master
+      - uses: jrobsonchase/direnv-action@v0.7
+      - uses: actions-rs/cargo@v1
         with:
-          toolchain: stable
-          targets: i686-unknown-linux-gnu
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_32" --define "ngrok.native.target=i686-unknown-linux-gnu" --define "skipTests"
+          command: fmt
+          args: '--all --manifest-path ngrok-java-native/Cargo.toml -- --check'
 
-  build-native-windows-x86:
-    name: Build Native windows-x86
-    runs-on: windows-latest
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
     needs:
-      - build-api
+      - build
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: x86_64-pc-windows-msvc
+      - uses: jrobsonchase/direnv-action@v0.7
       - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
+      - name: generate rust files
+        run: mvn --batch-mode --projects ngrok-java-native --also-make process-classes
+      - uses: actions-rs/cargo@v1
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=windows-x86_64" --define "ngrok.native.target=x86_64-pc-windows-msvc"
-
-  build-native-windows-x32:
-    name: Build Native windows-x32
-    runs-on: windows-latest
-    needs:
-      - build-api
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: i686-pc-windows-msvc
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=windows-x86_32" --define "ngrok.native.target=i686-pc-windows-msvc" --define "skipTests"
-
-  build-native-macos-x86:
-    name: Build Native mac-x86
-    runs-on: macos-latest
-    needs:
-      - build-api
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: x86_64-apple-darwin
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=osx-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
-
-  build-native-macos-arm64:
-    name: Build Native mac-arm
-    runs-on: macos-latest
-    needs:
-      - build-api
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: aarch64-apple-darwin
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Run mvn package
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=osx-aarch_64" --define "ngrok.native.target=aarch64-apple-darwin" --define "skipTests"
+          command: clippy
+          args: '--all-targets --all-features --workspace --manifest-path ngrok-java-native/Cargo.toml -- -D warnings'
