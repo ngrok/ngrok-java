@@ -117,6 +117,9 @@
         </profile>
         <profile>
             <id>ci-default</id>
+            <properties>
+                <ngrok.native.classifier></ngrok.native.classifier>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
