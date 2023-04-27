@@ -1,0 +1,38 @@
+name: Prepare Release
+run-name: Prepare Release v${{ github.event.inputs.releaseVersion }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        required: true
+        default: main
+      releaseVersion:
+        required: true
+      developmentVersion:
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-gnu
+      - uses: ./.github/workflows/rust-cache
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Configure Git User
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+      - name: Run mvn release
+        run: mvn --batch-mode release:prepare -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

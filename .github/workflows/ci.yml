@@ -22,7 +22,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-      - name: Run mvn package
+      - name: Run mvn verify
         run: mvn --batch-mode verify
 
   udeps:

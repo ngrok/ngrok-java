@@ -4,43 +4,12 @@ run-name: Release v${{ github.event.inputs.releaseVersion }}
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        required: true
-        default: main
       releaseVersion:
-        required: true
-      developmentVersion:
         required: true
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.inputs.branch }}
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: x86_64-unknown-linux-gnu
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Configure Git User
-        run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
-      - name: Run mvn release
-        run: mvn --batch-mode release:prepare -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
   deploy-all-linux-x86:
     runs-on: ubuntu-latest
-    needs:
-      - release
     steps:
       - uses: actions/checkout@v3
         with:
@@ -91,7 +60,6 @@ jobs:
   deploy-native-windows-x86:
     runs-on: windows-latest
     needs:
-      - release
       - deploy-all-linux-x86
     steps:
       - uses: actions/checkout@v3
@@ -116,7 +84,6 @@ jobs:
   deploy-native-windows-x32:
     runs-on: windows-latest
     needs:
-      - release
       - deploy-all-linux-x86
     steps:
       - uses: actions/checkout@v3
@@ -141,7 +108,6 @@ jobs:
   deploy-native-macos-x86:
     runs-on: macos-latest
     needs:
-      - release
       - deploy-all-linux-x86
     steps:
       - uses: actions/checkout@v3
@@ -166,7 +132,6 @@ jobs:
   deploy-native-macos-arm64:
     runs-on: macos-latest
     needs:
-      - release
       - deploy-all-linux-x86
     steps:
       - uses: actions/checkout@v3
