@@ -1,4 +1,4 @@
-name: Release
+name: Release GitHub Packages
 run-name: Release v${{ github.event.inputs.releaseVersion }}
 
 on:
@@ -23,39 +23,16 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Run mvn deploy (github)
+      - name: Run mvn deploy
         run: mvn --batch-mode deploy --activate-profiles ci-default,github-distro
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Run mvn package native (github)
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
-      - name: Run mvn deploy native (github)
+      - name: Run mvn package native
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
+      - name: Run mvn deploy native
         run: mvn --batch-mode deploy:deploy-file --activate-profiles github-distro --define "url=https://maven.pkg.github.com/ngrok/ngrok-java" --define "repositoryId=github" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=linux-x86_64"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          server-id: ossrh
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.OSSRH_GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
-      - name: Run mvn deploy (ossrh)
-        run: mvn --batch-mode deploy --activate-profiles ci-default,central-distro
-        env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
-      - name: Run mvn package native (ossrh)
-        run: mvn --batch-mode --update-snapshots --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
-      - name: Run mvn deploy native (ossrh)
-        run: mvn --batch-mode gpg:sign-and-deploy-file --activate-profiles central-distro --define "url=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/" --define "repositoryId=ossrh" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=linux-x86_64"
-        env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
 
   deploy-native-windows-x86:
     runs-on: windows-latest
