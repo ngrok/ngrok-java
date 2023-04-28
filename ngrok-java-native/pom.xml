@@ -224,17 +224,17 @@
                                 <configuration>
                                     <artifacts>
                                         <artifact>
-                                            <file>ngrok-java-native-${project.version}-linux-x86_64.jar</file>
+                                            <file>target/ngrok-java-native-${project.version}-linux-x86_64.jar</file>
                                             <type>jar</type>
                                             <classifier>linux-x86_64</classifier>
                                         </artifact>
                                         <artifact>
-                                            <file>ngrok-java-native-${project.version}-osx-x86_64.jar</file>
+                                            <file>target/ngrok-java-native-${project.version}-osx-x86_64.jar</file>
                                             <type>jar</type>
                                             <classifier>osx-x86_64</classifier>
                                         </artifact>
                                         <artifact>
-                                            <file>ngrok-java-native-${project.version}-osx-aarch_64.jar</file>
+                                            <file>target/ngrok-java-native-${project.version}-osx-aarch_64.jar</file>
                                             <type>jar</type>
                                             <classifier>osx-aarch_64</classifier>
                                         </artifact>
