@@ -10,6 +10,8 @@ on:
 jobs:
   deploy-all:
     runs-on: ubuntu-latest
+    needs:
+      - deploy-native-linux-x86
     steps:
       - uses: actions/checkout@v3
         with:
@@ -30,10 +32,8 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
 
-  deploy-all-linux-x86:
+  deploy-native-linux-x86:
     runs-on: ubuntu-latest
-    needs:
-      - deploy-all
     steps:
       - uses: actions/checkout@v3
         with:
