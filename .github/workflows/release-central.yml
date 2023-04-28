@@ -33,6 +33,10 @@ jobs:
           path: ngrok-java-native/target/
       - uses: actions/download-artifact@v3
         with:
+          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-windows-x86_64.jar
+          path: ngrok-java-native/target/
+      - uses: actions/download-artifact@v3
+        with:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-x86_64.jar
           path: ngrok-java-native/target/
       - uses: actions/download-artifact@v3
@@ -69,6 +73,31 @@ jobs:
         with:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar
           path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar
+          retention-days: 1
+
+  deploy-native-windows-x86:
+    runs-on: windows-latest
+    needs:
+      - deploy-all
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v${{ github.event.inputs.releaseVersion }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+      - uses: ./.github/workflows/rust-cache
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Run mvn package
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=windows-x86_64" --define "ngrok.native.target=x86_64-pc-windows-msvc"
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-windows-x86_64.jar
+          path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-windows-x86_64.jar
           retention-days: 1
 
   deploy-native-macos-x86:
