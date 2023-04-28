@@ -50,8 +50,6 @@ jobs:
 
   deploy-native-linux-x86:
     runs-on: ubuntu-latest
-    needs:
-      - deploy-all
     steps:
       - uses: actions/checkout@v3
         with:
@@ -75,8 +73,6 @@ jobs:
 
   deploy-native-macos-x86:
     runs-on: macos-latest
-    needs:
-      - deploy-all
     steps:
       - uses: actions/checkout@v3
         with:
@@ -100,8 +96,6 @@ jobs:
 
   deploy-native-macos-arm64:
     runs-on: macos-latest
-    needs:
-      - deploy-all
     steps:
       - uses: actions/checkout@v3
         with:
