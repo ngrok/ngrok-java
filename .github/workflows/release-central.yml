@@ -10,6 +10,10 @@ on:
 jobs:
   deploy-all:
     runs-on: ubuntu-latest
+    needs:
+      - deploy-native-linux-x86
+      - deploy-native-macos-x86
+      - deploy-native-macos-arm64
     steps:
       - uses: actions/checkout@v3
         with:
@@ -23,6 +27,20 @@ jobs:
           server-password: MAVEN_PASSWORD
           gpg-private-key: ${{ secrets.OSSRH_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
+      - uses: actions/download-artifact@v3
+        with:
+          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar
+          path: ngrok-java-native/target/
+      - uses: actions/download-artifact@v3
+        with:
+          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-x86_64.jar
+          path: ngrok-java-native/target/
+      - uses: actions/download-artifact@v3
+        with:
+          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-aarch_64.jar
+          path: ngrok-java-native/target/
+      - name: Display structure of downloaded files
+        run: ls -R
       - name: Run mvn deploy
         run: mvn --batch-mode deploy --activate-profiles ci-default,central-distro
         env:
@@ -47,19 +65,13 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          server-id: ossrh
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.OSSRH_GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Run mvn package native
         run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
-      - name: Run mvn deploy native
-        run: mvn --batch-mode gpg:sign-and-deploy-file nexus-staging:release --activate-profiles central-distro --define "url=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/" --define "repositoryId=ossrh" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=linux-x86_64"
-        env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar
+          path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar
+          retention-days: 1
 
   deploy-native-macos-x86:
     runs-on: macos-latest
@@ -78,16 +90,35 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          server-id: ossrh
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-          gpg-private-key: ${{ secrets.OSSRH_GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Run mvn package native
         run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=osx-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
-      - name: Run mvn deploy native
-        run: mvn --batch-mode gpg:sign-and-deploy-file nexus-staging:release --activate-profiles central-distro --define "url=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/" --define "repositoryId=ossrh" --define "generatePom=false" --define "file=ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-x86_64.jar" --define "groupId=com.ngrok" --define "artifactId=ngrok-java-native" --define "version=${{ github.event.inputs.releaseVersion }}" --define "classifier=osx-x86_64"
-        env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-x86_64.jar
+          path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-x86_64.jar
+          retention-days: 1
+
+  deploy-native-macos-arm64:
+    runs-on: macos-latest
+    needs:
+      - deploy-all
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: v${{ github.event.inputs.releaseVersion }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: aarch64-apple-darwin
+      - uses: ./.github/workflows/rust-cache
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Run mvn package
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=osx-aarch_64" --define "ngrok.native.target=aarch64-apple-darwin" --define "skipTests"
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-aarch_64.jar
+          path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-aarch_64.jar
+          retention-days: 1
