@@ -116,22 +116,6 @@
             </build>
         </profile>
         <profile>
-            <id>ci-default</id>
-            <properties>
-                <ngrok.native.classifier />
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <skipTests>true</skipTests>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
             <id>ci-native</id>
             <build>
                 <plugins>
@@ -207,9 +191,15 @@
             </build>
         </profile>
         <profile>
-            <id>central-distro</id>
+            <id>ci-distro</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>true</skipTests>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>build-helper-maven-plugin</artifactId>
@@ -232,6 +222,11 @@
                                             <file>target/ngrok-java-native-${project.version}-windows-x86_64.jar</file>
                                             <type>jar</type>
                                             <classifier>windows-x86_64</classifier>
+                                        </artifact>
+                                        <artifact>
+                                            <file>target/ngrok-java-native-${project.version}-windows-x86_32.jar</file>
+                                            <type>jar</type>
+                                            <classifier>windows-x86_32</classifier>
                                         </artifact>
                                         <artifact>
                                             <file>target/ngrok-java-native-${project.version}-osx-x86_64.jar</file>
