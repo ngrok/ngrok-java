@@ -1,6 +1,7 @@
 package com.ngrok;
 
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,10 +35,7 @@ class Runtime {
         File temp = new File(temporaryDir, filename);
         try (InputStream is = Runtime.class.getResourceAsStream("/" + filename)) {
             Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            temp.delete();
-            throw new RuntimeException(e);
-        } catch (NullPointerException e) {
+        } catch (IOException | NullPointerException e) {
             temp.delete();
             throw new RuntimeException(e);
         }
@@ -70,17 +68,26 @@ class Runtime {
     static native void init(Logger logger);
 
     static class Logger {
+
         private static final String format = "[{}] {}";
 
+        private final Level level;
+
+        public Logger(Level level) {
+            this.level = level;
+        }
+
+        public Logger() {
+            this(Level.INFO);
+        }
+
+        public String getLevelStr() {
+            return level.toString();
+        }
+
         public void log(String level, String target, String message) {
-            switch (level) {
-                case "TRACE" -> logger.trace(format, target, message);
-                case "DEBUG" -> logger.debug(format, target, message);
-                case "INFO" -> logger.info(format, target, message);
-                case "WARN" -> logger.warn(format, target, message);
-                case "ERROR" -> logger.error(format, target, message);
-                default -> logger.debug("{}: [{}] {}", level, target, message);
-            }
+            Level lvl = Level.valueOf(level); 
+            logger.atLevel(lvl).log(format, target, message);
         }
     }
 }

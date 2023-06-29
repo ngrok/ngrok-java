@@ -13,7 +13,7 @@ use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
 use std::{str::FromStr, sync::MutexGuard, time::Duration};
 use tokio::{io::AsyncReadExt, io::AsyncWriteExt, runtime::Runtime};
-use tracing::metadata::LevelFilter;
+use tracing::Level;
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
 
 use jaffi_support::{
@@ -69,9 +69,11 @@ impl<'local> com_ngrok::RuntimeRs<'local> for RuntimeRsImpl<'local> {
                     .expect("cannot get logger ref");
                 LOGGER.get_or_init(|| logref);
 
+                let logLvl: Level = Level::from_str(logger.getLevelStr()).unwrap_or(Level::TRACE);
+                let levelFilter: LevelFilter = logLvl.into(); 
                 tracing_subscriber::registry()
                     .with(TracingLoggingLayer)
-                    .with(LevelFilter::TRACE)
+                    .with(levelFilter)
                     .try_init()
                     .expect("cannot init logging");
             }
