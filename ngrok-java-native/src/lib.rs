@@ -13,7 +13,7 @@ use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
 use std::{str::FromStr, sync::MutexGuard, time::Duration};
 use tokio::{io::AsyncReadExt, io::AsyncWriteExt, runtime::Runtime};
-use tracing::Level;
+use tracing::{Level, level_filters::LevelFilter};
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
 
 use jaffi_support::{
@@ -61,7 +61,6 @@ impl<'local> com_ngrok::RuntimeRs<'local> for RuntimeRsImpl<'local> {
                 RT.get_or_init(|| rt);
 
                 let jvm = self.env.get_java_vm().expect("cannot get jvm");
-                JVM.get_or_init(|| jvm);
 
                 let logref = self
                     .env
@@ -69,13 +68,19 @@ impl<'local> com_ngrok::RuntimeRs<'local> for RuntimeRsImpl<'local> {
                     .expect("cannot get logger ref");
                 LOGGER.get_or_init(|| logref);
 
-                let logLvl: Level = Level::from_str(logger.getLevelStr()).unwrap_or(Level::TRACE);
-                let levelFilter: LevelFilter = logLvl.into(); 
+                let jenv = jvm
+                    .attach_current_thread_as_daemon()
+                    .expect("cannot attach");
+
+                let log_lvl: Level = Level::from_str(&logger.get_level_str(jenv)).unwrap_or(Level::TRACE);
+                let level_filter: LevelFilter = log_lvl.into(); 
                 tracing_subscriber::registry()
                     .with(TracingLoggingLayer)
-                    .with(levelFilter)
+                    .with(level_filter)
                     .try_init()
                     .expect("cannot init logging");
+
+                JVM.get_or_init(|| jvm);
             }
             Err(err) => {
                 self.env
