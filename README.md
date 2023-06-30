@@ -73,8 +73,7 @@ For example of how to setup your project, check out [ngrok-java-demo](https://gi
 
 # Documentation
 
-# Quickstart
-
+## Quickstart
 
 ```java
 import com.ngrok.Session;
@@ -113,6 +112,9 @@ public class Echo {
    }
 }
 ```
+
+## Configuring Logging
+Set `NGROK_LOG_LEVEL` environment variable to adjust logging level. Valid values are `TRACE`, `DEBUG`, `INFO`, `WARN`, and `ERROR`. Defaults to `INFO`.
 
 # License
 

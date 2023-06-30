@@ -10,7 +10,6 @@ import java.nio.file.*;
 import java.util.Locale;
 
 class Runtime {
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Runtime.class);
 
     private static String getLibname() {
         // TODO better logic here/use lib
@@ -68,17 +67,29 @@ class Runtime {
     static native void init(Logger logger);
 
     static class Logger {
-
+        private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Runtime.class);
         private static final String format = "[{}] {}";
 
+        private static Logger instance;
         private final Level level;
 
-        public Logger(Level level) {
+        private Logger(Level level) {
             this.level = level;
         }
 
-        public Logger() {
-            this(Level.INFO);
+        public static Logger Get() {
+            if (instance == null) {
+                String logLevel = System.getenv("NGROK_LOG_LEVEL");
+                // Default to INFO if no log level is set
+                Level level = Level.INFO;
+                if (logLevel != null) {
+                    try {
+                        level = Level.valueOf(logLevel);
+                    } catch (IllegalArgumentException ignore) {}
+                }
+                instance = new Logger(level);
+            }
+            return instance;
         }
 
         public String getLevelStr() {
@@ -86,7 +97,7 @@ class Runtime {
         }
 
         public void log(String level, String target, String message) {
-            Level lvl = Level.valueOf(level); 
+            Level lvl = Level.valueOf(level.toUpperCase()); 
             logger.atLevel(lvl).log(format, target, message);
         }
     }
