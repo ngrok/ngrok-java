@@ -74,12 +74,23 @@ class Runtime {
 
         public void log(String level, String target, String message) {
             switch (level) {
-                case "TRACE" -> logger.trace(format, target, message);
-                case "DEBUG" -> logger.debug(format, target, message);
-                case "INFO" -> logger.info(format, target, message);
-                case "WARN" -> logger.warn(format, target, message);
-                case "ERROR" -> logger.error(format, target, message);
-                default -> logger.debug("{}: [{}] {}", level, target, message);
+                case "TRACE":
+                    logger.trace(format, target, message);
+                    break;
+                case "DEBUG":
+                    logger.debug(format, target, message);
+                    break;
+                case "INFO":
+                    logger.info(format, target, message);
+                    break;
+                case "WARN":
+                    logger.warn(format, target, message);
+                    break;
+                case "ERROR":
+                    logger.error(format, target, message);
+                    break;
+                default:
+                    logger.debug("{}: [{}] {}", level, target, message);
             }
         }
     }
