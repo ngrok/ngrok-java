@@ -5,8 +5,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 public class ConnectionSocket extends Socket {
-    protected ConnectionSocket() throws IOException {
-        super(new ConnectionSocketImpl());
+    protected ConnectionSocket(int bufferSize) throws IOException {
+        super(new ConnectionSocketImpl(bufferSize));
     }
 
     @Override

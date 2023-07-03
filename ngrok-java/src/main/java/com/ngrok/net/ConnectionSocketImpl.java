@@ -8,8 +8,10 @@ import java.io.OutputStream;
 
 public class ConnectionSocketImpl extends AbstractSocketImpl {
     protected Connection connection;
+    protected int bufferSize;
 
-    protected ConnectionSocketImpl() {
+    protected ConnectionSocketImpl(int bufferSize) {
+        this.bufferSize = bufferSize;
     }
 
     protected void setConnection(Connection connection) {
@@ -22,11 +24,11 @@ public class ConnectionSocketImpl extends AbstractSocketImpl {
 
     @Override
     protected InputStream getInputStream() throws IOException {
-        return new ConnectionInputStream(connection, 1024);
+        return new ConnectionInputStream(connection, bufferSize);
     }
 
     @Override
     protected OutputStream getOutputStream() throws IOException {
-        return new ConnectionOutputStream(connection, 1024);
+        return new ConnectionOutputStream(connection, bufferSize);
     }
 }
