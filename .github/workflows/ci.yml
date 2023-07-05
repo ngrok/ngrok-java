@@ -1,10 +1,13 @@
 name: CI
 
 on:
-  push: 
+  push:
     branches:
       - main
-  pull_request: null
+  pull_request:
+    branches:
+      # Temporary to test CI
+      - main
 
 jobs:
   build:
@@ -19,9 +22,9 @@ jobs:
       - uses: ./.github/workflows/rust-cache
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
+          java-version: "17"
+          distribution: "temurin"
+          cache: "maven"
       - name: Run mvn verify
         run: mvn --batch-mode verify
 
@@ -39,7 +42,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: udeps
-          args: '--workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml'
+          args: "--workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml"
 
   fmt:
     name: Rustfmt
@@ -52,7 +55,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: '--all --manifest-path ngrok-java-native/Cargo.toml -- --check'
+          args: "--all --manifest-path ngrok-java-native/Cargo.toml -- --check"
 
   clippy:
     name: Clippy
@@ -68,4 +71,18 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: '--all-targets --all-features --workspace --manifest-path ngrok-java-native/Cargo.toml -- -D warnings'
+          args: "--all-targets --all-features --workspace --manifest-path ngrok-java-native/Cargo.toml -- -D warnings"
+  javadocs:
+    name: Javadocs
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - name: Deploy
+        uses: MathieuSoysal/Javadoc-publisher.yml@v2.4.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          javadoc-branch: main
+          java-version: 17
+          project: maven
+          custom-command: javadoc -d javadoc -sourcepath ngrok-java/src/main/java/com/ngrok -sourcepath ngrok-java-native/src/main/java/com/ngrok -subpackages .
