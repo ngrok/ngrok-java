@@ -69,7 +69,8 @@ impl<'local> com_ngrok::RuntimeRs<'local> for RuntimeRsImpl<'local> {
                     .expect("cannot get logger ref");
                 LOGGER.get_or_init(|| logref);
 
-                let log_lvl: Level = Level::from_str(&logger.get_level(self.env)).expect("invalid log level");
+                let log_lvl: Level =
+                    Level::from_str(&logger.get_level(self.env)).expect("invalid log level");
                 let level_filter: LevelFilter = log_lvl.into();
                 tracing_subscriber::registry()
                     .with(TracingLoggingLayer)
