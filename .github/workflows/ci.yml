@@ -3,71 +3,84 @@ name: CI
 on:
   push:
     branches:
-      - ignore_me/**
+      - main
   pull_request:
     branches:
-      - ignore_me/**
+      - main
 
 jobs:
-  build:
-    name: Build Ngrok Java
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: x86_64-unknown-linux-gnu
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
-        with:
-          java-version: "17"
-          distribution: "temurin"
-          cache: "maven"
-      - name: Run mvn verify
-        run: mvn --batch-mode verify
+  # build:
+  #   name: Build Ngrok Java
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@master
+  #       with:
+  #         toolchain: stable
+  #         targets: x86_64-unknown-linux-gnu
+  #     - uses: ./.github/workflows/rust-cache
+  #     - uses: actions/setup-java@v3
+  #       with:
+  #         java-version: "17"
+  #         distribution: "temurin"
+  #         cache: "maven"
+  #     - name: Run mvn verify
+  #       run: mvn --batch-mode verify
 
-  udeps:
-    name: Udeps
-    runs-on: ubuntu-latest
-    needs:
-      - build
-    steps:
-      - uses: actions/checkout@v3
-      - uses: jrobsonchase/direnv-action@v0.7
-      - uses: ./.github/workflows/rust-cache
-      - name: generate rust files
-        run: mvn --batch-mode --projects ngrok-java-native --also-make process-classes
-      - uses: actions-rs/cargo@v1
-        with:
-          command: udeps
-          args: "--workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml"
+  # udeps:
+  #   name: Udeps
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - build
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: jrobsonchase/direnv-action@v0.7
+  #     - uses: ./.github/workflows/rust-cache
+  #     - name: generate rust files
+  #       run: mvn --batch-mode --projects ngrok-java-native --also-make process-classes
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: udeps
+  #         args: "--workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml"
 
-  fmt:
-    name: Rustfmt
-    runs-on: ubuntu-latest
-    needs:
-      - build
-    steps:
-      - uses: actions/checkout@v3
-      - uses: jrobsonchase/direnv-action@v0.7
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: "--all --manifest-path ngrok-java-native/Cargo.toml -- --check"
+  # fmt:
+  #   name: Rustfmt
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - build
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: jrobsonchase/direnv-action@v0.7
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: fmt
+  #         args: "--all --manifest-path ngrok-java-native/Cargo.toml -- --check"
 
-  clippy:
-    name: Clippy
+  # clippy:
+  #   name: Clippy
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - build
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: jrobsonchase/direnv-action@v0.7
+  #     - uses: ./.github/workflows/rust-cache
+  #     - name: generate rust files
+  #       run: mvn --batch-mode --projects ngrok-java-native --also-make process-classes
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: clippy
+  #         args: "--all-targets --all-features --workspace --manifest-path ngrok-java-native/Cargo.toml -- -D warnings"
+
+  javadocs:
+    name: Javadocs
     runs-on: ubuntu-latest
-    needs:
-      - build
     steps:
-      - uses: actions/checkout@v3
-      - uses: jrobsonchase/direnv-action@v0.7
-      - uses: ./.github/workflows/rust-cache
-      - name: generate rust files
-        run: mvn --batch-mode --projects ngrok-java-native --also-make process-classes
-      - uses: actions-rs/cargo@v1
+      - name: Deploy
+        uses: MathieuSoysal/Javadoc-publisher.yml@v2.4.0
         with:
-          command: clippy
-          args: "--all-targets --all-features --workspace --manifest-path ngrok-java-native/Cargo.toml -- -D warnings"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          javadoc-branch: main
+          java-version: 17
+          project: maven
+          custom-command: javadoc -d javadoc -sourcepath ngrok-java/src/main/java/com/ngrok -sourcepath ngrok-java-native/src/main/java/com/ngrok -subpackages .
