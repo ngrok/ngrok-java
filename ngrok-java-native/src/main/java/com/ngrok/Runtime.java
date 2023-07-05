@@ -80,21 +80,12 @@ class Runtime {
 
         public String getLevel() {
             Level logLevel = Level.INFO;
-            
-            if (logger.isErrorEnabled()) {
-                logLevel = Level.ERROR;
-            }
-            else if (logger.isWarnEnabled()) {
-                logLevel = Level.WARN;
-            }
-            else if (logger.isInfoEnabled()) {
-                logLevel = Level.INFO;
-            }
-            else if (logger.isDebugEnabled()) {
-                logLevel = Level.DEBUG;
-            }
-            else if (logger.isTraceEnabled()) {
-                logLevel = Level.TRACE;
+
+            Level[] levels = new Level[] {Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE};
+            for (Level level : levels) {
+                if (logger.isEnabledForLevel(level)) {
+                    logLevel = level;
+                }
             }
 
             return logLevel.toString();
