@@ -11,6 +11,12 @@ import java.util.Locale;
 
 class Runtime {
 
+    private static final Logger LOGGER = new Logger(); 
+
+    public static Logger getLogger() {
+        return LOGGER;
+    }
+
     private static String getLibname() {
         // TODO better logic here/use lib
         var osname = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
@@ -70,24 +76,25 @@ class Runtime {
         private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Runtime.class);
         private static final String format = "[{}] {}";
 
-        private static Logger instance;
-
         private Logger() { }
-
-        public static Logger Get() {
-            if (instance == null) {
-                instance = new Logger();                
-            }
-            return instance;
-        }
 
         public String getLevel() {
             Level logLevel = Level.INFO;
-            // Iterate through levels from highest to lowest severity; stop when we find the highest enabled
-            for (Level level : Level.values()) {
-                if (logger.isEnabledForLevel(level)) {
-                    logLevel = level;
-                }
+            
+            if (logger.isErrorEnabled()) {
+                logLevel = Level.ERROR;
+            }
+            else if (logger.isWarnEnabled()) {
+                logLevel = Level.WARN;
+            }
+            else if (logger.isInfoEnabled()) {
+                logLevel = Level.INFO;
+            }
+            else if (logger.isDebugEnabled()) {
+                logLevel = Level.DEBUG;
+            }
+            else if (logger.isTraceEnabled()) {
+                logLevel = Level.TRACE;
             }
 
             return logLevel.toString();

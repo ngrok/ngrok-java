@@ -70,7 +70,7 @@ impl<'local> com_ngrok::RuntimeRs<'local> for RuntimeRsImpl<'local> {
                 LOGGER.get_or_init(|| logref);
 
                 let log_lvl: Level =
-                    Level::from_str(&logger.get_level(self.env)).unwrap_or(Level::TRACE);
+                    Level::from_str(&logger.get_level(self.env)).unwrap();
                 let level_filter: LevelFilter = log_lvl.into();
                 tracing_subscriber::registry()
                     .with(TracingLoggingLayer)

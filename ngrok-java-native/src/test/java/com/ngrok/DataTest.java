@@ -26,7 +26,7 @@ public class DataTest {
         try (var session = Session.connect(Session.newBuilder());
             var tunnel = session.httpTunnel(new HttpTunnel.Builder().metadata("java-tunnel"))) {
             assertEquals("java-tunnel", tunnel.getMetadata());
-            Runtime.Logger.Get().log("info", "session", tunnel.getUrl());
+            Runtime.getLogger().log("info", "session", tunnel.getUrl());
         }
     }
 

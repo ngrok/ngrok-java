@@ -7,7 +7,7 @@ public class NativeSession implements Session {
     private static String version = "0.0.0-UNKNOWN";
 
     static {
-        Runtime.Logger logger = Runtime.Logger.Get();
+        Runtime.Logger logger = Runtime.getLogger();
         try {
             Runtime.load();
             Runtime.init(logger);
