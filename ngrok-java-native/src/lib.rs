@@ -73,7 +73,7 @@ impl<'local> com_ngrok::RuntimeRs<'local> for RuntimeRsImpl<'local> {
                     .expect("cannot attach");
 
                 let log_lvl: Level =
-                    Level::from_str(&logger.get_level_str(jenv)).unwrap_or(Level::TRACE);
+                    Level::from_str(&logger.get_level(jenv)).unwrap_or(Level::TRACE);
                 let level_filter: LevelFilter = log_lvl.into();
                 tracing_subscriber::registry()
                     .with(TracingLoggingLayer)

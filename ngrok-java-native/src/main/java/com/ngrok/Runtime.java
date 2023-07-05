@@ -71,29 +71,26 @@ class Runtime {
         private static final String format = "[{}] {}";
 
         private static Logger instance;
-        private final Level level;
 
-        private Logger(Level level) {
-            this.level = level;
-        }
+        private Logger() { }
 
         public static Logger Get() {
             if (instance == null) {
-                String logLevel = System.getenv("NGROK_LOG_LEVEL");
-                // Default to INFO if no log level is set
-                Level level = Level.INFO;
-                if (logLevel != null) {
-                    try {
-                        level = Level.valueOf(logLevel);
-                    } catch (IllegalArgumentException ignore) {}
-                }
-                instance = new Logger(level);
+                instance = new Logger();                
             }
             return instance;
         }
 
-        public String getLevelStr() {
-            return level.toString();
+        public String getLevel() {
+            Level logLevel = Level.INFO;
+            // Iterate through levels from highest to lowest severity; stop when we find the highest enabled
+            for (Level level : Level.values()) {
+                if (logger.isEnabledForLevel(level)) {
+                    logLevel = level;
+                }
+            }
+
+            return logLevel.toString();
         }
 
         public void log(String level, String target, String message) {

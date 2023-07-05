@@ -11,7 +11,6 @@ public class DataTest {
 
     @Before
     public void setup() {
-        // Set at "trace" level to do no filtering from Java side.
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
     }
 
