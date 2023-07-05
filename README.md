@@ -114,7 +114,12 @@ public class Echo {
 ```
 
 ## Configuring Logging
-Set `NGROK_LOG_LEVEL` environment variable to adjust logging level. Valid values are `TRACE`, `DEBUG`, `INFO`, `WARN`, and `ERROR`. Defaults to `INFO`.
+Log level is set from the your `slf4j` implementation's configuration. This level must be assigned before creating a session, as it is read on creation.
+
+As an example, to configure `slf4j-simple`, you can do:
+```java
+   System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+```
 
 # License
 
