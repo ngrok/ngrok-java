@@ -24,12 +24,12 @@ jobs:
         run: mvn javadoc:aggregate
       - name: Archive Javadoc site
         shell: sh
-        run: tar --directory target/site -cvf "$RUNNER_TEMP/artifact.tar" .
+        run: tar --directory target/site/apidocs -cvf "$RUNNER_TEMP/artifact.tar" .
       - name: Upload Archive
         uses: actions/upload-artifact@v1
         with:
           name: github-pages
-          path: ${{ runner.temp}}/artifact.tar
+          path: ${{ runner.temp }}/artifact.tar
           retention-days: ${{ inputs.retention-days }}
 
   deploy:
