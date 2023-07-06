@@ -1,0 +1,47 @@
+name: Javadocs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  gen-javadocs:
+    name: Javadocs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Javadocs
+        shell: sh
+        run: mvn javadocs:aggregate
+      - name: Archive Javadoc site
+        shell: sh
+        run: tar --directory target/site -cvf "$RUNNER_TEMP/artifact.tar" .
+      - name: Upload Archive
+        uses: actions/upload-artifact@v1
+        with:
+          name: github-pages
+          path: ${{ runner.temp}}/artifact.tar
+          retention-days: ${{ inputs.retention-days }}
+
+  deploy:
+    needs: gen-javadocs
+    runs-on: ubuntu-latest
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

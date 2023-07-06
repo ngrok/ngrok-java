@@ -17,6 +17,11 @@ public abstract class AgentTunnel extends Tunnel {
         return proto;
     }
 
+    /**
+     * Retrieves the URL.
+     *
+     * @return the URL
+     */
     public String getUrl() {
         return url;
     }
