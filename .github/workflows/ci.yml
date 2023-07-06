@@ -81,6 +81,7 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           javadoc-branch: main
+          target-folder: javadoc
           java-version: 17
           project: maven
           # custom-command: mvn javadoc:javadoc
