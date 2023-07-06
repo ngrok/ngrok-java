@@ -1,6 +1,0 @@
-target/
-.idea/
-.vscode/
-.direnv
-*.iml
-*.DS_Store
