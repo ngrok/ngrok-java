@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.ngrok"},{"l":"com.ngrok.jetty"},{"l":"com.ngrok.net"}];updateSearchResults();
