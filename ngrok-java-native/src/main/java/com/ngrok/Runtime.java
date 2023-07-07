@@ -1,6 +1,7 @@
 package com.ngrok;
 
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,7 +10,12 @@ import java.nio.file.*;
 import java.util.Locale;
 
 class Runtime {
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Runtime.class);
+
+    private static final Logger LOGGER = new Logger(); 
+
+    public static Logger getLogger() {
+        return LOGGER;
+    }
 
     private static String getLibname() {
         // TODO better logic here/use lib
@@ -34,10 +40,7 @@ class Runtime {
         File temp = new File(temporaryDir, filename);
         try (InputStream is = Runtime.class.getResourceAsStream("/" + filename)) {
             Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            temp.delete();
-            throw new RuntimeException(e);
-        } catch (NullPointerException e) {
+        } catch (IOException | NullPointerException e) {
             temp.delete();
             throw new RuntimeException(e);
         }
@@ -70,17 +73,27 @@ class Runtime {
     static native void init(Logger logger);
 
     static class Logger {
+        private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Runtime.class);
         private static final String format = "[{}] {}";
 
-        public void log(String level, String target, String message) {
-            switch (level) {
-                case "TRACE" -> logger.trace(format, target, message);
-                case "DEBUG" -> logger.debug(format, target, message);
-                case "INFO" -> logger.info(format, target, message);
-                case "WARN" -> logger.warn(format, target, message);
-                case "ERROR" -> logger.error(format, target, message);
-                default -> logger.debug("{}: [{}] {}", level, target, message);
+        private Logger() { }
+
+        public String getLevel() {
+            Level logLevel = Level.INFO;
+
+            Level[] levels = new Level[] {Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE};
+            for (Level level : levels) {
+                if (logger.isEnabledForLevel(level)) {
+                    logLevel = level;
+                }
             }
+
+            return logLevel.toString();
+        }
+
+        public void log(String level, String target, String message) {
+            Level lvl = Level.valueOf(level.toUpperCase()); 
+            logger.atLevel(lvl).log(format, target, message);
         }
     }
 }
