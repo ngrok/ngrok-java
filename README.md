@@ -118,7 +118,7 @@ Log level is set from the your `slf4j` implementation's configuration. This leve
 
 As an example, to configure `slf4j-simple`, you can do:
 ```java
-   System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug");
+   System.setProperty("org.slf4j.simpleLogger.log.com.ngrok.Runtime", "debug");
 ```
 
 You can then log through the `Runtime` API:

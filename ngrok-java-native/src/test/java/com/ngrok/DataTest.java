@@ -11,7 +11,8 @@ public class DataTest {
 
     @Before
     public void setup() {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        System.setProperty("org.slf4j.simpleLogger.log.com.ngrok.Runtime", "trace");
+
     }
 
     @Test
