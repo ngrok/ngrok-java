@@ -3,7 +3,7 @@
 [![MIT licensed][mit-badge]][mit-url]
 [![Apache-2.0 licensed][apache-badge]][apache-url]
 [![Continuous integration][ci-badge]][ci-url]
-[![Javadoc](https://img.shields.io/badge/JavaDoc-Online-green)](https://ngrok.github.io/ngrok-java/javadoc/)
+[![Javadoc](https://img.shields.io/badge/JavaDoc-Online-green)](https://ngrok.github.io/ngrok-java/)
 
 [mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [mit-url]: https://github.com/ngrok/ngrok-rs/blob/main/LICENSE-MIT
