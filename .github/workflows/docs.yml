@@ -17,7 +17,6 @@ jobs:
           distribution: "temurin"
           cache: "maven"
       - name: Build Javadocs
-        shell: sh
         run: mvn javadoc:aggregate
       - name: Archive Javadoc site
         run: tar --directory target/site/apidocs -cvf "$RUNNER_TEMP/artifact.tar" .
