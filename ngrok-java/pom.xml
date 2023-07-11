@@ -11,6 +11,13 @@
     <name>ngrok :: Java</name>
     <packaging>jar</packaging>
 
+    <properties>
+        <!-- build -->
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>

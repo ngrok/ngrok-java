@@ -12,11 +12,6 @@
     <description>This is the ngrok agent in library form, suitable for integrating directly into Java applications.</description>
 
     <properties>
-        <!-- build -->
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <!-- dependencies -->
         <slf4j.version>2.0.6</slf4j.version>
         <junit.version>4.13.2</junit.version>
@@ -36,6 +31,7 @@
 
     <modules>
         <module>ngrok-java</module>
+        <module>ngrok-java-17</module>
         <module>ngrok-java-native</module>
         <module>ngrok-jetty</module>
     </modules>

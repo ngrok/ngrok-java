@@ -77,6 +77,15 @@ If you want to use [jetty](https://www.eclipse.org/jetty/) integration, also add
 </dependency>
 ```
 
+(Java 17+) If you wish to use ngrok tunnels as a [server socket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/ServerSocket.html), also add:
+```xml
+<dependency>
+   <groupId>com.ngrok</groupId>
+   <artifactId>ngrok-java-17</artifactId>
+   <version>${ngrok.version}</version>
+</dependency>
+```
+
 For example of how to setup your project, check out [ngrok-java-demo](https://github.com/ngrok/ngrok-java-demo/blob/main/pom.xml)
 
 # Documentation
@@ -120,6 +129,11 @@ public class Echo {
    }
 }
 ```
+
+## Changing Java Version
+The dev environment includes Java 11 and 17. To change the working version of Java, run `export JAVA_HOME=$JAVA_<N>_HOME`, where `N` is `11` or `17`.
+
+By default, Java 17 will be used. 
 
 ## Configuring Logging
 
