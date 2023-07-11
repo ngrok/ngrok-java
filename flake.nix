@@ -34,7 +34,7 @@
           "rustfmt"
         ];
         java-toolchain = with pkgs; [
-          openjdk17_headless
+          openjdk11_headless
           maven
         ];
         fix-n-fmt = pkgs.writeShellScriptBin "fix-n-fmt" ''
