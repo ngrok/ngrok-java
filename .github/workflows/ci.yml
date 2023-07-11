@@ -38,7 +38,7 @@ jobs:
             distribution: 'temurin'
             cache: 'maven'
         - name: Compile Java 17
-          run: mvn verify -pl ngrok-java-17
+          run: mvn verify -pl ngrok-java,ngrok-java-17
 
   udeps:
     name: Udeps
