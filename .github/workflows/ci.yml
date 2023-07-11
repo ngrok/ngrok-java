@@ -21,16 +21,25 @@ jobs:
       - uses: ./.github/workflows/rust-cache
       - uses: actions/setup-java@v3
         with:
-          java-version: |
-            11
-            17
+          java-version: 11
           distribution: 'temurin'
           cache: 'maven'
-      - name: Verify Java Core
+      - name: Verification
         run: mvn --batch-mode verify -pl ngrok-java,ngrok-java-native,ngrok-jetty
-      - name: Compile Java 17
-        run: mvn verify -pl ngrok-java-17
-        
+   
+  build-jdk-17:
+      name: Build Ngrok Java 17
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - uses: actions/setup-java@v3
+          with:
+            java-version: 17
+            distribution: 'temurin'
+            cache: 'maven'
+        - name: Compile Java 17
+          run: mvn verify -pl ngrok-java-17
+
   udeps:
     name: Udeps
     runs-on: ubuntu-latest
