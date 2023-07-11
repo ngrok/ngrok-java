@@ -24,9 +24,16 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: 'maven'
-      - name: Run mvn verify
+      - name: Verify Java Core
         run: mvn --batch-mode verify
-
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Compile Java 17
+        run: cd ngrok-java-17/ && mvn verify
+        
   udeps:
     name: Udeps
     runs-on: ubuntu-latest
