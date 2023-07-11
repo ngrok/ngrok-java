@@ -1,9 +1,17 @@
+<p>
+  <a href="https://ngrok.com">
+    <img src="assets/ngrok.png?raw=true" alt="ngrok Logo" width="300" url="https://ngrok.com" />
+  </a>
+</p>
+
 # The ngrok Agent SDK for Java
 
 [![MIT licensed][mit-badge]][mit-url]
 [![Apache-2.0 licensed][apache-badge]][apache-url]
 [![Continuous integration][ci-badge]][ci-url]
+![Java](https://img.shields.io/badge/Java-11+-orange)
 [![Javadoc](https://img.shields.io/badge/JavaDoc-Online-green)](https://ngrok.github.io/ngrok-java/)
+![Status](https://img.shields.io/badge/Status-Alpha-red)
 
 [mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [mit-url]: https://github.com/ngrok/ngrok-rs/blob/main/LICENSE-MIT
@@ -12,20 +20,19 @@
 [ci-badge]: https://github.com/ngrok/ngrok-java/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/ngrok/ngrok-java/actions/workflows/ci.yml
 
-[Website](https://ngrok.com)
-
 **Note: This is alpha-quality software. Interfaces are subject to change without warning.**
 
 ngrok is a globally distributed reverse proxy commonly used for quickly getting a public URL to a
 service running inside a private network, such as on your local laptop. The ngrok agent is usually
 deployed inside a private network and is used to communicate with the ngrok cloud service.
 
-This is the ngrok agent in library form, suitable for integrating directly into Java applications. 
+This is the ngrok agent in library form, suitable for integrating directly into Java applications.
 This allows you to quickly build ngrok into your application with no separate process to manage.
 
 # Installation
 
 ## Maven
+
 To use `ngrok-java`, you need to add the following to your `pom.xml`:
 
 ```xml
@@ -47,7 +54,7 @@ To use `ngrok-java`, you need to add the following to your `pom.xml`:
          <scope>runtime</scope>
       </dependency>
    </dependencies>
-   
+
    <build>
      <extensions>
          <extension>
@@ -61,6 +68,7 @@ To use `ngrok-java`, you need to add the following to your `pom.xml`:
 ```
 
 If you want to use [jetty](https://www.eclipse.org/jetty/) integration, also add:
+
 ```xml
 <dependency>
    <groupId>com.ngrok</groupId>
@@ -81,7 +89,7 @@ import com.ngrok.HttpTunnel;
 
 public class Echo {
    public static void main(String[] args) throws IOException {
-      // Session.newBuilder() will create a new session builder, pulling NGROK_AUTHTOKEN env variable. 
+      // Session.newBuilder() will create a new session builder, pulling NGROK_AUTHTOKEN env variable.
       // You can get your authtoken by registering at https://dashboard.ngrok.com
       var sessionBuilder = Session.newBuilder().metadata("my session");
       // Session.Builder let you customize different aspects of the session, see docs for details.
@@ -114,14 +122,17 @@ public class Echo {
 ```
 
 ## Configuring Logging
+
 Log level is set from the your `slf4j` implementation's configuration. This level must be assigned before creating a session, as it is read on creation.
 
 As an example, to configure `slf4j-simple`, you can do:
+
 ```java
    System.setProperty("org.slf4j.simpleLogger.log.com.ngrok.Runtime", "debug");
 ```
 
 You can then log through the `Runtime` API:
+
 ```java
    Runtime.getLogger().log("info", "myClass", "Hello World");
 ```
@@ -130,10 +141,10 @@ You can then log through the `Runtime` API:
 
 This project is licensed under either of
 
- * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
-   http://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or
-   http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
+  http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or
+  http://opensource.org/licenses/MIT)
 
 at your option.
 
