@@ -31,6 +31,7 @@
 
     <modules>
         <module>ngrok-java</module>
+        <module>ngrok-java-17</module>
         <module>ngrok-java-native</module>
         <module>ngrok-jetty</module>
     </modules>

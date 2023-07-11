@@ -25,14 +25,14 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Verify Java Core
-        run: mvn --batch-mode verify
+        run: mvn --batch-mode verify -pl ngrok-java,ngrok-java-native,ngrok-jetty
       - uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
       - name: Compile Java 17
-        run: cd ngrok-java-17/ && mvn verify
+        run: mvn verify -pl ngrok-java-17
         
   udeps:
     name: Udeps
