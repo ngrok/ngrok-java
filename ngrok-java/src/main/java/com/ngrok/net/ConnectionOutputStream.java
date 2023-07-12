@@ -50,8 +50,11 @@ public class ConnectionOutputStream extends OutputStream {
      */
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        buffer.put(b, off, len);
-        flush();
+        for (int pos = 0, delta = Math.min(buffer.capacity(), len); pos < len; pos += delta) {
+            delta = Math.min(delta, len-pos);
+            buffer.put(b, off+pos, delta);
+            flush();
+        }
     }
 
     /**

@@ -33,7 +33,7 @@ public class ConnectionSocketImpl extends AbstractSocketImpl {
      */
     @Override
     protected InputStream getInputStream() throws IOException {
-        return new ConnectionInputStream(connection, 1024);
+        return new ConnectionInputStream(connection, 4096);
     }
 
     /**
@@ -45,6 +45,6 @@ public class ConnectionSocketImpl extends AbstractSocketImpl {
      */
     @Override
     protected OutputStream getOutputStream() throws IOException {
-        return new ConnectionOutputStream(connection, 1024);
+        return new ConnectionOutputStream(connection, 4096);
     }
 }

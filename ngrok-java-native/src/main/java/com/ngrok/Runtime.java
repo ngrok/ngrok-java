@@ -1,6 +1,7 @@
 package com.ngrok;
 
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,10 +13,12 @@ import java.util.Locale;
  * A class representing the runtime environment for the ngrok Java client.
  */
 class Runtime {
-    /**
-     * The logger for the Runtime class.
-     */
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Runtime.class);
+
+    private static final Logger LOGGER = new Logger(); 
+
+    public static Logger getLogger() {
+        return LOGGER;
+    }
 
     /**
      * Returns the name of the native library to load based on the current operating system.
@@ -51,10 +54,7 @@ class Runtime {
         File temp = new File(temporaryDir, filename);
         try (InputStream is = Runtime.class.getResourceAsStream("/" + filename)) {
             Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            temp.delete();
-            throw new RuntimeException(e);
-        } catch (NullPointerException e) {
+        } catch (IOException | NullPointerException e) {
             temp.delete();
             throw new RuntimeException(e);
         }
@@ -100,27 +100,27 @@ class Runtime {
      * A class representing a logger for the runtime environment.
      */
     static class Logger {
-        /**
-         * The format string for log messages.
-         */
+        private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Runtime.class);
         private static final String format = "[{}] {}";
 
-        /**
-         * Logs a message at the specified level and target.
-         *
-         * @param level the log level
-         * @param target the log target
-         * @param message the log message
-         */
-        public void log(String level, String target, String message) {
-            switch (level) {
-                case "TRACE" -> logger.trace(format, target, message);
-                case "DEBUG" -> logger.debug(format, target, message);
-                case "INFO" -> logger.info(format, target, message);
-                case "WARN" -> logger.warn(format, target, message);
-                case "ERROR" -> logger.error(format, target, message);
-                default -> logger.debug("{}: [{}] {}", level, target, message);
+        private Logger() { }
+
+        public String getLevel() {
+            Level logLevel = Level.INFO;
+
+            Level[] levels = new Level[] {Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE};
+            for (Level level : levels) {
+                if (logger.isEnabledForLevel(level)) {
+                    logLevel = level;
+                }
             }
+
+            return logLevel.toString();
+        }
+
+        public void log(String level, String target, String message) {
+            Level lvl = Level.valueOf(level.toUpperCase()); 
+            logger.atLevel(lvl).log(format, target, message);
         }
     }
 }

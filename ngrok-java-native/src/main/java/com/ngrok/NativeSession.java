@@ -15,7 +15,7 @@ public class NativeSession implements Session {
     static {
         try {
             Runtime.load();
-            Runtime.init(new Runtime.Logger());
+            Runtime.init(Runtime.getLogger());
         } catch (Throwable th) {
             // TODO better error handling here?
             th.printStackTrace();

@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   gen-javadocs:
@@ -20,10 +17,8 @@ jobs:
           distribution: "temurin"
           cache: "maven"
       - name: Build Javadocs
-        shell: sh
         run: mvn javadoc:aggregate
       - name: Archive Javadoc site
-        shell: sh
         run: tar --directory target/site/apidocs -cvf "$RUNNER_TEMP/artifact.tar" .
       - name: Upload Archive
         uses: actions/upload-artifact@v1

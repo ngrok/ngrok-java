@@ -73,8 +73,7 @@ For example of how to setup your project, check out [ngrok-java-demo](https://gi
 
 # Documentation
 
-# Quickstart
-
+## Quickstart
 
 ```java
 import com.ngrok.Session;
@@ -112,6 +111,19 @@ public class Echo {
       }
    }
 }
+```
+
+## Configuring Logging
+Log level is set from the your `slf4j` implementation's configuration. This level must be assigned before creating a session, as it is read on creation.
+
+As an example, to configure `slf4j-simple`, you can do:
+```java
+   System.setProperty("org.slf4j.simpleLogger.log.com.ngrok.Runtime", "debug");
+```
+
+You can then log through the `Runtime` API:
+```java
+   Runtime.getLogger().log("info", "myClass", "Hello World");
 ```
 
 # License
