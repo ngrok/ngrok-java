@@ -208,6 +208,6 @@ jobs:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-aarch_64.jar
           path: ngrok-java-native/target/
       - name: Run mvn deploy
-        run: mvn --batch-mode deploy --activate-profiles ci-distro,github-distro -pl ngrok-java,ngrok-java-native,ngrok-jetty
+        run: mvn --batch-mode deploy --activate-profiles ci-distro,github-distro
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
