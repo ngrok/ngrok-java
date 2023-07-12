@@ -7,16 +7,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A session with the ngrok service.
+ */
 public interface Session extends AutoCloseable {
 
+    /**
+     * Returns a new {@link Builder} instance with your ngrok authentication token
+     * from the environment.
+     *
+     * @return a new {@link Builder} instance with the default authentication token
+     */
     public static Builder newBuilder() {
         return newBuilder(System.getenv("NGROK_AUTHTOKEN"));
     }
 
+    /**
+     * Returns a new {@link Builder} instance with the specified ngrok
+     * authentication token.
+     *
+     * @param authtoken the authentication token to use
+     * @return a new {@link Builder} instance with the specified authentication
+     *         token
+     */
     public static Builder newBuilder(String authtoken) {
         return new Builder().authtoken(authtoken);
     }
 
+    /**
+     * Connects to the ngrok service using the specified {@link Builder} instance.
+     *
+     * @param builder the {@link Builder} instance to use for the connection
+     * @return a new {@link Session} instance connected to the ngrok service
+     * @throws IOException if an I/O error occurs during the connection
+     */
     public static Session connect(Builder builder) throws IOException {
         try {
             var clazz = Class.forName("com.ngrok.NativeSession");
@@ -32,48 +56,133 @@ public interface Session extends AutoCloseable {
         }
     }
 
+    /**
+     * Returns the metadata for the session.
+     *
+     * @return the metadata for the session
+     */
     public String getMetadata();
 
+    /**
+     * Returns a new {@link TcpTunnel} instance with the default settings.
+     *
+     * Returns a new {@link TcpTunnel} instance with the default settings
+     * 
+     * @throws IOException if an I/O error occurs during the tunnel creation
+     */
     public default TcpTunnel tcpTunnel() throws IOException {
         return tcpTunnel(new TcpTunnel.Builder());
     }
 
+    /**
+     * Returns a new {@link TcpTunnel} instance with the specified settings.
+     *
+     * @param builder the {@link TcpTunnel.Builder} instance to use for the tunnel
+     *                creation
+     *                Returns a new {@link TcpTunnel} instance with the specified
+     *                settings
+     * @throws IOException if an I/O error occurs during the tunnel creation
+     */
     public TcpTunnel tcpTunnel(TcpTunnel.Builder builder) throws IOException;
 
+    /**
+     * Creates a new {@link TlsTunnel} instance with the default settings.
+     *
+     * @returns a new {@link TlsTunnel} instance with the default settings
+     * @throws IOException if an I/O error occurs during the tunnel creation
+     */
     public default TlsTunnel tlsTunnel() throws IOException {
         return tlsTunnel(new TlsTunnel.Builder());
     }
 
+    /**
+     * Creates a new {@link TlsTunnel} instance with the specified settings.
+     *
+     * @param builder the {@link TlsTunnel.Builder} instance to use for the tunnel
+     *                creation
+     * @returns a new {@link TlsTunnel} instance with the specified settings
+     * @throws IOException if an I/O error occurs during the tunnel creation
+     */
     public TlsTunnel tlsTunnel(TlsTunnel.Builder builder) throws IOException;
 
+    /**
+     * Creates a new {@link HttpTunnel} instance with the default settings.
+     *
+     * @return a new {@link HttpTunnel} instance with the default settings
+     * @throws IOException if an I/O error occurs during the tunnel creation
+     */
     public default HttpTunnel httpTunnel() throws IOException {
         return httpTunnel(new HttpTunnel.Builder());
     }
-    
+
+    /**
+     * Creates a new {@link HttpTunnel} instance with the specified settings.
+     *
+     * @param builder the {@link HttpTunnel.Builder} instance to use for the tunnel
+     *                creation
+     * @return a new {@link HttpTunnel} instance with the specified settings
+     * @throws IOException if an I/O error occurs during the tunnel creation
+     */
     public HttpTunnel httpTunnel(HttpTunnel.Builder builder) throws IOException;
 
+    /**
+     * Returns a new {@link LabeledTunnel} instance with the default settings.
+     *
+     * @return a new {@link LabeledTunnel} instance with the default settings
+     * @throws IOException if an I/O error occurs during the tunnel creation
+     */
     public default LabeledTunnel labeledTunnel() throws IOException {
         return labeledTunnel(new LabeledTunnel.Builder());
     }
 
+    /**
+     * Returns a new {@link LabeledTunnel} instance with the specified settings.
+     *
+     * @param builder the {@link LabeledTunnel.Builder} instance to use for the tunnel
+     *                creation
+     * @return a new {@link LabeledTunnel} instance with the specified settings
+     * @throws IOException if an I/O error occurs during the tunnel creation
+     */
     public LabeledTunnel labeledTunnel(LabeledTunnel.Builder builder) throws IOException;
 
+    /**
+     * Represents a callback for stopping a session. Implements 
+     */
     public interface StopCallback {
         public void stop();
     }
 
+    /**
+     * The `RestartCallback` interface represents a callback for restarting a
+     * session.
+     */
     public interface RestartCallback {
         public void restart();
     }
 
+    /**
+     * The `UpdateCallback` interface represents a callback for updating a session.
+     */
     public interface UpdateCallback {
         public void update();
     }
 
+    /**
+     * The `HeartbeatHandler` interface represents a handler for session heartbeats.
+     */
     public interface HeartbeatHandler {
+        /**
+         * Handles a session heartbeat with the specified duration.
+         *
+         * @param durationMs the duration of the heartbeat in milliseconds
+         */
         public void heartbeat(long durationMs);
 
-        public default void timeout() {}
+        /**
+         * Handles a session heartbeat timeout.
+         */
+        public default void timeout() {
+        }
     }
 
     class UserAgent {

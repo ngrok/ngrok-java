@@ -8,13 +8,12 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketImpl;
 
-
 /**
  * Abstract implementation of the {@link SocketImpl} interface.
  */
 public class AbstractSocketImpl extends SocketImpl {
     /**
-     * See {@link SocketImpl#create(boolean)} 
+     * See {@link SocketImpl#create(boolean)}
      */
     @Override
     protected void create(boolean stream) throws IOException {
