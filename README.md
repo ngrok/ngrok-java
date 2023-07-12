@@ -130,10 +130,10 @@ public class Echo {
 }
 ```
 
-## Changing Java Version
-The dev environment includes Java 11 and 17. To change the working version of Java, run `export JAVA_HOME=$JAVA_<N>_HOME`, where `N` is `11` or `17`.
-
-By default, Java 17 will be used. 
+## Setting Up Java Toolchain
+You may either:
+1. Copy `./toolchains.xml` into `~/.m2/`, or
+2. When running `mvn`, run as `mvn --global-toolchains ./toolchains.xml`
 
 ## Configuring Logging
 
