@@ -38,6 +38,11 @@ jobs:
       - uses: actions/checkout@v3
       - uses: jrobsonchase/direnv-action@v0.7
       - uses: ./.github/workflows/rust-cache
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
       - name: generate rust files
         run: mvn --batch-mode --projects ngrok-java-native --also-make process-classes
       - uses: actions-rs/cargo@v1
@@ -67,6 +72,11 @@ jobs:
       - uses: actions/checkout@v3
       - uses: jrobsonchase/direnv-action@v0.7
       - uses: ./.github/workflows/rust-cache
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
       - name: generate rust files
         run: mvn --batch-mode --projects ngrok-java-native --also-make process-classes
       - uses: actions-rs/cargo@v1
