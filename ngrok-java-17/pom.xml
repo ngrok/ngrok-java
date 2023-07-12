@@ -8,14 +8,14 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>ngrok-java</artifactId>
-    <name>ngrok :: Java</name>
+    <artifactId>ngrok-java-17</artifactId>
+    <name>ngrok :: Java (17)</name>
     <packaging>jar</packaging>
 
     <properties>
         <!-- build -->
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -33,7 +33,7 @@
                         <configuration>
                             <toolchains>
                                 <jdk>
-                                    <version>11</version>
+                                    <version>17</version>
                                 </jdk>
                             </toolchains>
                         </configuration>
@@ -44,6 +44,11 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>com.ngrok</groupId>
+            <artifactId>ngrok-java</artifactId>
+            <version>0.2.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

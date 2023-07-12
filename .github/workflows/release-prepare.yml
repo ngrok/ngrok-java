@@ -26,12 +26,14 @@ jobs:
       - uses: ./.github/workflows/rust-cache
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: |
+            17
+            11
+          distribution: "temurin"
       - name: Configure Git User
         run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
+          git config user.email 'actions@github.com'
+          git config user.name 'GitHub Actions'
       - name: Run mvn release
         run: mvn --batch-mode release:prepare -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:

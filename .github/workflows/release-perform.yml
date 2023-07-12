@@ -21,10 +21,10 @@ jobs:
       - uses: ./.github/workflows/rust-cache
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
       - name: Run mvn package native
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=linux-x86_64" --define "ngrok.native.target=x86_64-unknown-linux-gnu"
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=linux-x86_64' --define 'ngrok.native.target=x86_64-unknown-linux-gnu'
       - uses: actions/upload-artifact@v3
         with:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar
@@ -44,10 +44,10 @@ jobs:
       - uses: ./.github/workflows/rust-cache
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
       - name: Run mvn package
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=windows-x86_64" --define "ngrok.native.target=x86_64-pc-windows-msvc"
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=windows-x86_64' --define 'ngrok.native.target=x86_64-pc-windows-msvc'
       - uses: actions/upload-artifact@v3
         with:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-windows-x86_64.jar
@@ -67,10 +67,10 @@ jobs:
       - uses: ./.github/workflows/rust-cache
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
       - name: Run mvn package
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=windows-x86_32" --define "ngrok.native.target=i686-pc-windows-msvc" --define "skipTests"
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=windows-x86_32' --define 'ngrok.native.target=i686-pc-windows-msvc' --define 'skipTests'
       - uses: actions/upload-artifact@v3
         with:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-windows-x86_32.jar
@@ -90,10 +90,10 @@ jobs:
       - uses: ./.github/workflows/rust-cache
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
       - name: Run mvn package native
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=osx-x86_64" --define "ngrok.native.target=x86_64-apple-darwin"
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=osx-x86_64' --define 'ngrok.native.target=x86_64-apple-darwin'
       - uses: actions/upload-artifact@v3
         with:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-x86_64.jar
@@ -113,10 +113,10 @@ jobs:
       - uses: ./.github/workflows/rust-cache
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
       - name: Run mvn package
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define "ngrok.native.classifier=osx-aarch_64" --define "ngrok.native.target=aarch64-apple-darwin" --define "skipTests"
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=osx-aarch_64' --define 'ngrok.native.target=aarch64-apple-darwin' --define 'skipTests'
       - uses: actions/upload-artifact@v3
         with:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-aarch_64.jar
@@ -137,7 +137,7 @@ jobs:
           ref: v${{ github.event.inputs.releaseVersion }}
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'temurin'
           server-id: ossrh
           server-username: MAVEN_USERNAME
@@ -185,7 +185,9 @@ jobs:
           ref: v${{ github.event.inputs.releaseVersion }}
       - uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: |
+            17
+            11
           distribution: 'temurin'
       - uses: actions/download-artifact@v3
         with:
