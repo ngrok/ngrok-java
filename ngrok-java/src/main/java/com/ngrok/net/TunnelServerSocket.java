@@ -25,7 +25,7 @@ public class TunnelServerSocket extends ServerSocket {
      * Accepts a connection to the server socket.
      *
      * @return A {@link Socket} for the accepted connection
-     * @throws IOException if an I/O error occurs
+     * @throws IOException     if an I/O error occurs
      * @throws SocketException if the socket is closed
      */
     @Override

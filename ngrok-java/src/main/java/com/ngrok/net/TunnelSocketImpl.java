@@ -6,7 +6,8 @@ import java.io.IOException;
 import java.net.SocketImpl;
 
 /**
- * An implementation of the {@link AbstractSocketImpl} interface for establishing a connection to an ngrok tunnel.
+ * An implementation of the {@link AbstractSocketImpl} interface for
+ * establishing a connection to an ngrok tunnel.
  */
 public class TunnelSocketImpl extends AbstractSocketImpl {
     private final Tunnel tunnel;

@@ -15,10 +15,12 @@ public class ConnectionInputStream extends InputStream {
     private final ByteBuffer buffer;
 
     /**
-     * Creates a new input stream for the given connection with the specified buffer size.
+     * Creates a new input stream for the given connection with the specified buffer
+     * size.
      *
      * @param connection the connection to read from
-     * @param bufferSize the size of the buffer to use to read data from the connection
+     * @param bufferSize the size of the buffer to use to read data from the
+     *                   connection
      */
     public ConnectionInputStream(Connection connection, int bufferSize) {
         this.connection = connection;
@@ -30,7 +32,7 @@ public class ConnectionInputStream extends InputStream {
      * Prepares the buffer for reading by clearing it and then reading data from the
      * connection into the buffer. Ignored if the buffer is not empty.
      * Automatically called by {@link #read()} and {@link #read(byte[], int, int)}.
-     *  
+     * 
      * @throws IOException if an I/O error occurs
      */
     private void prepare() throws IOException {
@@ -57,10 +59,11 @@ public class ConnectionInputStream extends InputStream {
     /**
      * Reads up to len bytes of data from the input stream into an array of bytes.
      *
-     * @param b the array of bytes to read the data into
+     * @param b   the array of bytes to read the data into
      * @param off the offset within the buffer to start reading the data from
      * @param len the maximum number of bytes to read
-     * @return the total number of bytes read into the buffer, or -1 if the end of the stream has been reached
+     * @return the total number of bytes read into the buffer, or -1 if the end of
+     *         the stream has been reached
      * @throws IOException if an I/O error occurs
      */
     @Override

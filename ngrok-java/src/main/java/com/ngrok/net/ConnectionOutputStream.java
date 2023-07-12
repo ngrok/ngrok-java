@@ -15,10 +15,12 @@ public class ConnectionOutputStream extends OutputStream {
     private final ByteBuffer buffer;
 
     /**
-     * Creates a new output stream for the given connection with the specified buffer size.
+     * Creates a new output stream for the given connection with the specified
+     * buffer size.
      *
      * @param connection the connection to write to
-     * @param bufferSize the size of the buffer to use to write data to the connection
+     * @param bufferSize the size of the buffer to use to write data to the
+     *                   connection
      */
     public ConnectionOutputStream(Connection connection, int bufferSize) {
         this.connection = connection;
@@ -38,9 +40,10 @@ public class ConnectionOutputStream extends OutputStream {
     }
 
     /**
-     * Writes bytes from the specified byte array starting at offset off to the output stream.
+     * Writes bytes from the specified byte array starting at offset off to the
+     * output stream.
      *
-     * @param b the array of bytes to write
+     * @param b   the array of bytes to write
      * @param off the offset within the buffer to start writing from
      * @param len the number of bytes to write
      * @throws IOException if an I/O error occurs
@@ -52,8 +55,10 @@ public class ConnectionOutputStream extends OutputStream {
     }
 
     /**
-     * Flushes the output stream, forcing any buffered output bytes to be written out.
-     * Automatically called by {@link #write(int)} and {@link #write(byte[], int, int)}.
+     * Flushes the output stream, forcing any buffered output bytes to be written
+     * out.
+     * Automatically called by {@link #write(int)} and
+     * {@link #write(byte[], int, int)}.
      *
      * @throws IOException if an I/O error occurs
      */
