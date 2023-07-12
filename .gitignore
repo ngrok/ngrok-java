@@ -4,3 +4,5 @@ target/
 .direnv
 *.iml
 *.DS_Store
+*.releaseBackup
+release.properties

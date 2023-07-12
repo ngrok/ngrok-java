@@ -35,6 +35,7 @@
         ];
         java-toolchain = with pkgs; [
           openjdk17_headless
+          openjdk11_headless
           maven
         ];
         fix-n-fmt = pkgs.writeShellScriptBin "fix-n-fmt" ''
@@ -109,6 +110,8 @@
           OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
           OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
           RUSTC_WRAPPER="${pkgs.sccache}/bin/sccache";
+          JAVA_11_HOME = "${pkgs.openjdk11_headless}";
+          JAVA_17_HOME = "${pkgs.openjdk17_headless}";
           buildInputs = with pkgs; [
             rust-toolchain
             java-toolchain
