@@ -8,9 +8,21 @@ import java.io.InputStream;
 import java.nio.file.*;
 import java.util.Locale;
 
+/**
+ * A class representing the runtime environment for the ngrok Java client.
+ */
 class Runtime {
+    /**
+     * The logger for the Runtime class.
+     */
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Runtime.class);
 
+    /**
+     * Returns the name of the native library to load based on the current operating system.
+     *
+     * @return the name of the native library to load
+     * @throws RuntimeException if the operating system is unknown
+     */
     private static String getLibname() {
         // TODO better logic here/use lib
         var osname = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
@@ -24,6 +36,11 @@ class Runtime {
         throw new RuntimeException("unknown OS: " + osname);
     }
 
+    /**
+     * Loads the native library for the ngrok Java client.
+     *
+     * @throws RuntimeException if an I/O error occurs or the native library fails to load
+     */
     public static void load() {
         String filename = getLibname();
         String tempDir = System.getProperty("java.io.tmpdir");
@@ -55,6 +72,11 @@ class Runtime {
         }
     }
 
+    /**
+     * Returns whether the current file system is POSIX compliant.
+     *
+     * @return true if the current file system is POSIX compliant, false otherwise
+     */
     private static boolean isPosixCompliant() {
         try {
             return FileSystems.getDefault()
@@ -67,11 +89,29 @@ class Runtime {
         }
     }
 
+    /**
+     * Initializes the logger for the native library.
+     *
+     * @param logger the logger to be initialized for the native library
+     */
     static native void init(Logger logger);
 
+    /**
+     * A class representing a logger for the runtime environment.
+     */
     static class Logger {
+        /**
+         * The format string for log messages.
+         */
         private static final String format = "[{}] {}";
 
+        /**
+         * Logs a message at the specified level and target.
+         *
+         * @param level the log level
+         * @param target the log target
+         * @param message the log message
+         */
         public void log(String level, String target, String message) {
             switch (level) {
                 case "TRACE" -> logger.trace(format, target, message);
