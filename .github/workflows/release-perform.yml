@@ -137,7 +137,9 @@ jobs:
           ref: v${{ github.event.inputs.releaseVersion }}
       - uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: |
+            17
+            11
           distribution: 'temurin'
           server-id: ossrh
           server-username: MAVEN_USERNAME
