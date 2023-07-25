@@ -47,10 +47,11 @@ public interface Session extends AutoCloseable {
             var method = clazz.getMethod("connect", Builder.class);
             return (Session) method.invoke(null, builder);
         } catch (InvocationTargetException e) {
-            if (e.getCause() instanceof IOException ioexc) {
-                throw ioexc;
+            var cause = e.getCause();
+            if (cause instanceof IOException) {
+                throw (IOException) cause;
             }
-            throw new RuntimeException(e.getCause());
+            throw new RuntimeException(cause);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

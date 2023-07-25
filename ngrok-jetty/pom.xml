@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.ngrok</groupId>
         <artifactId>ngrok-project</artifactId>
-        <version>0.2.0-SNAPSHOT</version>
+        <version>0.3.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -11,11 +11,42 @@
     <name>ngrok :: Java Jetty integration</name>
     <packaging>jar</packaging>
 
+    <properties>
+        <!-- build -->
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>toolchain</goal>
+                        </goals>
+                        <configuration>
+                            <toolchains>
+                                <jdk>
+                                    <version>11</version>
+                                </jdk>
+                            </toolchains>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>com.ngrok</groupId>
             <artifactId>ngrok-java</artifactId>
-            <version>0.2.0-SNAPSHOT</version>
+            <version>0.3.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
