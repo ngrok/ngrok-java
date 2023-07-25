@@ -151,6 +151,17 @@ You can then log through the `Runtime` API:
    Runtime.getLogger().log("info", "myClass", "Hello World");
 ```
 
+# Platform Support
+
+JARs are provided on GitHub and Maven Central for the following platforms:
+
+| OS         | i686 | x64 | aarch64 | armv7 |
+| ---------- | -----|-----|---------|-------|
+| Windows    |   ✓  |  ✓  |         |       |
+| MacOS      |      |  ✓  |    ✓    |       |
+| Linux      |   ✓  |  ✓  |    ✓    |       |
+| Android    |      |     |    ✓    |   ✓   |
+
 # License
 
 This project is licensed under either of
