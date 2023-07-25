@@ -8,8 +8,35 @@ on:
         required: true
 
 jobs:
-  build-native-linux-x86:
-    runs-on: ubuntu-latest
+  build-native:
+    strategy:
+      matrix:
+        config:
+          - host: ubuntu-latest
+            target: i686-unknown-linux-gnu
+            artifact: linux-x86
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: linux-x86_64
+          - host: ubuntu-latest
+            target: aarch64-linux-android
+            artifact: linux-android-aarch64
+          - host: ubuntu-latest
+            target: armv7-linux-androideabi
+            artifact: linux-android-armv7
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: windows-x86_64
+          - host: windows-latest
+            target: i686-pc-windows-msvc 
+            artifact: windows-x86_32
+          - host: macos-latest
+            target: x86_64-apple-darwin 
+            artifact: osx-x86_64
+          - host: macos-latest
+            target: aarch64-apple-darwin 
+            artifact: osx-aarch_64
+    runs-on: ${{ matrix.config.host }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -17,120 +44,24 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
-          targets: x86_64-unknown-linux-gnu
+          targets: ${{ matrix.config.target }}
       - uses: ./.github/workflows/rust-cache
       - uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'temurin'
       - name: Run mvn package native
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=linux-x86_64' --define 'ngrok.native.target=x86_64-unknown-linux-gnu'
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}'
       - uses: actions/upload-artifact@v3
         with:
-          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar
-          path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-linux-x86_64.jar
-          retention-days: 1
-
-  build-native-windows-x86:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v${{ github.event.inputs.releaseVersion }}
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: x86_64-pc-windows-msvc
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-      - name: Run mvn package
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=windows-x86_64' --define 'ngrok.native.target=x86_64-pc-windows-msvc'
-      - uses: actions/upload-artifact@v3
-        with:
-          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-windows-x86_64.jar
-          path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-windows-x86_64.jar
-          retention-days: 1
-
-  build-native-windows-x32:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v${{ github.event.inputs.releaseVersion }}
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: i686-pc-windows-msvc
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-      - name: Run mvn package
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=windows-x86_32' --define 'ngrok.native.target=i686-pc-windows-msvc' --define 'skipTests'
-      - uses: actions/upload-artifact@v3
-        with:
-          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-windows-x86_32.jar
-          path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-windows-x86_32.jar
-          retention-days: 1
-
-  build-native-macos-x86:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v${{ github.event.inputs.releaseVersion }}
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: x86_64-apple-darwin
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-      - name: Run mvn package native
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=osx-x86_64' --define 'ngrok.native.target=x86_64-apple-darwin'
-      - uses: actions/upload-artifact@v3
-        with:
-          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-x86_64.jar
-          path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-x86_64.jar
-          retention-days: 1
-
-  build-native-macos-arm64:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v${{ github.event.inputs.releaseVersion }}
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
-          targets: aarch64-apple-darwin
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-      - name: Run mvn package
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=osx-aarch_64' --define 'ngrok.native.target=aarch64-apple-darwin' --define 'skipTests'
-      - uses: actions/upload-artifact@v3
-        with:
-          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-aarch_64.jar
-          path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-osx-aarch_64.jar
+          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-${{ matrix.config.artifact }}.jar
+          path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-${{ matrix.config.artifact }}.jar
           retention-days: 1
 
   deploy-central:
     runs-on: ubuntu-latest
     needs:
-      - build-native-linux-x86
-      - build-native-windows-x86
-      - build-native-windows-x32
-      - build-native-macos-x86
-      - build-native-macos-arm64
+      - build-native
     steps:
       - uses: actions/checkout@v3
         with:
@@ -176,11 +107,7 @@ jobs:
   deploy-github:
     runs-on: ubuntu-latest
     needs:
-      - build-native-linux-x86
-      - build-native-windows-x86
-      - build-native-windows-x32
-      - build-native-macos-x86
-      - build-native-macos-arm64
+      - build-native
     steps:
       - uses: actions/checkout@v3
         with:
