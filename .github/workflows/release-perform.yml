@@ -21,30 +21,36 @@ jobs:
           - host: ubuntu-latest
             target: i686-unknown-linux-gnu
             artifact: linux-x86
+            pkgFlags: "--define 'skipTests'"
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact: linux-x86_64
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             artifact: linux-aarch64
+            pkgFlags: "--define 'skipTests'"
           - host: ubuntu-latest
             target: aarch64-linux-android
             artifact: linux-android-aarch64
+            pkgFlags: "--define 'skipTests'"
           - host: ubuntu-latest
             target: armv7-linux-androideabi
             artifact: linux-android-armv7
+            pkgFlags: "--define 'skipTests'"
           - host: windows-latest
             target: x86_64-pc-windows-msvc
             artifact: windows-x86_64
           - host: windows-latest
             target: i686-pc-windows-msvc 
             artifact: windows-x86_32
+            pkgFlags: "--define 'skipTests'"
           - host: macos-latest
             target: x86_64-apple-darwin 
             artifact: osx-x86_64
           - host: macos-latest
             target: aarch64-apple-darwin 
             artifact: osx-aarch64
+            pkgFlags: "--define 'skipTests'"
     runs-on: ${{ matrix.config.host }}
     steps:
       - uses: actions/checkout@v3
@@ -60,7 +66,7 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
       - name: Run mvn package native
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}'
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
       - uses: actions/upload-artifact@v3
         with:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-${{ matrix.config.artifact }}.jar
