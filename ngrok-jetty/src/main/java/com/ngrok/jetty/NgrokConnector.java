@@ -17,24 +17,9 @@ import java.util.function.Supplier;
  * A class representing a connector implementation for ngrok tunnels.
  */
 public class NgrokConnector extends AbstractConnector {
-    /**
-     * The supplier for the session used by the connector.
-     */
     private final Supplier<Session> sessionSupplier;
-
-    /**
-     * The function for creating the tunnel used by the connector.
-     */
     private final Function<Session, Tunnel> tunnelFunction;
-
-    /**
-     * The session used by the connector.
-     */
     private Session session;
-
-    /**
-     * The tunnel used by the connector.
-     */
     private Tunnel tunnel;
 
     /**

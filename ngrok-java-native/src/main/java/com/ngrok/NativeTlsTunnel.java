@@ -6,9 +6,6 @@ import java.io.IOException;
  * A class representing a TLS tunnel with native implementation.
  */
 public class NativeTlsTunnel extends TlsTunnel {
-    /**
-     * The native address of the tunnel.
-     */
     private long native_address;
 
     /**

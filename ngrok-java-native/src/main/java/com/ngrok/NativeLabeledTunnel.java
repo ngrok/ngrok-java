@@ -6,9 +6,6 @@ import java.io.IOException;
  * A class representing a labeled tunnel with native implementation.
  */
 public class NativeLabeledTunnel extends LabeledTunnel {
-    /**
-     * The native address of the tunnel.
-     */
     private long native_address;
 
     /**

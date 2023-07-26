@@ -6,9 +6,6 @@ import java.io.IOException;
  * A class representing an HTTP tunnel with native implementation.
  */
 public class NativeHttpTunnel extends HttpTunnel {
-    /**
-     * The native address of the tunnel.
-     */
     private long native_address;
 
     /**

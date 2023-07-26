@@ -7,9 +7,6 @@ import java.util.Properties;
  * A class representing a session for an ngrok tunnel with native implementation.
  */
 public class NativeSession implements Session {
-    /**
-     * The version of the ngrok agent.
-     */
     private static String version = "0.0.0-UNKNOWN";
 
     static {
@@ -31,14 +28,7 @@ public class NativeSession implements Session {
         }
     }
 
-    /**
-     * The native address of the session.
-     */
     private long native_address;
-
-    /**
-     * The metadata of the session.
-     */
     private final String metadata;
 
     /**

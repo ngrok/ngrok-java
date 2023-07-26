@@ -6,9 +6,6 @@ import java.io.IOException;
  * A class representing a TCP tunnel with native implementation.
  */
 public class NativeTcpTunnel extends TcpTunnel {
-    /**
-     * The native address of the tunnel.
-     */
     private long native_address;
 
     /**

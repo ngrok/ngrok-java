@@ -13,9 +13,6 @@ import java.util.concurrent.TimeUnit;
  * A class representing an endpoint for ngrok tunnels.
  */
 public class NgrokEndpoint extends AbstractEndPoint {
-    /**
-     * The connection used by the endpoint.
-     */
     private final Connection conn;
 
     /**

@@ -7,9 +7,6 @@ import java.nio.ByteBuffer;
  * A class representing a connection for an HTTP tunnel with native implementation.
  */
 public class NativeConnection extends Connection {
-    /**
-     * The address of the connection.
-     */
     private long native_address;
 
     /**

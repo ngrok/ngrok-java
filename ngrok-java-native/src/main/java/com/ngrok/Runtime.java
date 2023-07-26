@@ -13,10 +13,6 @@ import java.util.Locale;
  * A class representing the runtime environment for the ngrok Java client.
  */
 class Runtime {
-
-    /**
-     * The singleton instance of {@link Runtime.Logger} used by the Runtime class.
-     */
     private static final Logger LOGGER = new Logger();
 
     /**
@@ -113,21 +109,10 @@ class Runtime {
      * A static class representing a logger for the Runtime class.
      */
     static class Logger {
-        /**
-         * The logger used by the class.
-         */
         private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Runtime.class);
-
-        /**
-         * The format used for logging messages.
-         */
         private static final String format = "[{}] {}";
 
-        /**
-         * Constructs a new logger.
-         */
-        private Logger() {
-        }
+        private Logger() {}
 
         /**
          * Returns the logging level of the logger.
