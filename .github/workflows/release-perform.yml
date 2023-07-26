@@ -4,7 +4,12 @@ run-name: Release Perform v${{ github.event.inputs.releaseVersion }}
 on:
   workflow_dispatch:
     inputs:
+      dryRun:
+        type: boolean
+        required: true
+        default: true
       releaseVersion:
+        type: string
         required: true
 
 jobs:
@@ -62,6 +67,7 @@ jobs:
           retention-days: 1
 
   deploy-central:
+    if: ! ${{ github.event.inputs.dryRun }}
     runs-on: ubuntu-latest
     needs:
       - build-native
@@ -91,6 +97,7 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
 
   deploy-github:
+    if: ! ${{ github.event.inputs.dryRun }}
     runs-on: ubuntu-latest
     needs:
       - build-native
