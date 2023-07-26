@@ -48,7 +48,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: udeps
-          args: "--workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml"
+          args: '--workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml'
 
   fmt:
     name: Rustfmt
@@ -61,7 +61,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: "--all --manifest-path ngrok-java-native/Cargo.toml -- --check"
+          args: '--all --manifest-path ngrok-java-native/Cargo.toml -- --check'
 
   clippy:
     name: Clippy
