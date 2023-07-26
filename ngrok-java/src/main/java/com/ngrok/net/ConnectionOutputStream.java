@@ -15,8 +15,8 @@ public class ConnectionOutputStream extends OutputStream {
     private final ByteBuffer buffer;
 
     /**
-     * Creates a new output stream for the given connection with the specified
-     * buffer size.
+     * Creates a new output stream for the given connection, backed by a
+     * direct buffer with the specified buffer size.
      *
      * @param connection the connection to write to
      * @param bufferSize the size of the buffer to use to write data to the
@@ -69,6 +69,6 @@ public class ConnectionOutputStream extends OutputStream {
     public void flush() throws IOException {
         buffer.flip();
         connection.write(buffer);
-        buffer.compact();
+        buffer.clear();
     }
 }

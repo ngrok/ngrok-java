@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The `AgentTunnel` class is an abstract class that extends the {@link Tunnel}
- * class and represents a tunnel for an agent, with properties such as protocol,
- * URL, and forwarding options.
+ * The AgentTunnel is the base class for all agent initiated (e.g. configured by the agent) tunnels.
+ * Includes common attributes such as tunnel protocol and url.
  * 
- * @see {@link TcpTunnel}
- * @see {@link TlsTunnel}
+ * @see {@link HttpTunnel}
  */
 public abstract class AgentTunnel extends Tunnel {
     private final String proto;
@@ -60,17 +58,13 @@ public abstract class AgentTunnel extends Tunnel {
         private String forwardsTo;
 
         /**
-         * The function allows the addition of a CIDR (Classless Inter-Domain Routing)
-         * address to a
-         * list.
+         * Adds a CIDR to the list of allowed CIDRs.
          * 
          * @param allowCIDR The parameter "allowCIDR" is a string that represents a
-         *                  Classless
-         *                  Inter-Domain Routing (CIDR) notation. It is used to specify
-         *                  a range of IP addresses that are
-         *                  allowed.
-         * @return An instance of the class that the method is defined in, which is
-         *         represented by the generic type T.
+         *                  Classless Inter-Domain Routing (CIDR) notation. It is used to specify
+         *                  a range of IP addresses that are allowed. For example, 10.0.0.0/24.
+         * 
+         * @return An instance the builder represented by type T.
          */
         public T allowCIDR(String allowCIDR) {
             this.allowCIDR.add(allowCIDR);
@@ -78,7 +72,7 @@ public abstract class AgentTunnel extends Tunnel {
         }
 
         /**
-         * The function returns a list of strings representing allowed CIDR addresses.
+         * A list of strings representing allowed CIDR addresses.
          * 
          * @return A list of strings representing allowed CIDR addresses.
          */
@@ -87,15 +81,13 @@ public abstract class AgentTunnel extends Tunnel {
         }
 
         /**
-         * The function adds a denyCIDR to a list.
+         * Adds a CIDR to the list of denied CIDRs.
          * 
          * @param denyCIDR The parameter "denyCIDR" is a string that represents a
-         *                 Classless
-         *                 Inter-Domain Routing (CIDR) notation. It is used to specify a
-         *                 range of IP addresses that
-         *                 should be denied access.
-         * @return An instancxe of the class that the method is defined in, with the
-         *         generic type T.
+         *                 Classless Inter-Domain Routing (CIDR) notation. It is used to specify a
+         *                 range of IP addresses that should be denied access. For example, 10.0.0.0/24.
+         * 
+         * @return An instance the builder represented by type T.
          */
         public T denyCIDR(String denyCIDR) {
             this.denyCIDR.add(denyCIDR);
@@ -103,8 +95,7 @@ public abstract class AgentTunnel extends Tunnel {
         }
 
         /**
-         * The function returns a list of strings representing CIDR blocks that should
-         * be denied.
+         * A list of strings representing denied CIDR addresses.
          * 
          * @return A list of strings representing denied CIDR addresses.
          */
@@ -116,7 +107,7 @@ public abstract class AgentTunnel extends Tunnel {
          * Sets the proxy protocol for the tunnel.
          *
          * @param proxyProto the proxy protocol for the tunnel
-         * @return the tunnel instance
+         * @return An instance the builder represented by type T.
          */
         public T proxyProto(ProxyProto proxyProto) {
             this.proxyProto = proxyProto;
@@ -126,16 +117,16 @@ public abstract class AgentTunnel extends Tunnel {
         /**
          * Returns whether the tunnel has a proxy protocol.
          *
-         * @return true if the tunnel has a proxy protocol, false otherwise
+         * @return true if this builder has a proxy protocol, false otherwise
          */
         public boolean hasProxyProto() {
             return proxyProto != null && proxyProto != ProxyProto.None;
         }
 
         /**
-         * Returns the version of the proxy protocol for the tunnel.
+         * Returns the version of the proxy protocol for this builder.
          *
-         * @return the version of the proxy protocol for the tunnel
+         * @return the version of the proxy protocol for this builder
          */
         public long getProxyProtoVersion() {
             return proxyProto == null ? 0 : proxyProto.version;
@@ -145,7 +136,7 @@ public abstract class AgentTunnel extends Tunnel {
          * Sets the forwarding address for the tunnel.
          *
          * @param forwardsTo the forwarding address for the tunnel
-         * @return the tunnel instance
+         * @return An instance the builder represented by type T.
          */
         public T forwardsTo(String forwardsTo) {
             this.forwardsTo = forwardsTo;

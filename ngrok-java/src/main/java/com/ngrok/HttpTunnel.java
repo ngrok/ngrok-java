@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * An abstract representation of a tunnel connection over HTTP.
+ * An abstract representation of a tunnel connection that services HTTP traffic.
  */
 public abstract class HttpTunnel extends AgentTunnel {
     /**
@@ -24,7 +24,7 @@ public abstract class HttpTunnel extends AgentTunnel {
     }
 
     /**
-     * An enum representing the scheme of an HTTP tunnel.
+     * Represents the scheme for an HTTP tunnel.
      */
     public enum Scheme {
         HTTP("HTTP"),
@@ -35,11 +35,6 @@ public abstract class HttpTunnel extends AgentTunnel {
          */
         public final String name;
 
-        /**
-         * Constructs a new scheme with the specified name.
-         *
-         * @param name the name of the scheme
-         */
         private Scheme(String name) {
             this.name = name;
         }
@@ -49,14 +44,7 @@ public abstract class HttpTunnel extends AgentTunnel {
      * A class representing an HTTP header.
      */
     public static class Header {
-        /**
-         * The name of the header.
-         */
         private final String name;
-
-        /**
-         * The value of the header.
-         */
         private final String value;
 
         /**
@@ -138,38 +126,21 @@ public abstract class HttpTunnel extends AgentTunnel {
      * A class representing OAuth options for an HTTP tunnel.
      */
     public static class OAuthOptions {
-        /**
-         * The provider of the OAuth options.
-         */
+        
         private final String provider;
 
-        /**
-         * The client ID for the OAuth options.
-         */
         private String clientId;
 
-        /**
-         * The client secret for the OAuth options.
-         */
         private String clientSecret;
 
-        /**
-         * The email address allowed by the OAuth options.
-         */
         private String allowEmail;
 
-        /**
-         * The domain allowed by the OAuth options.
-         */
         private String allowDomain;
 
-        /**
-         * The scope of the OAuth options.
-         */
         private String scope;
 
         /**
-         * Constructs a new set of OAuth options with the specified provider.
+         * Constructs new OAuth options with the specified provider.
          *
          * @param provider the provider of the OAuth options
          */
@@ -191,7 +162,7 @@ public abstract class HttpTunnel extends AgentTunnel {
         }
 
         /**
-         * Sets the email address allowed by the OAuth options.
+         * Sets the email address allowed by OAuth.
          *
          * @param email the email address allowed by the OAuth options
          * @return this OAuthOptions object

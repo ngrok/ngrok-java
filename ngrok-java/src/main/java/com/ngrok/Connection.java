@@ -5,7 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 /**
- * Represents a generic socket connection to a remote target.
+ *  Represents a connection established over a tunnel.
  */
 public abstract class Connection implements AutoCloseable {
     private final String remoteAddr;
@@ -39,7 +39,7 @@ public abstract class Connection implements AutoCloseable {
     }
 
     /**
-     * Reads a sequence of bytes from this connection into the given buffer.
+     * Reads the next available bytes from this connection, up to the buffer capacity.
      *
      * @param dst the buffer to read bytes into
      * @return the number of bytes read, or -1 if the end of the stream has been reached

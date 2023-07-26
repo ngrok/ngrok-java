@@ -182,8 +182,7 @@ public interface Session extends AutoCloseable {
         /**
          * Handles a session heartbeat timeout.
          */
-        public default void timeout() {
-        }
+        public default void timeout() {}
     }
 
     class UserAgent {
