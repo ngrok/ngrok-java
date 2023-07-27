@@ -3,7 +3,7 @@ package com.ngrok;
 import java.io.IOException;
 
 /**
- * A class representing a TLS tunnel with native implementation.
+* An implementation of {@link TlsTunnel} that delegates calls to a native library.
  */
 public class NativeTlsTunnel extends TlsTunnel {
     private long native_address;

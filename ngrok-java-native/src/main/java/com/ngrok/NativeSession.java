@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * A class representing a session for an ngrok tunnel with native implementation.
+ * An implementation of {@link Session} that delegates calls to a native library.
  */
 public class NativeSession implements Session {
     private static String version = "0.0.0-UNKNOWN";
@@ -41,7 +41,8 @@ public class NativeSession implements Session {
     }
 
     /**
-     * Connects to an ngrok tunnel using the specified session builder.
+     * Establishes an ngrok session specified by the provided builder.
+     * Wraps {@link NativeSession#connectNative(Session.Builder)}.
      *
      * @param builder the session builder to use for the connection
      * @return a new NativeSession object representing the connected session
@@ -53,8 +54,7 @@ public class NativeSession implements Session {
     }
 
     /**
-     * Connects to an ngrok tunnel using the specified session builder using native
-     * code.
+     * Establishes an ngrok session specified by the provided builder.
      *
      * @param builder the session builder to use for the connection
      * @return a new {@link NativeSession} object representing the connected session

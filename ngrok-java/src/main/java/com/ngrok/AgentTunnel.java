@@ -8,6 +8,8 @@ import java.util.List;
  * Includes common attributes such as tunnel protocol and url.
  * 
  * @see {@link HttpTunnel}
+ * @see {@link TcpTunnel}
+ * @see {@link TlsTunnel}
  */
 public abstract class AgentTunnel extends Tunnel {
     private final String proto;

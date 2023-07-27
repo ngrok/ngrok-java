@@ -3,7 +3,7 @@ package com.ngrok;
 import java.io.IOException;
 
 /**
- * A class representing a TCP tunnel with native implementation.
+* An implementation of {@link TcpTunnel} that delegates calls to a native library.
  */
 public class NativeTcpTunnel extends TcpTunnel {
     private long native_address;

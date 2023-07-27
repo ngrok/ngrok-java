@@ -3,7 +3,7 @@ package com.ngrok;
 import java.io.IOException;
 
 /**
- * A class representing a labeled tunnel with native implementation.
+* An implementation of {@link LabeledTunnel} that delegates calls to a native library.
  */
 public class NativeLabeledTunnel extends LabeledTunnel {
     private long native_address;

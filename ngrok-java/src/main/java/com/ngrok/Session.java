@@ -13,8 +13,7 @@ import java.util.Objects;
 public interface Session extends AutoCloseable {
 
     /**
-     * Returns a new {@link Builder} instance with your ngrok authentication token
-     * from the environment.
+     * Creates a new {@link Builder} instance. The ngrok authtoken will be set from the value of the `NGROK_AUTHOKEN` environment variable.
      *
      * @return a new {@link Builder} instance with the default authentication token
      */
@@ -23,8 +22,7 @@ public interface Session extends AutoCloseable {
     }
 
     /**
-     * Returns a new {@link Builder} instance with the specified ngrok
-     * authentication token.
+     * Creates a new {@link Builder} instance with specified authtoken.
      *
      * @param authtoken the authentication token to use
      * @return a new {@link Builder} instance with the specified authentication
@@ -65,7 +63,7 @@ public interface Session extends AutoCloseable {
     public String getMetadata();
 
     /**
-     * Returns a new {@link TcpTunnel} instance with the default settings.
+     * Creates and returns a new {@link TcpTunnel} instance with the default builder.
      *
      * Returns a new {@link TcpTunnel} instance with the default settings
      * 
@@ -76,20 +74,19 @@ public interface Session extends AutoCloseable {
     }
 
     /**
-     * Returns a new {@link TcpTunnel} instance with the specified settings.
+     * Creates and returns a new {@link TcpTunnel} with the specified builder.
      *
      * @param builder the {@link TcpTunnel.Builder} instance to use for the tunnel
      *                creation
-     *                Returns a new {@link TcpTunnel} instance with the specified
-     *                settings
+     * @return a {@link TcpTunnel} reference configured with the specified builder
      * @throws IOException if an I/O error occurs during the tunnel creation
      */
     public TcpTunnel tcpTunnel(TcpTunnel.Builder builder) throws IOException;
 
     /**
-     * Creates a new {@link TlsTunnel} instance with the default settings.
+     * Creates a new {@link TlsTunnel} instance with the default builder.
      *
-     * @returns a new {@link TlsTunnel} instance with the default settings
+     * @return a {@link TlsTunnel} reference configured with the default builder
      * @throws IOException if an I/O error occurs during the tunnel creation
      */
     public default TlsTunnel tlsTunnel() throws IOException {
@@ -97,19 +94,19 @@ public interface Session extends AutoCloseable {
     }
 
     /**
-     * Creates a new {@link TlsTunnel} instance with the specified settings.
-     *
+     * Creates and returns a new {@link TlsTunnel} with the specified builder.
+     * 
      * @param builder the {@link TlsTunnel.Builder} instance to use for the tunnel
      *                creation
-     * @returns a new {@link TlsTunnel} instance with the specified settings
+     * @return a {@link TlsTunnel} reference configured with the specified builder
      * @throws IOException if an I/O error occurs during the tunnel creation
      */
     public TlsTunnel tlsTunnel(TlsTunnel.Builder builder) throws IOException;
 
     /**
-     * Creates a new {@link HttpTunnel} instance with the default settings.
+     * Creates and returns a new {@link HttpTunnel} instance with the default builder.
      *
-     * @return a new {@link HttpTunnel} instance with the default settings
+     * @return a {@link HttpTunnel} reference configured with the default builder
      * @throws IOException if an I/O error occurs during the tunnel creation
      */
     public default HttpTunnel httpTunnel() throws IOException {
@@ -147,22 +144,25 @@ public interface Session extends AutoCloseable {
     public LabeledTunnel labeledTunnel(LabeledTunnel.Builder builder) throws IOException;
 
     /**
-     * Represents a callback for stopping a session. Implements 
+     * Configures a function which is called when the ngrok service requests that this {@link Session} stops.
+     * Your application may choose to interpret this callback as a request to terminate the {@link Session} or the entire process.
      */
     public interface StopCallback {
         public void stop();
     }
 
     /**
-     * The `RestartCallback` interface represents a callback for restarting a
-     * session.
+     * Configures a function which is called when the ngrok service requests that this {@link Session} updates.
+     * Your application may choose to interpret this callback as a request to restart the {@link Session} or the entire process.
      */
     public interface RestartCallback {
         public void restart();
     }
 
     /**
-     * The `UpdateCallback` interface represents a callback for updating a session.
+     * Configures a function which is called when the ngrok service requests that this {@link Session} updates.
+     * Your application may choose to interpret this callback as a request to update its configuration, itself, or to invoke some other application-specific behavior.
+     * 
      */
     public interface UpdateCallback {
         public void update();

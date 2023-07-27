@@ -3,8 +3,9 @@ package com.ngrok;
 import java.io.IOException;
 
 /**
- * Represents an abstract ngrok tunnel. Can be expanded upon to define new ways to create tunnel connections.
- * @see {@link AgentTunnel}
+ * Base class for all types of ngrok tunnels. Includes common attributes and functionality shared by all types of tunnels.
+ *
+ *  @see {@link AgentTunnel}
  */
 public abstract class Tunnel implements AutoCloseable {
     private final String id;

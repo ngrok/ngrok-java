@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * A class representing a connection for an HTTP tunnel with native implementation.
+ * An implementation of {@link Connection} that delegates calls to a native library.
  */
 public class NativeConnection extends Connection {
     private long native_address;

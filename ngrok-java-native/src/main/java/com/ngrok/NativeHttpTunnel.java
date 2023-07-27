@@ -3,8 +3,8 @@ package com.ngrok;
 import java.io.IOException;
 
 /**
- * A class representing an HTTP tunnel with native implementation.
- */
+* An implementation of {@link HttpTunnel} that delegates calls to a native library.
+*/
 public class NativeHttpTunnel extends HttpTunnel {
     private long native_address;
 
@@ -23,7 +23,7 @@ public class NativeHttpTunnel extends HttpTunnel {
     }
 
     /**
-     * Accepts a new connection on the HTTP tunnel.
+     * Accepts a new connection on the HTTP tunnel. Blocks until one is available.
      *
      * @return a new NativeConnection object representing the accepted connection
      * @throws IOException if an I/O error occurs
@@ -32,9 +32,9 @@ public class NativeHttpTunnel extends HttpTunnel {
     public native NativeConnection accept() throws IOException;
 
     /**
-     * Forwards TCP traffic to the specified address.
+     * Forwards TCP traffic to the specified address. Blocking until closed.
      *
-     * @param addr the address to forward TCP traffic to
+     * @param addr the address to forward TCP traffic to. Example: 127.0.0.1
      * @throws IOException if an I/O error occurs
      */
     @Override

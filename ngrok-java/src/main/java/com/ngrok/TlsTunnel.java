@@ -3,7 +3,7 @@ package com.ngrok;
 import java.util.Objects;
 
 /**
- * Uses an agent-aware tunnel to create a TLS connection to ngrok.
+ * Represents a TLS tunnel with the ngrok service.
  * 
  * @see {@link AgentTunnel}
  */
@@ -96,7 +96,7 @@ public abstract class TlsTunnel extends AgentTunnel {
         }
 
         /**
-         * Checks if the domain is not null.
+         * Checks if the domain is set.
          *
          * @return true if the domain is not null, false otherwise
          */

@@ -3,7 +3,7 @@ package com.ngrok;
 import java.util.Objects;
 
 /**
- * Uses an agent-aware tunnel to create a TCP connection to ngrok.
+ * Represents a TCP tunnel with the ngrok service.
  * 
  * @see {@link AgentTunnel}
  */
