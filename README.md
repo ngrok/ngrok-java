@@ -78,6 +78,7 @@ If you want to use [jetty](https://www.eclipse.org/jetty/) integration, also add
 ```
 
 (Java 17+) If you wish to use ngrok tunnels as a [server socket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/ServerSocket.html), also add:
+
 ```xml
 <dependency>
    <groupId>com.ngrok</groupId>
@@ -131,7 +132,9 @@ public class Echo {
 ```
 
 ## Setting Up Java Toolchain
+
 You may either:
+
 1. Copy `./toolchains.xml` into `~/.m2/`, or
 2. When running `mvn`, run as `mvn --global-toolchains ./toolchains.xml`
 
@@ -150,6 +153,34 @@ You can then log through the `Runtime` API:
 ```java
    Runtime.getLogger().log("info", "myClass", "Hello World");
 ```
+
+## Connection Callbacks
+
+You may subscribe to session events from ngrok:
+
+```java
+var builder = Session.newBuilder()
+                .stopCallback(new Session.StopCallback() {
+                    @Override
+                    public void onStop() {
+                        System.out.println("onStop");
+                    }
+                })
+                .updateCallback(new Session.UpdateCallback() {
+                    @Override
+                    public void onUpdate() {
+                        System.out.println("onUpdate");
+                    }
+                })
+                .restartCallback(new Session.RestartCallback() {
+                    @Override
+                    public void onRestart() {
+                        System.out.println("onRestart");
+                    }
+                });
+```
+
+These callbacks may be useful to your application in order to invoke custom logic in response to changes in your active session.
 
 # License
 

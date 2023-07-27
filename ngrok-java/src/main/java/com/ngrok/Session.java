@@ -60,15 +60,15 @@ public interface Session extends AutoCloseable {
     public LabeledTunnel labeledTunnel(LabeledTunnel.Builder builder) throws IOException;
 
     public interface StopCallback {
-        public void stop();
+        public void onStop();
     }
 
     public interface RestartCallback {
-        public void restart();
+        public void onRestart();
     }
 
     public interface UpdateCallback {
-        public void update();
+        public void onUpdate();
     }
 
     public interface HeartbeatHandler {
