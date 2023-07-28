@@ -7,9 +7,9 @@ import java.util.List;
  * The AgentTunnel is the base class for all agent initiated (e.g. configured by the agent) tunnels.
  * Includes common attributes such as tunnel protocol and url.
  * 
- * @see {@link HttpTunnel}
- * @see {@link TcpTunnel}
- * @see {@link TlsTunnel}
+ * {@link HttpTunnel}
+ * {@link TcpTunnel}
+ * {@link TlsTunnel}
  */
 public abstract class AgentTunnel extends Tunnel {
     private final String proto;

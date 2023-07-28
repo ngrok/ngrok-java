@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Represents a TCP tunnel with the ngrok service.
  * 
- * @see {@link AgentTunnel}
+ * {@link AgentTunnel}
  */
 public abstract class TcpTunnel extends AgentTunnel {
     /**

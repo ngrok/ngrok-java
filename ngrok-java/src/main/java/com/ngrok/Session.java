@@ -65,8 +65,7 @@ public interface Session extends AutoCloseable {
     /**
      * Creates and returns a new {@link TcpTunnel} instance with the default builder.
      *
-     * Returns a new {@link TcpTunnel} instance with the default settings
-     * 
+     * @return a {@link TcpTunnel} reference configured with the default builder
      * @throws IOException if an I/O error occurs during the tunnel creation
      */
     public default TcpTunnel tcpTunnel() throws IOException {

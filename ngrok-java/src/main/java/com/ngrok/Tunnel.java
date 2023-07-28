@@ -5,7 +5,7 @@ import java.io.IOException;
 /**
  * Base class for all types of ngrok tunnels. Includes common attributes and functionality shared by all types of tunnels.
  *
- *  @see {@link AgentTunnel}
+ * {@link AgentTunnel}
  */
 public abstract class Tunnel implements AutoCloseable {
     private final String id;
