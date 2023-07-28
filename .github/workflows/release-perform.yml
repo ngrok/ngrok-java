@@ -29,7 +29,7 @@ jobs:
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             artifact: linux-aarch64
-            linker: gcc-aarch64-linux-gnu
+            # linker: gcc-aarch64-linux-gnu
             pkgFlags: "--define 'skipTests'"
           - host: ubuntu-latest
             target: aarch64-linux-android
@@ -74,14 +74,17 @@ jobs:
           sudo apt install ${{ matrix.config.linker }}
       - name: Install Android
         if: matrix.config.android
+        id: setup-ndk
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r25c
           local-cache: true
       - name: Link Android
         if: matrix.config.android
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path}}
         run: |
-          echo "CC=${HOME}/android/sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-clang" >> $GITHUB_ENV
+          echo "TARGET_CC=${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-clang" >> $GITHUB_ENV
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
