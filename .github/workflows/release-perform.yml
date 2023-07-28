@@ -18,16 +18,16 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - host: ubuntu-latest
-            target: i686-unknown-linux-gnu
-            artifact: linux-x86
-            linker: gcc-multilib
-            pkgFlags: "--define 'skipTests'"
+          # - host: ubuntu-latest
+          #   target: i686-unknown-linux-gnu
+          #   artifact: linux-x86
+          #   linker: gcc-multilib
+          #   pkgFlags: "--define 'skipTests'"
           # - host: ubuntu-latest
           #   target: x86_64-unknown-linux-gnu
           #   artifact: linux-x86_64
           - host: ubuntu-latest
-            target: aarch64-unknown-linux-musl
+            target: aarch64-unknown-linux-gnu
             artifact: linux-aarch64
             linker: gcc-aarch64-linux-gnu
             pkgFlags: "--define 'skipTests'"
