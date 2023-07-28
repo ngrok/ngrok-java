@@ -76,8 +76,12 @@ jobs:
         if: matrix.config.android
         uses: nttld/setup-ndk@v1
         with:
-          ndk-version: r25b
+          ndk-version: r25c
           local-cache: true
+      - name: Link Android
+        if: matrix.config.android
+        run: |
+          echo "CC=${HOME}/android/sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-clang" >> $GITHUB_ENV
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
