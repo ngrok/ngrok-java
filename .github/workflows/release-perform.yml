@@ -31,16 +31,16 @@ jobs:
             artifact: linux-aarch64
             linker: gcc-aarch64-linux-gnu
             pkgFlags: "--define 'skipTests'"
-          - host: ubuntu-latest
-            target: aarch64-linux-android
-            artifact: linux-android-aarch64
-            linker: gcc-aarch64-linux-gnu
-            pkgFlags: "--define 'skipTests'"
-          - host: ubuntu-latest
-            target: armv7-linux-androideabi
-            artifact: linux-android-armv7
-            linker: gcc-arm-linux-gnueabihf
-            pkgFlags: "--define 'skipTests'"
+          # - host: ubuntu-latest
+          #   target: aarch64-linux-android
+          #   artifact: linux-android-aarch64
+          #   linker: gcc-aarch64-linux-gnu
+          #   pkgFlags: "--define 'skipTests'"
+          # - host: ubuntu-latest
+          #   target: armv7-linux-androideabi
+          #   artifact: linux-android-armv7
+          #   linker: gcc-arm-linux-gnueabihf
+          #   pkgFlags: "--define 'skipTests'"
           # - host: windows-latest
           #   target: x86_64-pc-windows-msvc
           #   artifact: windows-x86_64
@@ -70,7 +70,13 @@ jobs:
         run: |
           sudo apt update
           sudo apt install ${{ matrix.config.linker }}
-      - name: Set Android Env
+      - name: Prepare aarch64 Linker
+        if: matrix.config.target == 'aarch64-unknown-linux-gnu'
+        run : |
+          echo "CC_aarch64_unknown_linux_gnu=aarch64-unknown-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "AR_aarch64_unknown_linux_gnu=aarch64-unknown-linux-gnu-ar" >> $GITHUB_ENV
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-unknown-linux-gnu-gcc" >> $GITHUB_ENV
+      - name: Prepare Android Linker
         if: contains(matrix.config.target, 'android')
         run: |
           ndk_root=${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/bin/
