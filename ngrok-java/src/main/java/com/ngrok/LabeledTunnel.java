@@ -7,7 +7,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * A subclass of {@link Tunnel} that additionally tracks labels as key/value pairs.
+ * Represents a labeled tunnel with the ngrok service. 
+ * Labeled tunnels are configured by using the <a href="https://ngrok.com/docs/cloud-edge/edges/">edges</a> functionality.
  */
 public abstract class LabeledTunnel extends Tunnel {
     /**
