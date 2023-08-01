@@ -162,20 +162,20 @@ You may subscribe to session events from ngrok:
 var builder = Session.newBuilder()
                 .stopCallback(new Session.StopCallback() {
                     @Override
-                    public void onStop() {
-                        System.out.println("onStop");
+                    public void onStopCommand() {
+                        System.out.println("onStopCommand");
                     }
                 })
                 .updateCallback(new Session.UpdateCallback() {
                     @Override
-                    public void onUpdate() {
-                        System.out.println("onUpdate");
+                    public void onUpdateCommand() {
+                        System.out.println("onUpdateCommand");
                     }
                 })
                 .restartCallback(new Session.RestartCallback() {
                     @Override
-                    public void onRestart() {
-                        System.out.println("onRestart");
+                    public void onRestartCommand() {
+                        System.out.println("onRestartCommand");
                     }
                 });
 ```

@@ -147,7 +147,7 @@ public interface Session extends AutoCloseable {
      * Your application may choose to interpret this callback as a request to terminate the {@link Session} or the entire process.
      */
     public interface StopCallback {
-        public void onStop();
+        public void onStopCommand();
     }
 
     /**
@@ -155,7 +155,7 @@ public interface Session extends AutoCloseable {
      * Your application may choose to interpret this callback as a request to restart the {@link Session} or the entire process.
      */
     public interface RestartCallback {
-        public void onRestart();
+        public void onRestartCommand();
     }
 
     /**
@@ -164,7 +164,7 @@ public interface Session extends AutoCloseable {
      * 
      */
     public interface UpdateCallback {
-        public void onUpdate();
+        public void onUpdateCommand();
     }
 
     /**

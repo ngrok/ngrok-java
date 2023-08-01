@@ -224,7 +224,7 @@ impl CommandHandler<Stop> for StopCallback {
         let jenv = jvm.attach_current_thread().expect("cannot attach");
 
         let lcbk = ComNgrokSessionStopCallback::from(self.cbk.as_obj());
-        lcbk.on_stop(*jenv);
+        lcbk.on_stop_command(*jenv);
         Ok(())
     }
 }
@@ -250,7 +250,7 @@ impl CommandHandler<Restart> for RestartCallback {
         let jenv = jvm.attach_current_thread().expect("cannot attach");
 
         let lcbk = ComNgrokSessionRestartCallback::from(self.cbk.as_obj());
-        lcbk.on_restart(*jenv);
+        lcbk.on_restart_command(*jenv);
         Ok(())
     }
 }
@@ -276,7 +276,7 @@ impl CommandHandler<Update> for UpdateCallback {
         let jenv = jvm.attach_current_thread().expect("cannot attach");
 
         let lcbk = ComNgrokSessionUpdateCallback::from(self.cbk.as_obj());
-        lcbk.on_update(*jenv);
+        lcbk.on_update_command(*jenv);
         Ok(())
     }
 }
