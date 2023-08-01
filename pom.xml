@@ -245,5 +245,12 @@
             <organization>ngrok</organization>
             <organizationUrl>https://ngrok.com</organizationUrl>
         </developer>
+        <developer>
+            <id>carl</id>
+            <name>Carl Amko</name>
+            <email>carl@ngrok.com</email>
+            <organization>ngrok</organization>
+            <organizationUrl>https://ngrok.com</organizationUrl>
+        </developer>
     </developers>
 </project>

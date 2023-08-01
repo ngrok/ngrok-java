@@ -182,6 +182,17 @@ var builder = Session.newBuilder()
 
 These callbacks may be useful to your application in order to invoke custom logic in response to changes in your active session.
 
+# Platform Support
+
+JARs are provided on GitHub and Maven Central for the following platforms:
+
+| OS         | i686 | x64 | aarch64 | armv7 |
+| ---------- | -----|-----|---------|-------|
+| Windows    |   ✓  |  ✓  |         |       |
+| MacOS      |      |  ✓  |    ✓    |       |
+| Linux      |   ✓  |  ✓  |    ✓    |       |
+| Android    |      |     |    ✓    |   ✓   |
+
 # License
 
 This project is licensed under either of
