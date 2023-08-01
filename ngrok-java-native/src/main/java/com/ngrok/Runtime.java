@@ -9,14 +9,28 @@ import java.io.InputStream;
 import java.nio.file.*;
 import java.util.Locale;
 
+/**
+ * A class representing the runtime environment for the ngrok Java client.
+ */
 class Runtime {
+    private static final Logger LOGGER = new Logger();
 
-    private static final Logger LOGGER = new Logger(); 
-
+    /**
+     * Returns the {@link Runtime.Logger} used by the Runtime class.
+     *
+     * @return the singleton logger
+     */
     public static Logger getLogger() {
         return LOGGER;
     }
 
+    /**
+     * Returns the name of the native library to load based on the current operating
+     * system.
+     *
+     * @return the name of the native library to load
+     * @throws RuntimeException if the operating system is unknown
+     */
     private static String getLibname() {
         // TODO better logic here/use lib
         var osname = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
@@ -30,6 +44,12 @@ class Runtime {
         throw new RuntimeException("unknown OS: " + osname);
     }
 
+    /**
+     * Loads the native library for the ngrok Java client.
+     *
+     * @throws RuntimeException if an I/O error occurs or the native library fails
+     *                          to load
+     */
     public static void load() {
         String filename = getLibname();
         String tempDir = System.getProperty("java.io.tmpdir");
@@ -58,30 +78,51 @@ class Runtime {
         }
     }
 
+    /**
+     * Returns whether the current file system is POSIX compliant.
+     *
+     * @return true if the current file system is POSIX compliant, false otherwise
+     */
     private static boolean isPosixCompliant() {
         try {
             return FileSystems.getDefault()
                     .supportedFileAttributeViews()
                     .contains("posix");
         } catch (FileSystemNotFoundException
-                 | ProviderNotFoundException
-                 | SecurityException e) {
+                | ProviderNotFoundException
+                | SecurityException e) {
             return false;
         }
     }
 
+    /**
+     * Initializes the logger for the native library.
+     *
+     * @param logger the logger to be initialized for the native library
+     */
     static native void init(Logger logger);
 
+    /**
+     * A class representing a logger for the runtime environment.
+     */
+    /**
+     * A static class representing a logger for the Runtime class.
+     */
     static class Logger {
         private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Runtime.class);
         private static final String format = "[{}] {}";
 
-        private Logger() { }
+        private Logger() {}
 
+        /**
+         * Returns the logging level of the logger.
+         *
+         * @return the logging level of the logger
+         */
         public String getLevel() {
             Level logLevel = Level.INFO;
 
-            Level[] levels = new Level[] {Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE};
+            Level[] levels = new Level[] { Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE };
             for (Level level : levels) {
                 if (logger.isEnabledForLevel(level)) {
                     logLevel = level;
@@ -91,8 +132,15 @@ class Runtime {
             return logLevel.toString();
         }
 
+        /**
+         * Logs a message with the specified level and target.
+         *
+         * @param level   the level of the message
+         * @param target  the target of the message
+         * @param message the message to log
+         */
         public void log(String level, String target, String message) {
-            Level lvl = Level.valueOf(level.toUpperCase()); 
+            Level lvl = Level.valueOf(level.toUpperCase());
             logger.atLevel(lvl).log(format, target, message);
         }
     }
