@@ -32,22 +32,22 @@ jobs:
             linker: gcc-aarch64-linux-gnu
             pkgFlags: "--define 'skipTests'"
           - host: ubuntu-latest
-            target: aarch64-linux-android
-            artifact: linux-android-aarch64
-            linker: gcc-aarch64-linux-gnu
-            pkgFlags: "--define 'skipTests'"
-          - host: ubuntu-latest
             target: armv7-linux-androideabi
             artifact: linux-android-armv7
             linker: gcc-arm-linux-gnueabihf
             pkgFlags: "--define 'skipTests'"
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
-            artifact: windows-x86_64
+          - host: ubuntu-latest
+            target: aarch64-linux-android
+            artifact: linux-android-aarch64
+            linker: gcc-aarch64-linux-gnu
+            pkgFlags: "--define 'skipTests'"
           - host: windows-latest
             target: i686-pc-windows-msvc
             artifact: windows-x86_32
             pkgFlags: "--define 'skipTests'"
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: windows-x86_64
           - host: macos-latest
             target: x86_64-apple-darwin
             artifact: osx-x86_64
@@ -72,7 +72,7 @@ jobs:
           sudo apt install ${{ matrix.config.linker }}
       - name: Prepare aarch64 Linker
         if: matrix.config.target == 'aarch64-unknown-linux-gnu'
-        run : |
+        run: |
           echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
           echo "AR_aarch64_unknown_linux_gnu=llvm-ar-14" >> $GITHUB_ENV
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
@@ -103,7 +103,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-${{ matrix.config.artifact }}.jar
+          name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-${{ matrix.config.artifact }}
           path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-${{ matrix.config.artifact }}.jar
           retention-days: 1
 
@@ -130,8 +130,9 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: ngrok-java-native/target/
+      - run: mv ngrok-java-native/target/*/* ngrok-java-native/target/
       - name: Run mvn deploy
-        run: mvn --batch-mode deploy --activate-profiles ci-distro,central-distro
+        run: mvn --batch-mode deploy --activate-profiles ci-distro,central-distro --fail-at-end
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
@@ -155,7 +156,8 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           path: ngrok-java-native/target/
+      - run: mv ngrok-java-native/target/*/* ngrok-java-native/target/
       - name: Run mvn deploy
-        run: mvn --batch-mode deploy --activate-profiles ci-distro,github-distro
+        run: mvn --batch-mode deploy --activate-profiles ci-distro,github-distro --fail-at-end
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
