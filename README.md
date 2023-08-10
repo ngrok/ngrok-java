@@ -11,7 +11,7 @@
 [![Continuous integration][ci-badge]][ci-url]
 ![Java](https://img.shields.io/badge/Java-11+-orange)
 [![Javadoc](https://img.shields.io/badge/JavaDoc-Online-green)](https://ngrok.github.io/ngrok-java/)
-![Status](https://img.shields.io/badge/Status-Alpha-red)
+![Status](https://img.shields.io/badge/Status-Beta-yellow)
 
 [mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [mit-url]: https://github.com/ngrok/ngrok-rs/blob/main/LICENSE-MIT
@@ -19,8 +19,6 @@
 [apache-url]: https://github.com/ngrok/ngrok-rs/blob/main/LICENSE-APACHE
 [ci-badge]: https://github.com/ngrok/ngrok-java/actions/workflows/ci.yml/badge.svg
 [ci-url]: https://github.com/ngrok/ngrok-java/actions/workflows/ci.yml
-
-**Note: This is alpha-quality software. Interfaces are subject to change without warning.**
 
 ngrok is a globally distributed reverse proxy commonly used for quickly getting a public URL to a
 service running inside a private network, such as on your local laptop. The ngrok agent is usually
