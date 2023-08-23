@@ -394,7 +394,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.client_info(
                 user_agent.get_name(self.env),
                 user_agent.get_version(self.env),
-                Some("".to_string()),
+                None::<String>,
             );
         }
 
