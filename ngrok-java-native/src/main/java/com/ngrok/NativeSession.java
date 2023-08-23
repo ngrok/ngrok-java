@@ -48,7 +48,7 @@ public class NativeSession implements Session {
      * @throws Error if an error occurs
      */
     public static NativeSession connect(Session.Builder builder) throws Error {
-        builder.getUserAgents().add(0, new UserAgent("ngrok-java", version));
+        builder.addUserAgent("ngrok-java", version);
         return connectNative(builder);
     }
 

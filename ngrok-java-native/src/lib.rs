@@ -329,86 +329,91 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         _class: ComNgrokNativeSessionClass<'local>,
         jsb: ComNgrokSessionBuilder<'local>,
     ) -> Result<ComNgrokNativeSession<'local>, Error<ErrorErr>> {
-        let rt = RT.get().expect("runtime not initialized");
+        // let rt = RT.get().expect("runtime not initialized");
 
-        let mut bldr = Session::builder();
+        // let mut bldr = Session::builder();
 
-        if jsb.has_authtoken(self.env) {
-            bldr = bldr.authtoken(jsb.get_authtoken(self.env));
-        }
+        // if jsb.has_authtoken(self.env) {
+        //     bldr = bldr.authtoken(jsb.get_authtoken(self.env));
+        // }
 
-        if jsb.has_heartbeat_interval(self.env) {
-            let d: u64 = jsb.get_heartbeat_interval_ms(self.env).try_into().unwrap();
-            bldr = bldr.heartbeat_interval(Duration::from_millis(d));
-        }
+        // if jsb.has_heartbeat_interval(self.env) {
+        //     let d: u64 = jsb.get_heartbeat_interval_ms(self.env).try_into().unwrap();
+        //     bldr = bldr.heartbeat_interval(Duration::from_millis(d));
+        // }
 
-        if jsb.has_heartbeat_tolerance(self.env) {
-            let d: u64 = jsb.get_heartbeat_tolerance_ms(self.env).try_into().unwrap();
-            bldr = bldr.heartbeat_tolerance(Duration::from_millis(d));
-        }
+        // if jsb.has_heartbeat_tolerance(self.env) {
+        //     let d: u64 = jsb.get_heartbeat_tolerance_ms(self.env).try_into().unwrap();
+        //     bldr = bldr.heartbeat_tolerance(Duration::from_millis(d));
+        // }
 
-        let mut session_metadata = String::from("");
-        if jsb.has_metadata(self.env) {
-            session_metadata = jsb.get_metadata(self.env);
-            bldr = bldr.metadata(session_metadata.clone());
-        }
+        // let mut session_metadata = String::from("");
+        // if jsb.has_metadata(self.env) {
+        //     session_metadata = jsb.get_metadata(self.env);
+        //     bldr = bldr.metadata(session_metadata.clone());
+        // }
 
-        if jsb.has_server_addr(self.env) {
-            bldr = bldr.server_addr(jsb.get_server_addr(self.env));
-        }
+        // if jsb.has_server_addr(self.env) {
+        //     bldr = bldr.server_addr(jsb.get_server_addr(self.env));
+        // }
 
-        let ca_cert = jsb.get_ca_cert(self.env);
-        if !ca_cert.is_null() {
-            let ca_cert_data = ca_cert
-                .as_slice(&self.env)
-                .expect("cannot get ca cert data");
-            bldr = bldr.ca_cert(Bytes::copy_from_slice(&ca_cert_data));
-        }
+        // let ca_cert = jsb.get_ca_cert(self.env);
+        // if !ca_cert.is_null() {
+        //     let ca_cert_data = ca_cert
+        //         .as_slice(&self.env)
+        //         .expect("cannot get ca cert data");
+        //     bldr = bldr.ca_cert(Bytes::copy_from_slice(&ca_cert_data));
+        // }
 
-        // TODO: tls_config
-        // TODO: connector?
+        // // TODO: tls_config
+        // // TODO: connector?
 
-        let stop_obj = jsb.stop_callback(self.env);
-        if !stop_obj.is_null() {
-            bldr = bldr.handle_stop_command(StopCallback::from(self.env, stop_obj));
-        }
+        // let stop_obj = jsb.stop_callback(self.env);
+        // if !stop_obj.is_null() {
+        //     bldr = bldr.handle_stop_command(StopCallback::from(self.env, stop_obj));
+        // }
 
-        let restart_obj = jsb.restart_callback(self.env);
-        if !restart_obj.is_null() {
-            bldr = bldr.handle_restart_command(RestartCallback::from(self.env, restart_obj));
-        }
+        // let restart_obj = jsb.restart_callback(self.env);
+        // if !restart_obj.is_null() {
+        //     bldr = bldr.handle_restart_command(RestartCallback::from(self.env, restart_obj));
+        // }
 
-        let update_obj = jsb.update_callback(self.env);
-        if !update_obj.is_null() {
-            bldr = bldr.handle_update_command(UpdateCallback::from(self.env, update_obj));
-        }
+        // let update_obj = jsb.update_callback(self.env);
+        // if !update_obj.is_null() {
+        //     bldr = bldr.handle_update_command(UpdateCallback::from(self.env, update_obj));
+        // }
 
-        let heartbeat_obj = jsb.heartbeat_handler(self.env);
-        if !heartbeat_obj.is_null() {
-            bldr = bldr.handle_heartbeat(HeartbeatCallback::from(self.env, heartbeat_obj));
-        }
+        // let heartbeat_obj = jsb.heartbeat_handler(self.env);
+        // if !heartbeat_obj.is_null() {
+        //     bldr = bldr.handle_heartbeat(HeartbeatCallback::from(self.env, heartbeat_obj));
+        // }
 
-        let user_agents = jsb.get_user_agents(self.env);
-        for i in 0..user_agents.size(self.env) {
-            let user_agent: ComNgrokSessionUserAgent = user_agents.get(self.env, i).into();
-            bldr = bldr.client_info(
-                user_agent.get_name(self.env),
-                user_agent.get_version(self.env),
-                None::<String>,
-            );
-        }
+        // let user_agents = jsb.get_user_agents(self.env);
+        // for i in 0..user_agents.size(self.env) {
+        //     let user_agent: ComNgrokSessionUserAgent = user_agents.get(self.env, i).into();
+        //     bldr = bldr.client_info(
+        //         user_agent.get_name(self.env),
+        //         user_agent.get_version(self.env),
+        //         None::<String>,
+        //     );
+        // }
 
-        match rt.block_on(bldr.connect()) {
-            Ok(sess) => {
-                let jsess = ComNgrokNativeSession::new_1com_ngrok_native_session(
-                    self.env,
-                    session_metadata,
-                );
-                self.set_native(jsess, sess);
-                Ok(jsess)
-            }
-            Err(err) => Err(ngrok_err(err)),
-        }
+        Err(ngrok_err("not implemented"))
+
+        // match rt.block_on(bldr.connect()) {
+        //     Ok(sess) => {
+        //         let jsess = ComNgrokNativeSession::new_1com_ngrok_native_session(
+        //             self.env,
+        //             session_metadata,
+        //         );
+        //         self.set_native(jsess, sess);
+        //         Ok(jsess)
+        //     }
+        //     Err(err) => {
+        //         println!("could not connect: {}", err);
+        //         Err(ngrok_err(err))
+        //     }
+        // }
     }
 
     fn tcp_tunnel(

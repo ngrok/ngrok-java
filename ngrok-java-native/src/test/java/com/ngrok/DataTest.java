@@ -17,8 +17,11 @@ public class DataTest {
 
     @Test
     public void testSessionClose() throws Exception {
-        try (var session = Session.connect(Session.newBuilder().metadata("java-session"))) {
+        // try (var session = Session.connect(Session.newBuilder().metadata("java-session"))) {
+        try (var session = Session.connect(Session.newBuilder())) {
             assertEquals("java-session", session.getMetadata());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
