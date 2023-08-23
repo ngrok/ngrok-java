@@ -27,7 +27,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Verification
-        run: mvn --batch-mode verify 
+        run: mvn --batch-mode verify -X -e
 
   udeps:
     name: Udeps
