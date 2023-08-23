@@ -395,9 +395,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let user_agents = jsb.get_user_agents(self.env);
         for i in 0..user_agents.size(self.env) {
             let user_agent: ComNgrokSessionUserAgent = user_agents.get(self.env, i).into();
-            bldr = bldr.child_client(
+            bldr = bldr.client_info(
                 user_agent.get_name(self.env),
                 user_agent.get_version(self.env),
+                Some("".to_string()),
             );
         }
 
