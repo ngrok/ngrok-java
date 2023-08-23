@@ -1,6 +1,5 @@
 package com.ngrok;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -23,10 +22,10 @@ public class NativeConnection extends Connection {
      *
      * @param dst the buffer to read data into
      * @return the number of bytes read
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
     @Override
-    public int read(ByteBuffer dst) throws IOException {
+    public int read(ByteBuffer dst) throws Error {
         var sz = readNative(dst);
         dst.position(0);
         dst.limit(sz);
@@ -39,19 +38,19 @@ public class NativeConnection extends Connection {
      *
      * @param dst the buffer to read data into
      * @return the number of bytes read
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
-    private native int readNative(ByteBuffer dst) throws IOException;
+    private native int readNative(ByteBuffer dst) throws Error;
 
     /**
      * Writes data from the specified buffer to the connection.
      *
      * @param src the buffer to write data from
      * @return the number of bytes written
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
     @Override
-    public int write(ByteBuffer src) throws IOException {
+    public int write(ByteBuffer src) throws Error {
         return writeNative(src, src.limit());
     }
 
@@ -62,15 +61,15 @@ public class NativeConnection extends Connection {
      * @param src   the buffer to write data from
      * @param limit the limit of the buffer
      * @return the number of bytes written
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
-    private native int writeNative(ByteBuffer src, int limit) throws IOException;
+    private native int writeNative(ByteBuffer src, int limit) throws Error;
 
     /**
      * Closes the connection.
      *
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
     @Override
-    public native void close() throws IOException;
+    public native void close() throws Error;
 }

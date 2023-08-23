@@ -50,6 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.LabeledTunnel$Label"),
         Cow::from("com.ngrok.LabeledTunnel$Builder"),
         Cow::from("com.ngrok.Connection"),
+        Cow::from("com.ngrok.Error"),
     ];
     let output_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR not set"));
 

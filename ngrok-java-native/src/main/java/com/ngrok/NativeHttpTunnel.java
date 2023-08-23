@@ -1,7 +1,5 @@
 package com.ngrok;
 
-import java.io.IOException;
-
 /**
 * An implementation of {@link HttpTunnel} that delegates calls to a native library.
 */
@@ -26,25 +24,25 @@ public class NativeHttpTunnel extends HttpTunnel {
      * Accepts a new connection on the HTTP tunnel. Blocks until one is available.
      *
      * @return a new NativeConnection object representing the accepted connection
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
     @Override
-    public native NativeConnection accept() throws IOException;
+    public native NativeConnection accept() throws Error;
 
     /**
      * Forwards TCP traffic to the specified address. Blocking until closed.
      *
      * @param addr the address to forward TCP traffic to. Example: 127.0.0.1
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
     @Override
-    public native void forwardTcp(String addr) throws IOException;
+    public native void forwardTcp(String addr) throws Error;
 
     /**
      * Closes the HTTP tunnel.
      *
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
     @Override
-    public native void close() throws IOException;
+    public native void close() throws Error;
 }

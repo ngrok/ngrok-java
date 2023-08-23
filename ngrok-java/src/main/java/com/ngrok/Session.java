@@ -66,9 +66,9 @@ public interface Session extends AutoCloseable {
      * Creates and returns a new {@link TcpTunnel} instance with the default builder.
      *
      * @return a {@link TcpTunnel} reference configured with the default builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @throws Error if an error occurs during the tunnel creation
      */
-    public default TcpTunnel tcpTunnel() throws IOException {
+    public default TcpTunnel tcpTunnel() throws Error {
         return tcpTunnel(new TcpTunnel.Builder());
     }
 
@@ -78,17 +78,17 @@ public interface Session extends AutoCloseable {
      * @param builder the {@link TcpTunnel.Builder} instance to use for the tunnel
      *                creation
      * @return a {@link TcpTunnel} reference configured with the specified builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @throws Error if an error occurs during the tunnel creation
      */
-    public TcpTunnel tcpTunnel(TcpTunnel.Builder builder) throws IOException;
+    public TcpTunnel tcpTunnel(TcpTunnel.Builder builder) throws Error;
 
     /**
      * Creates a new {@link TlsTunnel} instance with the default builder.
      *
      * @return a {@link TlsTunnel} reference configured with the default builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @throws Error if an error occurs during the tunnel creation
      */
-    public default TlsTunnel tlsTunnel() throws IOException {
+    public default TlsTunnel tlsTunnel() throws Error {
         return tlsTunnel(new TlsTunnel.Builder());
     }
 
@@ -98,17 +98,17 @@ public interface Session extends AutoCloseable {
      * @param builder the {@link TlsTunnel.Builder} instance to use for the tunnel
      *                creation
      * @return a {@link TlsTunnel} reference configured with the specified builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @throws Error if an error occurs during the tunnel creation
      */
-    public TlsTunnel tlsTunnel(TlsTunnel.Builder builder) throws IOException;
+    public TlsTunnel tlsTunnel(TlsTunnel.Builder builder) throws Error;
 
     /**
      * Creates and returns a new {@link HttpTunnel} instance with the default builder.
      *
      * @return a {@link HttpTunnel} reference configured with the default builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @throws Error if an error occurs during the tunnel creation
      */
-    public default HttpTunnel httpTunnel() throws IOException {
+    public default HttpTunnel httpTunnel() throws Error {
         return httpTunnel(new HttpTunnel.Builder());
     }
 
@@ -118,17 +118,17 @@ public interface Session extends AutoCloseable {
      * @param builder the {@link HttpTunnel.Builder} instance to use for the tunnel
      *                creation
      * @return a new {@link HttpTunnel} instance with the specified settings
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @throws Error if an error occurs during the tunnel creation
      */
-    public HttpTunnel httpTunnel(HttpTunnel.Builder builder) throws IOException;
+    public HttpTunnel httpTunnel(HttpTunnel.Builder builder) throws Error;
 
     /**
      * Returns a new {@link LabeledTunnel} instance with the default settings.
      *
      * @return a new {@link LabeledTunnel} instance with the default settings
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @throws Error if an error occurs during the tunnel creation
      */
-    public default LabeledTunnel labeledTunnel() throws IOException {
+    public default LabeledTunnel labeledTunnel() throws Error {
         return labeledTunnel(new LabeledTunnel.Builder());
     }
 
@@ -138,9 +138,9 @@ public interface Session extends AutoCloseable {
      * @param builder the {@link LabeledTunnel.Builder} instance to use for the tunnel
      *                creation
      * @return a new {@link LabeledTunnel} instance with the specified settings
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @throws Error if an error occurs during the tunnel creation
      */
-    public LabeledTunnel labeledTunnel(LabeledTunnel.Builder builder) throws IOException;
+    public LabeledTunnel labeledTunnel(LabeledTunnel.Builder builder) throws Error;
 
     /**
      * Configures a function which is called when the ngrok service requests that this {@link Session} stops.

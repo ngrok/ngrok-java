@@ -1,6 +1,5 @@
 package com.ngrok;
 
-import java.io.IOException;
 
 /**
 * An implementation of {@link TlsTunnel} that delegates calls to a native library.
@@ -26,25 +25,25 @@ public class NativeTlsTunnel extends TlsTunnel {
      * Accepts a new connection on the TLS tunnel.
      *
      * @return a new NativeConnection object representing the accepted connection
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
     @Override
-    public native NativeConnection accept() throws IOException;
+    public native NativeConnection accept() throws Error;
 
     /**
      * Forwards TCP traffic to the specified address.
      *
      * @param addr the address to forward TCP traffic to
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
     @Override
-    public native void forwardTcp(String addr) throws IOException;
+    public native void forwardTcp(String addr) throws Error;
 
     /**
      * Closes the TLS tunnel.
      *
-     * @throws IOException if an I/O error occurs
+     * @throws Error if an I/O error occurs
      */
     @Override
-    public native void close() throws IOException;
+    public native void close() throws Error;
 }
