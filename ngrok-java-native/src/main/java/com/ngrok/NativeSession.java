@@ -109,6 +109,15 @@ public class NativeSession implements Session {
     public native NativeLabeledTunnel labeledTunnel(NativeLabeledTunnel.Builder builder) throws IOException;
 
     /**
+     * Closes the native tunnel by ID in this session.
+     * 
+     * @param tunnelId the ID of the tunnel to close
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    public native void closeTunnel(String tunnelId) throws IOException;
+
+    /**
      * Closes the native session.
      *
      * @throws IOException if an I/O error occurs

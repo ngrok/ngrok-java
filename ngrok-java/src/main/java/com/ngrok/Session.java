@@ -143,6 +143,14 @@ public interface Session extends AutoCloseable {
     public LabeledTunnel labeledTunnel(LabeledTunnel.Builder builder) throws IOException;
 
     /**
+     * Closes a tunnel by its ID.
+     * 
+     * @param tunnelId the id of the tunnel to close
+     * @throws IOException if an I/O error occurs during tunnel close
+     */
+    public void closeTunnel(String tunnelId) throws IOException;
+
+    /**
      * Configures a function which is called when the ngrok service requests that this {@link Session} stops.
      * Your application may choose to interpret this callback as a request to terminate the {@link Session} or the entire process.
      */
