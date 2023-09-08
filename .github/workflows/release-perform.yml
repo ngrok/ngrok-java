@@ -20,7 +20,7 @@ jobs:
         config:
           - host: ubuntu-latest
             target: i686-unknown-linux-gnu
-            artifact: linux-x86
+            artifact: linux-x86_32
             linker: gcc-multilib
             pkgFlags: "--define 'skipTests'"
           - host: ubuntu-latest
@@ -28,7 +28,7 @@ jobs:
             artifact: linux-x86_64
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            artifact: linux-aarch64
+            artifact: linux-aarch_64
             linker: gcc-aarch64-linux-gnu
             pkgFlags: "--define 'skipTests'"
           - host: ubuntu-latest
@@ -38,7 +38,7 @@ jobs:
             pkgFlags: "--define 'skipTests'"
           - host: ubuntu-latest
             target: aarch64-linux-android
-            artifact: linux-android-aarch64
+            artifact: linux-android-aarch_64
             linker: gcc-aarch64-linux-gnu
             pkgFlags: "--define 'skipTests'"
           - host: windows-latest
@@ -53,7 +53,7 @@ jobs:
             artifact: osx-x86_64
           - host: macos-latest
             target: aarch64-apple-darwin
-            artifact: osx-aarch64
+            artifact: osx-aarch_64
             pkgFlags: "--define 'skipTests'"
     runs-on: ${{ matrix.config.host }}
     steps:
