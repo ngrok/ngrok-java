@@ -774,6 +774,17 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         }
     }
 
+    fn close_tunnel(
+        &self,
+        this: ComNgrokNativeSession<'local>,
+        tunnel_id: String,
+    ) -> Result<(), jaffi_support::Error<IOExceptionErr>> {
+        let rt = RT.get().expect("runtime not initialized");
+
+        let sess: MutexGuard<Session> = self.get_native(this);
+        rt.block_on(sess.close_tunnel(tunnel_id)).map_err(io_exc)
+    }
+
     fn close(
         &self,
         this: ComNgrokNativeSession<'local>,
