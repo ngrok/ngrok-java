@@ -243,9 +243,9 @@
                                 <configuration>
                                     <artifacts>
                                         <artifact>
-                                            <file>target/ngrok-java-native-${project.version}-linux-x86.jar</file>
+                                            <file>target/ngrok-java-native-${project.version}-linux-x86_32.jar</file>
                                             <type>jar</type>
-                                            <classifier>linux-x86</classifier>
+                                            <classifier>linux-x86_32</classifier>
                                         </artifact>
                                         <artifact>
                                             <file>target/ngrok-java-native-${project.version}-linux-x86_64.jar</file>
@@ -253,9 +253,9 @@
                                             <classifier>linux-x86_64</classifier>
                                         </artifact>
                                         <artifact>
-                                            <file>target/ngrok-java-native-${project.version}-linux-aarch64.jar</file>
+                                            <file>target/ngrok-java-native-${project.version}-linux-aarch_64.jar</file>
                                             <type>jar</type>
-                                            <classifier>linux-aarch64</classifier>
+                                            <classifier>linux-aarch_64</classifier>
                                         </artifact>
                                         <artifact>
                                             <file>target/ngrok-java-native-${project.version}-linux-android-armv7.jar</file>
@@ -263,9 +263,9 @@
                                             <classifier>linux-android-armv7</classifier>
                                         </artifact>
                                         <artifact>
-                                            <file>target/ngrok-java-native-${project.version}-linux-android-aarch64.jar</file>
+                                            <file>target/ngrok-java-native-${project.version}-linux-android-aarch_64.jar</file>
                                             <type>jar</type>
-                                            <classifier>linux-android-aarch64</classifier>
+                                            <classifier>linux-android-aarch_64</classifier>
                                         </artifact>
                                         <artifact>
                                             <file>target/ngrok-java-native-${project.version}-windows-x86_32.jar</file>
@@ -283,9 +283,9 @@
                                             <classifier>osx-x86_64</classifier>
                                         </artifact>
                                         <artifact>
-                                            <file>target/ngrok-java-native-${project.version}-osx-aarch64.jar</file>
+                                            <file>target/ngrok-java-native-${project.version}-osx-aarch_64.jar</file>
                                             <type>jar</type>
-                                            <classifier>osx-aarch64</classifier>
+                                            <classifier>osx-aarch_64</classifier>
                                         </artifact>
                                     </artifacts>
                                 </configuration>
