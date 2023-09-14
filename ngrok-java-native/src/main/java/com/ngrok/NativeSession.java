@@ -49,7 +49,8 @@ public class NativeSession implements Session {
      * @throws IOException if an I/O error occurs
      */
     public static NativeSession connect(Session.Builder builder) throws IOException {
-        builder.getUserAgents().add(0, new UserAgent("ngrok-java", version));
+        var jver = System.getProperty("java.version");
+        builder.getClientInfos().add(0, new ClientInfo("ngrok-java", version, jver));
         return connectNative(builder);
     }
 

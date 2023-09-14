@@ -192,22 +192,33 @@ public interface Session extends AutoCloseable {
         public default void timeout() {}
     }
 
-    class UserAgent {
-        private final String name;
+    class ClientInfo {
+        private final String type;
 
         private final String version;
 
-        public UserAgent(String name, String version) {
-            this.name = Objects.requireNonNull(name);
+        private final String comments;
+
+        public ClientInfo(String type, String version, String comments) {
+            this.type = Objects.requireNonNull(type);
             this.version = Objects.requireNonNull(version);
+            this.comments = comments;
         }
 
-        public String getName() {
-            return name;
+        public String getType() {
+            return type;
         }
 
         public String getVersion() {
             return version;
+        }
+
+        public String getComments() {
+            return comments;
+        }
+
+        public boolean hasComments() {
+            return comments != null;
         }
     }
 
@@ -229,7 +240,7 @@ public interface Session extends AutoCloseable {
 
         private HeartbeatHandler heartbeatHandler;
 
-        private final List<UserAgent> userAgents = new ArrayList<>();
+        private final List<ClientInfo> clientInfos = new ArrayList<>();
 
         public Builder() {
         }
@@ -344,13 +355,18 @@ public interface Session extends AutoCloseable {
             return heartbeatHandler;
         }
 
-        public Builder addUserAgent(String name, String version) {
-            this.userAgents.add(new UserAgent(name, version));
+        public Builder addClientInfo(String name, String version) {
+            this.clientInfos.add(new ClientInfo(name, version, null));
             return this;
         }
 
-        public List<UserAgent> getUserAgents() {
-            return userAgents;
+        public Builder addClientInfo(String name, String version, String comments) {
+            this.clientInfos.add(new ClientInfo(name, version, comments));
+            return this;
+        }
+
+        public List<ClientInfo> getClientInfos() {
+            return clientInfos;
         }
     }
 }
