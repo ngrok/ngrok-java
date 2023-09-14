@@ -12,3 +12,7 @@ clean:
 .PHONY: rebuild
 rebuild: 
 	mvn clean package --global-toolchains toolchains.xml
+
+.PHONY: install
+install:
+	mvn install --global-toolchains toolchains.xml
