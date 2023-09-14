@@ -5,8 +5,8 @@ use com_ngrok::{
     ComNgrokLabeledTunnelLabel, ComNgrokNativeConnection, ComNgrokNativeHttpTunnel,
     ComNgrokNativeLabeledTunnel, ComNgrokNativeSession, ComNgrokNativeSessionClass,
     ComNgrokNativeTcpTunnel, ComNgrokNativeTlsTunnel, ComNgrokRuntimeLogger,
-    ComNgrokSessionBuilder, ComNgrokSessionHeartbeatHandler, ComNgrokSessionRestartCallback,
-    ComNgrokSessionStopCallback, ComNgrokSessionUpdateCallback, ComNgrokSessionUserAgent,
+    ComNgrokSessionBuilder, ComNgrokSessionClientInfo, ComNgrokSessionHeartbeatHandler,
+    ComNgrokSessionRestartCallback, ComNgrokSessionStopCallback, ComNgrokSessionUpdateCallback,
     ComNgrokTcpTunnelBuilder, ComNgrokTlsTunnelBuilder, IOException, IOExceptionErr, JavaUtilList,
 };
 use futures::TryStreamExt;
@@ -392,12 +392,18 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr = bldr.handle_heartbeat(HeartbeatCallback::from(self.env, heartbeat_obj));
         }
 
-        let user_agents = jsb.get_user_agents(self.env);
-        for i in 0..user_agents.size(self.env) {
-            let user_agent: ComNgrokSessionUserAgent = user_agents.get(self.env, i).into();
-            bldr = bldr.child_client(
-                user_agent.get_name(self.env),
-                user_agent.get_version(self.env),
+        let client_infos = jsb.get_client_infos(self.env);
+        for i in 0..client_infos.size(self.env) {
+            let client_info: ComNgrokSessionClientInfo = client_infos.get(self.env, i).into();
+            let comments = if client_info.has_comments(self.env) {
+                Option::<String>::Some(client_info.get_comments(self.env))
+            } else {
+                Option::<String>::None
+            };
+            bldr = bldr.client_info(
+                client_info.get_type(self.env),
+                client_info.get_version(self.env),
+                comments,
             );
         }
 
