@@ -5,9 +5,9 @@ import java.util.Objects;
 /**
  * Represents a TCP tunnel with the ngrok service.
  * 
- * {@link AgentTunnel}
+ * {@link EndpointTunnel}
  */
-public abstract class TcpTunnel extends AgentTunnel {
+public abstract class TcpTunnel extends EndpointTunnel {
     /**
      * Constructs a new {@link TcpTunnel} instance with the specified ID, forwarding
      * address, metadata, protocol, and URL.
@@ -25,7 +25,7 @@ public abstract class TcpTunnel extends AgentTunnel {
     /**
      * A builder for a {@link TcpTunnel}.
      */
-    public static class Builder extends AgentTunnel.Builder<Builder> {
+    public static class Builder extends EndpointTunnel.Builder<Builder> {
         private String remoteAddress;
 
         /**

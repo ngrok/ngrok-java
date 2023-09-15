@@ -26,7 +26,7 @@ public class NativeLabeledTunnel extends LabeledTunnel {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    public native NativeConnection accept() throws IOException;
+    public native NativeEdgeConnection accept() throws IOException;
 
     /**
      * Forwards TCP traffic to the specified address.

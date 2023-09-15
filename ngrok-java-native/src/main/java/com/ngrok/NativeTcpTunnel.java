@@ -29,7 +29,7 @@ public class NativeTcpTunnel extends TcpTunnel {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    public native NativeConnection accept() throws IOException;
+    public native NativeEndpointConnection accept() throws IOException;
 
     /**
      * Forwards TCP traffic to the specified address.

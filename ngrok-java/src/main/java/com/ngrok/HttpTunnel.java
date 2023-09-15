@@ -8,7 +8,7 @@ import java.util.Optional;
 /**
  * An abstract representation of a tunnel connection that services HTTP traffic.
  */
-public abstract class HttpTunnel extends AgentTunnel {
+public abstract class HttpTunnel extends EndpointTunnel {
     /**
      * Constructs a new HTTP tunnel with the specified ID, forwarding address,
      * metadata, protocol, and URL.
@@ -507,7 +507,7 @@ public abstract class HttpTunnel extends AgentTunnel {
     /**
      * A builder class for constructing an HTTP tunnel.
      */
-    public static class Builder extends AgentTunnel.Builder<Builder> {
+    public static class Builder extends EndpointTunnel.Builder<Builder> {
         /**
          * The scheme for the HTTP tunnel.
          */

@@ -5,9 +5,9 @@ import java.util.Objects;
 /**
  * Represents a TLS tunnel with the ngrok service.
  * 
- * {@link AgentTunnel}
+ * {@link EndpointTunnel}
  */
-public abstract class TlsTunnel extends AgentTunnel {
+public abstract class TlsTunnel extends EndpointTunnel {
     /**
      * Constructs a new {@link TlsTunnel} instance with the specified ID, forwarding
      * address, metadata, protocol, and URL.
@@ -25,7 +25,7 @@ public abstract class TlsTunnel extends AgentTunnel {
     /**
      * A builder for a {@link TlsTunnel}.
      */
-    public static class Builder extends AgentTunnel.Builder<Builder> {
+    public static class Builder extends EndpointTunnel.Builder<Builder> {
         private String domain;
 
         private byte[] mutualTLSCA;

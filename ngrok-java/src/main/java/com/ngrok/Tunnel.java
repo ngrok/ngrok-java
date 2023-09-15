@@ -5,9 +5,9 @@ import java.io.IOException;
 /**
  * Base class for all types of ngrok tunnels. Includes common attributes and functionality shared by all types of tunnels.
  *
- * {@link AgentTunnel}
+ * {@link EndpointTunnel}
  */
-public abstract class Tunnel implements AutoCloseable {
+public abstract class Tunnel<T extends Connection> implements AutoCloseable {
     private final String id;
     private final String forwardsTo;
     private final String metadata;
@@ -59,7 +59,7 @@ public abstract class Tunnel implements AutoCloseable {
      * @return the connection accepted on the tunnel
      * @throws IOException if an I/O error occurs while accepting the connection
      */
-    public abstract Connection accept() throws IOException;
+    public abstract T accept() throws IOException;
 
     /**
      * Forwards TCP traffic to the specified address on the tunnel.

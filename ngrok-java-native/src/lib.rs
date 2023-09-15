@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use bytes::Bytes;
 use com_ngrok::{
     ComNgrokHttpTunnelBuilder, ComNgrokHttpTunnelHeader, ComNgrokLabeledTunnelBuilder,
-    ComNgrokLabeledTunnelLabel, ComNgrokNativeConnection, ComNgrokNativeHttpTunnel,
+    ComNgrokLabeledTunnelLabel, ComNgrokNativeEdgeConnection, ComNgrokNativeEndpointConnection, ComNgrokNativeHttpTunnel,
     ComNgrokNativeLabeledTunnel, ComNgrokNativeSession, ComNgrokNativeSessionClass,
     ComNgrokNativeTcpTunnel, ComNgrokNativeTlsTunnel, ComNgrokRuntimeLogger,
     ComNgrokSessionBuilder, ComNgrokSessionClientInfo, ComNgrokSessionHeartbeatHandler,
@@ -26,10 +26,11 @@ use jaffi_support::{
 
 use ngrok::{
     config::{OauthOptions, OidcOptions, ProxyProto, Scheme},
-    prelude::{TunnelBuilder, TunnelExt},
+    prelude::{TunnelBuilder, EdgeConnInfo, EndpointConnInfo},
     session::{CommandHandler, HeartbeatHandler, Restart, Stop, Update},
-    tunnel::{HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel, UrlTunnel},
-    Conn, Session, Tunnel,
+    tunnel::{HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel, TunnelInfo, EndpointInfo, TunnelCloser},
+    conn::ConnInfo,
+    Conn, Session, EndpointConn, EdgeConn,
 };
 
 #[allow(clippy::all)]
@@ -338,27 +339,27 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let mut bldr = Session::builder();
 
         if jsb.has_authtoken(self.env) {
-            bldr = bldr.authtoken(jsb.get_authtoken(self.env));
+            bldr.authtoken(jsb.get_authtoken(self.env));
         }
 
         if jsb.has_heartbeat_interval(self.env) {
             let d: u64 = jsb.get_heartbeat_interval_ms(self.env).try_into().unwrap();
-            bldr = bldr.heartbeat_interval(Duration::from_millis(d));
+            bldr.heartbeat_interval(Duration::from_millis(d));
         }
 
         if jsb.has_heartbeat_tolerance(self.env) {
             let d: u64 = jsb.get_heartbeat_tolerance_ms(self.env).try_into().unwrap();
-            bldr = bldr.heartbeat_tolerance(Duration::from_millis(d));
+            bldr.heartbeat_tolerance(Duration::from_millis(d));
         }
 
         let mut session_metadata = String::from("");
         if jsb.has_metadata(self.env) {
             session_metadata = jsb.get_metadata(self.env);
-            bldr = bldr.metadata(session_metadata.clone());
+            bldr.metadata(session_metadata.clone());
         }
 
         if jsb.has_server_addr(self.env) {
-            bldr = bldr.server_addr(jsb.get_server_addr(self.env));
+            bldr.server_addr(jsb.get_server_addr(self.env));
         }
 
         let ca_cert = jsb.get_ca_cert(self.env);
@@ -366,7 +367,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             let ca_cert_data = ca_cert
                 .as_slice(&self.env)
                 .expect("cannot get ca cert data");
-            bldr = bldr.ca_cert(Bytes::copy_from_slice(&ca_cert_data));
+            bldr.ca_cert(Bytes::copy_from_slice(&ca_cert_data));
         }
 
         // TODO: tls_config
@@ -374,22 +375,22 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         let stop_obj = jsb.stop_callback(self.env);
         if !stop_obj.is_null() {
-            bldr = bldr.handle_stop_command(StopCallback::from(self.env, stop_obj));
+            bldr.handle_stop_command(StopCallback::from(self.env, stop_obj));
         }
 
         let restart_obj = jsb.restart_callback(self.env);
         if !restart_obj.is_null() {
-            bldr = bldr.handle_restart_command(RestartCallback::from(self.env, restart_obj));
+            bldr.handle_restart_command(RestartCallback::from(self.env, restart_obj));
         }
 
         let update_obj = jsb.update_callback(self.env);
         if !update_obj.is_null() {
-            bldr = bldr.handle_update_command(UpdateCallback::from(self.env, update_obj));
+            bldr.handle_update_command(UpdateCallback::from(self.env, update_obj));
         }
 
         let heartbeat_obj = jsb.heartbeat_handler(self.env);
         if !heartbeat_obj.is_null() {
-            bldr = bldr.handle_heartbeat(HeartbeatCallback::from(self.env, heartbeat_obj));
+            bldr.handle_heartbeat(HeartbeatCallback::from(self.env, heartbeat_obj));
         }
 
         let client_infos = jsb.get_client_infos(self.env);
@@ -400,7 +401,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             } else {
                 Option::<String>::None
             };
-            bldr = bldr.client_info(
+            bldr.client_info(
                 client_info.get_type(self.env),
                 client_info.get_version(self.env),
                 comments,
@@ -435,15 +436,15 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         // from Tunnel.Builder
         if jtb.has_metadata(self.env) {
-            bldr = bldr.metadata(jtb.get_metadata(self.env));
+            bldr.metadata(jtb.get_metadata(self.env));
         }
 
-        // from AgentTunnel.Builder
+        // from EndpointTunnel.Builder
         let allow_cidr = jatb.get_allow_cidr(self.env);
         for i in 0..allow_cidr.size(self.env) {
             let cidr: JString = allow_cidr.get(self.env, i).into();
             if let Some(cidr) = self.as_string(cidr) {
-                bldr = bldr.allow_cidr(cidr);
+                bldr.allow_cidr(cidr);
             }
         }
 
@@ -451,21 +452,21 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         for i in 0..deny_cidr.size(self.env) {
             let cidr: JString = deny_cidr.get(self.env, i).into();
             if let Some(cidr) = self.as_string(cidr) {
-                bldr = bldr.deny_cidr(cidr);
+                bldr.deny_cidr(cidr);
             }
         }
 
         if jatb.has_proxy_proto(self.env) {
-            bldr = bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
+            bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
         }
 
         if jatb.has_forwards_to(self.env) {
-            bldr = bldr.forwards_to(jatb.get_forwards_to(self.env));
+            bldr.forwards_to(jatb.get_forwards_to(self.env));
         }
 
         // from TcpTunnel.Builder
         if jttb.has_remote_address(self.env) {
-            bldr = bldr.remote_addr(jttb.get_remote_address(self.env));
+            bldr.remote_addr(jttb.get_remote_address(self.env));
         }
 
         let tun = rt.block_on(bldr.listen());
@@ -501,15 +502,15 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         // from Tunnel.Builder
         if jtb.has_metadata(self.env) {
-            bldr = bldr.metadata(jtb.get_metadata(self.env));
+            bldr.metadata(jtb.get_metadata(self.env));
         }
 
-        // from AgentTunnel.Builder
+        // from EndpointTunnel.Builder
         let allow_cidr = jatb.get_allow_cidr(self.env);
         for i in 0..allow_cidr.size(self.env) {
             let cidr: JString = allow_cidr.get(self.env, i).into();
             if let Some(cidr) = self.as_string(cidr) {
-                bldr = bldr.allow_cidr(cidr);
+                bldr.allow_cidr(cidr);
             }
         }
 
@@ -517,27 +518,27 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         for i in 0..deny_cidr.size(self.env) {
             let cidr: JString = deny_cidr.get(self.env, i).into();
             if let Some(cidr) = self.as_string(cidr) {
-                bldr = bldr.deny_cidr(cidr);
+                bldr.deny_cidr(cidr);
             }
         }
 
         if jatb.has_proxy_proto(self.env) {
-            bldr = bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
+            bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
         }
 
         if jatb.has_forwards_to(self.env) {
-            bldr = bldr.forwards_to(jatb.get_forwards_to(self.env));
+            bldr.forwards_to(jatb.get_forwards_to(self.env));
         }
 
         // from TlsTunnel.Builder
         if jttb.has_domain(self.env) {
-            bldr = bldr.domain(jttb.get_domain(self.env));
+            bldr.domain(jttb.get_domain(self.env));
         }
 
         let mtls = jttb.get_mutual_tlsca(self.env);
         if !mtls.is_null() {
             let mtls_data = mtls.as_slice(&self.env).expect("cannot get mtls data");
-            bldr = bldr.mutual_tlsca(Bytes::copy_from_slice(&mtls_data));
+            bldr.mutual_tlsca(Bytes::copy_from_slice(&mtls_data));
         }
 
         match (
@@ -547,7 +548,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             (cert, key) if !cert.is_null() && !key.is_null() => {
                 let cert_pem_data = cert.as_slice(&self.env).expect("cannot get cert data");
                 let key_pem_data = key.as_slice(&self.env).expect("cannot get key data");
-                bldr = bldr.termination(
+                bldr.termination(
                     Bytes::copy_from_slice(&cert_pem_data),
                     Bytes::copy_from_slice(&key_pem_data),
                 );
@@ -588,15 +589,15 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         // from Tunnel.Builder
         if jtb.has_metadata(self.env) {
-            bldr = bldr.metadata(jtb.get_metadata(self.env));
+            bldr.metadata(jtb.get_metadata(self.env));
         }
 
-        // from AgentTunnel.Builder
+        // from EndpointTunnel.Builder
         let allow_cidr = jatb.get_allow_cidr(self.env);
         for i in 0..allow_cidr.size(self.env) {
             let cidr: JString = allow_cidr.get(self.env, i).into();
             if let Some(cidr) = self.as_string(cidr) {
-                bldr = bldr.allow_cidr(cidr);
+                bldr.allow_cidr(cidr);
             }
         }
 
@@ -604,64 +605,64 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         for i in 0..deny_cidr.size(self.env) {
             let cidr: JString = deny_cidr.get(self.env, i).into();
             if let Some(cidr) = self.as_string(cidr) {
-                bldr = bldr.deny_cidr(cidr);
+                bldr.deny_cidr(cidr);
             }
         }
 
         if jatb.has_proxy_proto(self.env) {
-            bldr = bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
+            bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
         }
 
         if jatb.has_forwards_to(self.env) {
-            bldr = bldr.forwards_to(jatb.get_forwards_to(self.env));
+            bldr.forwards_to(jatb.get_forwards_to(self.env));
         }
 
         // from HttpTunnel.Builder
         if jhtb.has_scheme(self.env) {
             let scheme = Scheme::from_str(jhtb.get_scheme_name(self.env).as_str())
                 .expect("invalid scheme name");
-            bldr = bldr.scheme(scheme);
+            bldr.scheme(scheme);
         }
 
         if jhtb.has_domain(self.env) {
-            bldr = bldr.domain(jhtb.get_domain(self.env));
+            bldr.domain(jhtb.get_domain(self.env));
         }
 
         let mtls = jhtb.get_mutual_tlsca(self.env);
         if !mtls.is_null() {
             let slice = mtls.as_slice(&self.env).expect("cannot get mtls data");
-            bldr = bldr.mutual_tlsca(Bytes::copy_from_slice(&slice));
+            bldr.mutual_tlsca(Bytes::copy_from_slice(&slice));
         }
 
         if jhtb.is_compression(self.env) {
-            bldr = bldr.compression();
+            bldr.compression();
         }
 
         if jhtb.is_websocket_tcp_conversion(self.env) {
-            bldr = bldr.websocket_tcp_conversion();
+            bldr.websocket_tcp_conversion();
         }
 
         if jhtb.has_circuit_breaker(self.env) {
-            bldr = bldr.circuit_breaker(jhtb.get_circuit_breaker(self.env));
+            bldr.circuit_breaker(jhtb.get_circuit_breaker(self.env));
         }
 
         let request_headers = jhtb.get_request_headers(self.env);
         for i in 0..request_headers.size(self.env) {
             let header: ComNgrokHttpTunnelHeader = request_headers.get(self.env, i).into();
-            bldr = bldr.request_header(header.get_name(self.env), header.get_value(self.env));
+            bldr.request_header(header.get_name(self.env), header.get_value(self.env));
         }
 
         let response_headers = jhtb.get_response_headers(self.env);
         for i in 0..response_headers.size(self.env) {
             let header: ComNgrokHttpTunnelHeader = response_headers.get(self.env, i).into();
-            bldr = bldr.response_header(header.get_name(self.env), header.get_value(self.env));
+            bldr.response_header(header.get_name(self.env), header.get_value(self.env));
         }
 
         let remove_request_headers = jhtb.get_remove_request_headers(self.env);
         for i in 0..remove_request_headers.size(self.env) {
             let header: JString = remove_request_headers.get(self.env, i).into();
             if let Some(name) = self.as_string(header) {
-                bldr = bldr.remove_request_header(name);
+                bldr.remove_request_header(name);
             }
         }
 
@@ -669,13 +670,13 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         for i in 0..remove_response_headers.size(self.env) {
             let header: JString = remove_response_headers.get(self.env, i).into();
             if let Some(name) = self.as_string(header) {
-                bldr = bldr.remove_response_header(name);
+                bldr.remove_response_header(name);
             }
         }
 
         let basic_auth = jhtb.get_basic_auth_options(self.env);
         if !basic_auth.is_null() {
-            bldr = bldr.basic_auth(
+            bldr.basic_auth(
                 basic_auth.get_username(self.env),
                 basic_auth.get_password(self.env),
             );
@@ -685,19 +686,19 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         if !joauth.is_null() {
             let mut oauth = OauthOptions::new(joauth.get_provider(self.env));
             if joauth.has_client_id(self.env) {
-                oauth = oauth.client_id(joauth.get_client_id(self.env));
-                oauth = oauth.client_secret(joauth.get_client_secret(self.env));
+                oauth.client_id(joauth.get_client_id(self.env));
+                oauth.client_secret(joauth.get_client_secret(self.env));
             }
             if joauth.has_allow_email(self.env) {
-                oauth = oauth.allow_email(joauth.get_allow_email(self.env));
+                oauth.allow_email(joauth.get_allow_email(self.env));
             }
             if joauth.has_allow_domain(self.env) {
-                oauth = oauth.allow_domain(joauth.get_allow_domain(self.env));
+                oauth.allow_domain(joauth.get_allow_domain(self.env));
             }
             if joauth.has_scope(self.env) {
-                oauth = oauth.scope(joauth.get_scope(self.env));
+                oauth.scope(joauth.get_scope(self.env));
             }
-            bldr = bldr.oauth(oauth);
+            bldr.oauth(oauth);
         }
 
         let joidc = jhtb.get_oidc_options(self.env);
@@ -708,20 +709,20 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 joidc.get_client_secret(self.env),
             );
             if joidc.has_allow_email(self.env) {
-                oidc = oidc.allow_email(joidc.get_allow_email(self.env));
+                oidc.allow_email(joidc.get_allow_email(self.env));
             }
             if joidc.has_allow_domain(self.env) {
-                oidc = oidc.allow_domain(joidc.get_allow_domain(self.env));
+                oidc.allow_domain(joidc.get_allow_domain(self.env));
             }
             if joidc.has_scope(self.env) {
-                oidc = oidc.scope(joidc.get_scope(self.env));
+                oidc.scope(joidc.get_scope(self.env));
             }
-            bldr = bldr.oidc(oidc);
+            bldr.oidc(oidc);
         }
 
         let jwv = jhtb.get_webhook_verification(self.env);
         if !jwv.is_null() {
-            bldr = bldr.webhook_verification(jwv.get_provider(self.env), jwv.get_secret(self.env));
+            bldr.webhook_verification(jwv.get_provider(self.env), jwv.get_secret(self.env));
         }
 
         match rt.block_on(bldr.listen()) {
@@ -755,14 +756,14 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         // from Tunnel.Builder
         if jtb.has_metadata(self.env) {
-            bldr = bldr.metadata(jtb.get_metadata(self.env));
+            bldr.metadata(jtb.get_metadata(self.env));
         }
 
         // from LabeledTunnel.Builder
         let labels = jltb.get_labels(self.env);
         for i in 0..labels.size(self.env) {
             let label: ComNgrokLabeledTunnelLabel = labels.get(self.env, i).into();
-            bldr = bldr.label(label.get_name(self.env), label.get_value(self.env));
+            bldr.label(label.get_name(self.env), label.get_value(self.env));
         }
 
         match rt.block_on(bldr.listen()) {
@@ -820,15 +821,16 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
     fn accept(
         &self,
         this: ComNgrokNativeTcpTunnel<'local>,
-    ) -> Result<ComNgrokNativeConnection<'local>, Error<IOExceptionErr>> {
+    ) -> Result<ComNgrokNativeEndpointConnection<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(
+                let jconn: ComNgrokNativeEndpointConnection<'_> = ComNgrokNativeEndpointConnection::new_1com_ngrok_native_endpoint_connection(
                     self.env,
                     conn.remote_addr().to_string(),
+                    conn.proto().to_string(),
                 );
                 self.set_native(jconn, conn);
                 Ok(jconn)
@@ -846,7 +848,7 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
-        rt.block_on(tun.forward_tcp(addr)).map_err(io_exc)
+        rt.block_on(tun.forward_to(addr)).map_err(io_exc)
     }
 
     fn close(&self, this: ComNgrokNativeTcpTunnel<'local>) -> Result<(), Error<IOExceptionErr>> {
@@ -875,15 +877,16 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
     fn accept(
         &self,
         this: ComNgrokNativeTlsTunnel<'local>,
-    ) -> Result<ComNgrokNativeConnection<'local>, Error<IOExceptionErr>> {
+    ) -> Result<ComNgrokNativeEndpointConnection<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<TlsTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(
+                let jconn = ComNgrokNativeEndpointConnection::new_1com_ngrok_native_endpoint_connection(
                     self.env,
                     conn.remote_addr().to_string(),
+                    conn.proto().to_string(),
                 );
                 self.set_native(jconn, conn);
                 Ok(jconn)
@@ -930,15 +933,16 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
     fn accept(
         &self,
         this: ComNgrokNativeHttpTunnel<'local>,
-    ) -> Result<ComNgrokNativeConnection<'local>, Error<IOExceptionErr>> {
+    ) -> Result<ComNgrokNativeEndpointConnection<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<HttpTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(
+                let jconn = ComNgrokNativeEndpointConnection::new_1com_ngrok_native_endpoint_connection(
                     self.env,
                     conn.remote_addr().to_string(),
+                    conn.proto().to_string(),
                 );
                 self.set_native(jconn, conn);
                 Ok(jconn)
@@ -988,15 +992,17 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
     fn accept(
         &self,
         this: ComNgrokNativeLabeledTunnel<'local>,
-    ) -> Result<ComNgrokNativeConnection<'local>, Error<IOExceptionErr>> {
+    ) -> Result<ComNgrokNativeEdgeConnection<'local>, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: MutexGuard<LabeledTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn = ComNgrokNativeConnection::new_1com_ngrok_native_connection(
+                let jconn = ComNgrokNativeEdgeConnection::new_1com_ngrok_native_edge_connection(
                     self.env,
                     conn.remote_addr().to_string(),
+                    conn.edge_type().to_string(),
+                    conn.passthrough_tls(),
                 );
                 self.set_native(jconn, conn);
                 Ok(jconn)
@@ -1028,29 +1034,29 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
     }
 }
 
-struct NativeConnectionRsImpl<'local> {
+struct NativeEndpointConnectionRsImpl<'local> {
     env: JNIEnv<'local>,
 }
 
-impl<'local> JNIExt<'local> for NativeConnectionRsImpl<'local> {
+impl<'local> JNIExt<'local> for NativeEndpointConnectionRsImpl<'local> {
     fn get_env(&self) -> &JNIEnv<'local> {
         &self.env
     }
 }
 
-impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'local> {
+impl<'local> com_ngrok::NativeEndpointConnectionRs<'local> for NativeEndpointConnectionRsImpl<'local> {
     fn from_env(env: JNIEnv<'local>) -> Self {
         Self { env }
     }
 
     fn read_native(
         &self,
-        this: ComNgrokNativeConnection<'local>,
+        this: ComNgrokNativeEndpointConnection<'local>,
         jbuff: JByteBuffer<'local>,
     ) -> Result<i32, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let mut conn: MutexGuard<Conn> = self.get_native(this);
+        let mut conn: MutexGuard<EndpointConn> = self.get_native(this);
         let addr = self
             .env
             .get_direct_buffer_address(jbuff)
@@ -1064,13 +1070,13 @@ impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'l
 
     fn write_native(
         &self,
-        this: ComNgrokNativeConnection<'local>,
+        this: ComNgrokNativeEndpointConnection<'local>,
         jbuff: JByteBuffer<'local>,
         limit: i32,
     ) -> Result<i32, Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let mut conn: MutexGuard<Conn> = self.get_native(this);
+        let mut conn: MutexGuard<EndpointConn> = self.get_native(this);
         let addr = self
             .env
             .get_direct_buffer_address(jbuff)
@@ -1082,10 +1088,72 @@ impl<'local> com_ngrok::NativeConnectionRs<'local> for NativeConnectionRsImpl<'l
         }
     }
 
-    fn close(&self, this: ComNgrokNativeConnection<'local>) -> Result<(), Error<IOExceptionErr>> {
+    fn close(&self, this: ComNgrokNativeEndpointConnection<'local>) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
-        let mut conn: Conn = self.take_native(this);
+        let mut conn: EndpointConn = self.take_native(this);
+        rt.block_on(conn.shutdown()).map_err(io_exc)
+    }
+}
+
+struct NativeEdgeConnectionRsImpl<'local> {
+    env: JNIEnv<'local>,
+}
+
+impl<'local> JNIExt<'local> for NativeEdgeConnectionRsImpl<'local> {
+    fn get_env(&self) -> &JNIEnv<'local> {
+        &self.env
+    }
+}
+
+impl<'local> com_ngrok::NativeEdgeConnectionRs<'local> for NativeEdgeConnectionRsImpl<'local> {
+    fn from_env(env: JNIEnv<'local>) -> Self {
+        Self { env }
+    }
+
+    fn read_native(
+        &self,
+        this: ComNgrokNativeEdgeConnection<'local>,
+        jbuff: JByteBuffer<'local>,
+    ) -> Result<i32, Error<IOExceptionErr>> {
+        let rt = RT.get().expect("runtime not initialized");
+
+        let mut conn: MutexGuard<EdgeConn> = self.get_native(this);
+        let addr = self
+            .env
+            .get_direct_buffer_address(jbuff)
+            .expect("cannot get buff addr");
+        match rt.block_on(conn.read(addr)) {
+            Ok(0) => Err(io_exc("closed")),
+            Ok(sz) => Ok(sz.try_into().expect("size must be i32")),
+            Err(err) => io_exc_err(err),
+        }
+    }
+
+    fn write_native(
+        &self,
+        this: ComNgrokNativeEdgeConnection<'local>,
+        jbuff: JByteBuffer<'local>,
+        limit: i32,
+    ) -> Result<i32, Error<IOExceptionErr>> {
+        let rt = RT.get().expect("runtime not initialized");
+
+        let mut conn: MutexGuard<EdgeConn> = self.get_native(this);
+        let addr = self
+            .env
+            .get_direct_buffer_address(jbuff)
+            .expect("cannot get buff addr");
+        let act = &addr[..limit.try_into().expect("xxx")];
+        match rt.block_on(conn.write(act)) {
+            Ok(sz) => Ok(sz.try_into().expect("cannot convert to i32")),
+            Err(err) => io_exc_err(err),
+        }
+    }
+
+    fn close(&self, this: ComNgrokNativeEdgeConnection<'local>) -> Result<(), Error<IOExceptionErr>> {
+        let rt = RT.get().expect("runtime not initialized");
+
+        let mut conn: EdgeConn = self.take_native(this);
         rt.block_on(conn.shutdown()).map_err(io_exc)
     }
 }

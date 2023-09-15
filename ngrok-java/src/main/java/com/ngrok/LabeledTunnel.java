@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
  * Represents a labeled tunnel with the ngrok service. 
  * Labeled tunnels are configured by using the <a href="https://ngrok.com/docs/cloud-edge/edges/">edges</a> functionality.
  */
-public abstract class LabeledTunnel extends Tunnel {
+public abstract class LabeledTunnel extends Tunnel<EdgeConnection> {
     /**
      * Constructs a new {@link LabeledTunnel} instance with the specified ID, forwarding address, and metadata.
      *

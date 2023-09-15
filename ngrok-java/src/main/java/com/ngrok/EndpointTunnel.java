@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The AgentTunnel is the base class for all agent initiated (e.g. configured by the agent) tunnels.
+ * The EndpointTunnel is the base class for all agent initiated (e.g. configured by the agent) tunnels.
  * Includes common attributes such as tunnel protocol and url.
  * 
  * {@link HttpTunnel}
  * {@link TcpTunnel}
  * {@link TlsTunnel}
  */
-public abstract class AgentTunnel extends Tunnel {
+public abstract class EndpointTunnel extends Tunnel<EndpointConnection> {
     private final String proto;
     private final String url;
 
@@ -24,7 +24,7 @@ public abstract class AgentTunnel extends Tunnel {
      * @param proto      the protocol used by the tunnel
      * @param url        the URL of the tunnel
      */
-    public AgentTunnel(String id, String forwardsTo, String metadata, String proto, String url) {
+    public EndpointTunnel(String id, String forwardsTo, String metadata, String proto, String url) {
         super(id, forwardsTo, metadata);
         this.proto = proto;
         this.url = url;

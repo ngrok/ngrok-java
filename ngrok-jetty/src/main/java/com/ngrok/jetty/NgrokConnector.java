@@ -1,6 +1,6 @@
 package com.ngrok.jetty;
 
-import com.ngrok.AgentTunnel;
+import com.ngrok.EndpointTunnel;
 import com.ngrok.Session;
 
 import com.ngrok.Tunnel;
@@ -48,8 +48,8 @@ public class NgrokConnector extends AbstractConnector {
     protected void doStart() throws Exception {
         this.session = sessionSupplier.get();
         this.tunnel = tunnelFunction.apply(this.session);
-        if (this.tunnel instanceof AgentTunnel) {
-            AgentTunnel agentTunnel = (AgentTunnel) this.tunnel;
+        if (this.tunnel instanceof EndpointTunnel) {
+            EndpointTunnel agentTunnel = (EndpointTunnel) this.tunnel;
             System.out.printf("URL: %s\n", agentTunnel.getUrl());
         }
 

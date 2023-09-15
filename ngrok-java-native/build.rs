@@ -20,7 +20,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.NativeTlsTunnel"),
         Cow::from("com.ngrok.NativeHttpTunnel"),
         Cow::from("com.ngrok.NativeLabeledTunnel"),
-        Cow::from("com.ngrok.NativeConnection"),
+        Cow::from("com.ngrok.NativeEdgeConnection"),
+        Cow::from("com.ngrok.NativeEndpointConnection"),
     ];
     let classes_to_wrap = vec![
         Cow::from("com.ngrok.Runtime$Logger"),
@@ -33,8 +34,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.Session$HeartbeatHandler"),
         Cow::from("com.ngrok.Tunnel"),
         Cow::from("com.ngrok.Tunnel$Builder"),
-        Cow::from("com.ngrok.AgentTunnel"),
-        Cow::from("com.ngrok.AgentTunnel$Builder"),
+        Cow::from("com.ngrok.EndpointTunnel"),
+        Cow::from("com.ngrok.EndpointTunnel$Builder"),
         Cow::from("com.ngrok.TcpTunnel"),
         Cow::from("com.ngrok.TcpTunnel$Builder"),
         Cow::from("com.ngrok.TlsTunnel"),
@@ -50,6 +51,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.LabeledTunnel$Label"),
         Cow::from("com.ngrok.LabeledTunnel$Builder"),
         Cow::from("com.ngrok.Connection"),
+        Cow::from("com.ngrok.EdgeConnection"),
+        Cow::from("com.ngrok.EndpointConnection"),
     ];
     let output_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR not set"));
 

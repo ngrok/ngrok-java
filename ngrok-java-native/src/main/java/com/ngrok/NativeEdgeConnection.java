@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 /**
  * An implementation of {@link Connection} that delegates calls to a native library.
  */
-public class NativeConnection extends Connection {
+public class NativeEdgeConnection extends EdgeConnection {
     private long native_address;
 
     /**
@@ -14,8 +14,8 @@ public class NativeConnection extends Connection {
      *
      * @param remoteAddr the remote address of the connection
      */
-    public NativeConnection(String remoteAddr) {
-        super(remoteAddr);
+    public NativeEdgeConnection(String remoteAddr, String type, boolean passthroughTls) {
+        super(remoteAddr, type, passthroughTls);
     }
 
     /**
