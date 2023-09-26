@@ -82,6 +82,10 @@ public interface Session extends AutoCloseable {
      */
     public TcpTunnel tcpTunnel(TcpTunnel.Builder builder) throws IOException;
 
+    Listener<EndpointInfo, EndpointConnection> listenTcp(TcpTunnel.Builder builder) throws IOException;
+
+    Forwarder<EndpointInfo> forwardTcp(TcpTunnel.Builder builder, String url) throws IOException;
+
     /**
      * Creates a new {@link TlsTunnel} instance with the default builder.
      *

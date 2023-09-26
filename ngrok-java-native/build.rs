@@ -17,6 +17,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.Runtime"),
         Cow::from("com.ngrok.NativeSession"),
         Cow::from("com.ngrok.NativeTcpTunnel"),
+        Cow::from("com.ngrok.NativeTcpListener"),
+        Cow::from("com.ngrok.NativeTcpForwarder"),
         Cow::from("com.ngrok.NativeTlsTunnel"),
         Cow::from("com.ngrok.NativeHttpTunnel"),
         Cow::from("com.ngrok.NativeLabeledTunnel"),
@@ -53,6 +55,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.Connection"),
         Cow::from("com.ngrok.EdgeConnection"),
         Cow::from("com.ngrok.EndpointConnection"),
+        Cow::from("com.ngrok.TunnelInfo"),
+        Cow::from("com.ngrok.EndpointInfo"),
+        Cow::from("com.ngrok.Listener"),
+        Cow::from("com.ngrok.Forwarder"),
     ];
     let output_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR not set"));
 

@@ -1,13 +1,15 @@
 use async_trait::async_trait;
 use bytes::Bytes;
 use com_ngrok::{
-    ComNgrokHttpTunnelBuilder, ComNgrokHttpTunnelHeader, ComNgrokLabeledTunnelBuilder,
-    ComNgrokLabeledTunnelLabel, ComNgrokNativeEdgeConnection, ComNgrokNativeEndpointConnection, ComNgrokNativeHttpTunnel,
-    ComNgrokNativeLabeledTunnel, ComNgrokNativeSession, ComNgrokNativeSessionClass,
-    ComNgrokNativeTcpTunnel, ComNgrokNativeTlsTunnel, ComNgrokRuntimeLogger,
-    ComNgrokSessionBuilder, ComNgrokSessionClientInfo, ComNgrokSessionHeartbeatHandler,
-    ComNgrokSessionRestartCallback, ComNgrokSessionStopCallback, ComNgrokSessionUpdateCallback,
-    ComNgrokTcpTunnelBuilder, ComNgrokTlsTunnelBuilder, IOException, IOExceptionErr, JavaUtilList,
+    ComNgrokEndpointInfo, ComNgrokHttpTunnelBuilder, ComNgrokHttpTunnelHeader,
+    ComNgrokLabeledTunnelBuilder, ComNgrokLabeledTunnelLabel, ComNgrokNativeEdgeConnection,
+    ComNgrokNativeEndpointConnection, ComNgrokNativeHttpTunnel, ComNgrokNativeLabeledTunnel,
+    ComNgrokNativeSession, ComNgrokNativeSessionClass, ComNgrokNativeTcpForwarder,
+    ComNgrokNativeTcpListener, ComNgrokNativeTcpTunnel, ComNgrokNativeTlsTunnel,
+    ComNgrokRuntimeLogger, ComNgrokSessionBuilder, ComNgrokSessionClientInfo,
+    ComNgrokSessionHeartbeatHandler, ComNgrokSessionRestartCallback, ComNgrokSessionStopCallback,
+    ComNgrokSessionUpdateCallback, ComNgrokTcpTunnelBuilder, ComNgrokTlsTunnelBuilder, IOException,
+    IOExceptionErr, JavaUtilList,
 };
 use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
@@ -15,6 +17,7 @@ use std::{str::FromStr, sync::MutexGuard, time::Duration};
 use tokio::{io::AsyncReadExt, io::AsyncWriteExt, runtime::Runtime};
 use tracing::{level_filters::LevelFilter, Level};
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
+use url::Url;
 
 use jaffi_support::{
     jni::{
@@ -26,11 +29,14 @@ use jaffi_support::{
 
 use ngrok::{
     config::{OauthOptions, OidcOptions, ProxyProto, Scheme},
-    prelude::{TunnelBuilder, EdgeConnInfo, EndpointConnInfo},
-    session::{CommandHandler, HeartbeatHandler, Restart, Stop, Update},
-    tunnel::{HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel, TunnelInfo, EndpointInfo, TunnelCloser},
     conn::ConnInfo,
-    Session, EndpointConn, EdgeConn,
+    forwarder::Forwarder,
+    prelude::{EdgeConnInfo, EndpointConnInfo, ForwarderBuilder, TunnelBuilder},
+    session::{CommandHandler, HeartbeatHandler, Restart, Stop, Update},
+    tunnel::{
+        EndpointInfo, HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel, TunnelCloser, TunnelInfo,
+    },
+    EdgeConn, EndpointConn, Session,
 };
 
 #[allow(clippy::all)]
@@ -344,12 +350,14 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         if jsb.has_heartbeat_interval(self.env) {
             let d: u64 = jsb.get_heartbeat_interval_ms(self.env).try_into().unwrap();
-            bldr.heartbeat_interval(Duration::from_millis(d));
+            bldr.heartbeat_interval(Duration::from_millis(d))
+                .expect("invalid heartbeat interval");
         }
 
         if jsb.has_heartbeat_tolerance(self.env) {
             let d: u64 = jsb.get_heartbeat_tolerance_ms(self.env).try_into().unwrap();
-            bldr.heartbeat_tolerance(Duration::from_millis(d));
+            bldr.heartbeat_tolerance(Duration::from_millis(d))
+                .expect("invalid heartbeat tolerance");
         }
 
         let mut session_metadata = String::from("");
@@ -359,7 +367,8 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         }
 
         if jsb.has_server_addr(self.env) {
-            bldr.server_addr(jsb.get_server_addr(self.env));
+            bldr.server_addr(jsb.get_server_addr(self.env))
+                .expect("invalid server address");
         }
 
         let ca_cert = jsb.get_ca_cert(self.env);
@@ -416,6 +425,146 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 );
                 self.set_native(jsess, sess);
                 Ok(jsess)
+            }
+            Err(err) => io_exc_err(err),
+        }
+    }
+
+    fn listen_tcp(
+        &self,
+        this: ComNgrokNativeSession<'local>,
+        jttb: ComNgrokTcpTunnelBuilder<'local>,
+    ) -> Result<com_ngrok::ComNgrokNativeTcpListener<'local>, Error<IOExceptionErr>> {
+        let rt = RT.get().expect("runtime not initialized");
+
+        let sess: MutexGuard<Session> = self.get_native(this);
+        let mut bldr = sess.tcp_endpoint();
+
+        let jatb = jttb.as_com_ngrok_endpoint_tunnel_builder();
+        let jtb = jatb.as_com_ngrok_tunnel_builder();
+
+        // from Tunnel.Builder
+        if jtb.has_metadata(self.env) {
+            bldr.metadata(jtb.get_metadata(self.env));
+        }
+
+        // from EndpointTunnel.Builder
+        let allow_cidr = jatb.get_allow_cidr(self.env);
+        for i in 0..allow_cidr.size(self.env) {
+            let cidr: JString = allow_cidr.get(self.env, i).into();
+            if let Some(cidr) = self.as_string(cidr) {
+                bldr.allow_cidr(cidr);
+            }
+        }
+
+        let deny_cidr = jatb.get_deny_cidr(self.env);
+        for i in 0..deny_cidr.size(self.env) {
+            let cidr: JString = deny_cidr.get(self.env, i).into();
+            if let Some(cidr) = self.as_string(cidr) {
+                bldr.deny_cidr(cidr);
+            }
+        }
+
+        if jatb.has_proxy_proto(self.env) {
+            bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
+        }
+
+        if jatb.has_forwards_to(self.env) {
+            bldr.forwards_to(jatb.get_forwards_to(self.env));
+        }
+
+        // from TcpTunnel.Builder
+        if jttb.has_remote_address(self.env) {
+            bldr.remote_addr(jttb.get_remote_address(self.env));
+        }
+
+        let tun = rt.block_on(bldr.listen());
+        match tun {
+            Ok(tun) => {
+                let jinfo = ComNgrokEndpointInfo::new_1com_ngrok_endpoint_info(
+                    self.env,
+                    tun.id().into(),
+                    tun.forwards_to().into(),
+                    tun.metadata().into(),
+                    tun.proto().into(),
+                    tun.url().into(),
+                );
+                let jlistener =
+                    ComNgrokNativeTcpListener::new_1com_ngrok_native_tcp_listener(self.env, jinfo);
+                self.set_native(jlistener, tun);
+                Ok(jlistener)
+            }
+            Err(err) => io_exc_err(err),
+        }
+    }
+
+    fn forward_tcp(
+        &self,
+        this: ComNgrokNativeSession<'local>,
+        jttb: ComNgrokTcpTunnelBuilder<'local>,
+        jurl: String,
+    ) -> Result<com_ngrok::ComNgrokNativeTcpForwarder<'local>, Error<IOExceptionErr>> {
+        let rt = RT.get().expect("runtime not initialized");
+
+        let sess: MutexGuard<Session> = self.get_native(this);
+        let mut bldr = sess.tcp_endpoint();
+
+        let jatb = jttb.as_com_ngrok_endpoint_tunnel_builder();
+        let jtb = jatb.as_com_ngrok_tunnel_builder();
+
+        // from Tunnel.Builder
+        if jtb.has_metadata(self.env) {
+            bldr.metadata(jtb.get_metadata(self.env));
+        }
+
+        // from EndpointTunnel.Builder
+        let allow_cidr = jatb.get_allow_cidr(self.env);
+        for i in 0..allow_cidr.size(self.env) {
+            let cidr: JString = allow_cidr.get(self.env, i).into();
+            if let Some(cidr) = self.as_string(cidr) {
+                bldr.allow_cidr(cidr);
+            }
+        }
+
+        let deny_cidr = jatb.get_deny_cidr(self.env);
+        for i in 0..deny_cidr.size(self.env) {
+            let cidr: JString = deny_cidr.get(self.env, i).into();
+            if let Some(cidr) = self.as_string(cidr) {
+                bldr.deny_cidr(cidr);
+            }
+        }
+
+        if jatb.has_proxy_proto(self.env) {
+            bldr.proxy_proto(ProxyProto::from(jatb.get_proxy_proto_version(self.env)));
+        }
+
+        if jatb.has_forwards_to(self.env) {
+            bldr.forwards_to(jatb.get_forwards_to(self.env));
+        }
+
+        // from TcpTunnel.Builder
+        if jttb.has_remote_address(self.env) {
+            bldr.remote_addr(jttb.get_remote_address(self.env));
+        }
+
+        let url = Url::parse(jurl.as_str()).expect("cannot parse url");
+
+        let tun = rt.block_on(bldr.listen_and_forward(url));
+        match tun {
+            Ok(tun) => {
+                let jinfo = ComNgrokEndpointInfo::new_1com_ngrok_endpoint_info(
+                    self.env,
+                    tun.id().into(),
+                    tun.forwards_to().into(),
+                    tun.metadata().into(),
+                    tun.proto().into(),
+                    tun.url().into(),
+                );
+                let jforwarder = ComNgrokNativeTcpForwarder::new_1com_ngrok_native_tcp_forwarder(
+                    self.env, jinfo,
+                );
+                self.set_native(jforwarder, tun);
+                Ok(jforwarder)
             }
             Err(err) => io_exc_err(err),
         }
@@ -803,6 +952,86 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
     }
 }
 
+struct NativeTcpListenerRsImpl<'local> {
+    env: JNIEnv<'local>,
+}
+
+impl<'local> JNIExt<'local> for NativeTcpListenerRsImpl<'local> {
+    fn get_env(&self) -> &JNIEnv<'local> {
+        &self.env
+    }
+}
+
+impl<'local> com_ngrok::NativeTcpListenerRs<'local> for NativeTcpListenerRsImpl<'local> {
+    fn from_env(env: JNIEnv<'local>) -> Self {
+        Self { env }
+    }
+
+    fn accept(
+        &self,
+        this: ComNgrokNativeTcpListener<'local>,
+    ) -> Result<ComNgrokNativeEndpointConnection<'local>, Error<IOExceptionErr>> {
+        let rt = RT.get().expect("runtime not initialized");
+
+        let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
+        match rt.block_on(tun.try_next()) {
+            Ok(Some(conn)) => {
+                let jconn: ComNgrokNativeEndpointConnection<'_> =
+                    ComNgrokNativeEndpointConnection::new_1com_ngrok_native_endpoint_connection(
+                        self.env,
+                        conn.remote_addr().to_string(),
+                        conn.proto().to_string(),
+                    );
+                self.set_native(jconn, conn);
+                Ok(jconn)
+            }
+            Ok(None) => io_exc_err("could not get next conn"),
+            Err(err) => io_exc_err(err),
+        }
+    }
+
+    fn close(&self, this: ComNgrokNativeTcpListener<'local>) -> Result<(), Error<IOExceptionErr>> {
+        let rt = RT.get().expect("runtime not initialized");
+
+        let mut tun: TcpTunnel = self.take_native(this);
+        rt.block_on(tun.close()).map_err(io_exc)
+    }
+}
+
+struct NativeTcpForwarderRsImpl<'local> {
+    env: JNIEnv<'local>,
+}
+
+impl<'local> JNIExt<'local> for NativeTcpForwarderRsImpl<'local> {
+    fn get_env(&self) -> &JNIEnv<'local> {
+        &self.env
+    }
+}
+
+impl<'local> com_ngrok::NativeTcpForwarderRs<'local> for NativeTcpForwarderRsImpl<'local> {
+    fn from_env(env: JNIEnv<'local>) -> Self {
+        Self { env }
+    }
+
+    fn join(&self, this: ComNgrokNativeTcpForwarder<'local>) -> Result<(), Error<IOExceptionErr>> {
+        let rt = RT.get().expect("runtime not initialized");
+
+        let mut tun: MutexGuard<Forwarder<TcpTunnel>> = self.get_native(this);
+        match rt.block_on(tun.join()) {
+            Ok(Ok(())) => Ok(()),
+            Ok(Err(e)) => io_exc_err(e),
+            Err(e) => io_exc_err(e),
+        }
+    }
+
+    fn close(&self, this: ComNgrokNativeTcpForwarder<'local>) -> Result<(), Error<IOExceptionErr>> {
+        let rt = RT.get().expect("runtime not initialized");
+
+        let mut tun: Forwarder<TcpTunnel> = self.take_native(this);
+        rt.block_on(tun.close()).map_err(io_exc)
+    }
+}
+
 struct NativeTcpTunnelRsImpl<'local> {
     env: JNIEnv<'local>,
 }
@@ -827,11 +1056,12 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
         let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn: ComNgrokNativeEndpointConnection<'_> = ComNgrokNativeEndpointConnection::new_1com_ngrok_native_endpoint_connection(
-                    self.env,
-                    conn.remote_addr().to_string(),
-                    conn.proto().to_string(),
-                );
+                let jconn: ComNgrokNativeEndpointConnection<'_> =
+                    ComNgrokNativeEndpointConnection::new_1com_ngrok_native_endpoint_connection(
+                        self.env,
+                        conn.remote_addr().to_string(),
+                        conn.proto().to_string(),
+                    );
                 self.set_native(jconn, conn);
                 Ok(jconn)
             }
@@ -842,8 +1072,8 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
 
     fn forward_tcp(
         &self,
-        this: ComNgrokNativeTcpTunnel<'local>,
-        addr: String,
+        _this: ComNgrokNativeTcpTunnel<'local>,
+        _addr: String,
     ) -> Result<(), Error<IOExceptionErr>> {
         panic!("not implemented")
         // let rt = RT.get().expect("runtime not initialized");
@@ -884,11 +1114,12 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
         let mut tun: MutexGuard<TlsTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn = ComNgrokNativeEndpointConnection::new_1com_ngrok_native_endpoint_connection(
-                    self.env,
-                    conn.remote_addr().to_string(),
-                    conn.proto().to_string(),
-                );
+                let jconn =
+                    ComNgrokNativeEndpointConnection::new_1com_ngrok_native_endpoint_connection(
+                        self.env,
+                        conn.remote_addr().to_string(),
+                        conn.proto().to_string(),
+                    );
                 self.set_native(jconn, conn);
                 Ok(jconn)
             }
@@ -899,8 +1130,8 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
 
     fn forward_tcp(
         &self,
-        this: ComNgrokNativeTlsTunnel<'local>,
-        addr: String,
+        _this: ComNgrokNativeTlsTunnel<'local>,
+        _addr: String,
     ) -> Result<(), Error<IOExceptionErr>> {
         panic!("not implemented")
         // let rt = RT.get().expect("runtime not initialized");
@@ -941,11 +1172,12 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
         let mut tun: MutexGuard<HttpTunnel> = self.get_native(this);
         match rt.block_on(tun.try_next()) {
             Ok(Some(conn)) => {
-                let jconn = ComNgrokNativeEndpointConnection::new_1com_ngrok_native_endpoint_connection(
-                    self.env,
-                    conn.remote_addr().to_string(),
-                    conn.proto().to_string(),
-                );
+                let jconn =
+                    ComNgrokNativeEndpointConnection::new_1com_ngrok_native_endpoint_connection(
+                        self.env,
+                        conn.remote_addr().to_string(),
+                        conn.proto().to_string(),
+                    );
                 self.set_native(jconn, conn);
                 Ok(jconn)
             }
@@ -956,8 +1188,8 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
 
     fn forward_tcp(
         &self,
-        this: ComNgrokNativeHttpTunnel<'local>,
-        addr: String,
+        _this: ComNgrokNativeHttpTunnel<'local>,
+        _addr: String,
     ) -> Result<(), Error<IOExceptionErr>> {
         panic!("not implemented")
         // let rt = RT.get().expect("runtime not initialized");
@@ -1009,7 +1241,8 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
                         ngrok::prelude::EdgeType::Tls => "TLS",
                         ngrok::prelude::EdgeType::Tcp => "TCP",
                         ngrok::prelude::EdgeType::Undefined => "",
-                    }.to_string(),
+                    }
+                    .to_string(),
                     conn.passthrough_tls(),
                 );
                 self.set_native(jconn, conn);
@@ -1022,8 +1255,8 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
 
     fn forward_tcp(
         &self,
-        this: ComNgrokNativeLabeledTunnel<'local>,
-        addr: String,
+        _this: ComNgrokNativeLabeledTunnel<'local>,
+        _addr: String,
     ) -> Result<(), Error<IOExceptionErr>> {
         panic!("not implemented")
         // let rt = RT.get().expect("runtime not initialized");
@@ -1053,7 +1286,9 @@ impl<'local> JNIExt<'local> for NativeEndpointConnectionRsImpl<'local> {
     }
 }
 
-impl<'local> com_ngrok::NativeEndpointConnectionRs<'local> for NativeEndpointConnectionRsImpl<'local> {
+impl<'local> com_ngrok::NativeEndpointConnectionRs<'local>
+    for NativeEndpointConnectionRsImpl<'local>
+{
     fn from_env(env: JNIEnv<'local>) -> Self {
         Self { env }
     }
@@ -1097,7 +1332,10 @@ impl<'local> com_ngrok::NativeEndpointConnectionRs<'local> for NativeEndpointCon
         }
     }
 
-    fn close(&self, this: ComNgrokNativeEndpointConnection<'local>) -> Result<(), Error<IOExceptionErr>> {
+    fn close(
+        &self,
+        this: ComNgrokNativeEndpointConnection<'local>,
+    ) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut conn: EndpointConn = self.take_native(this);
@@ -1159,7 +1397,10 @@ impl<'local> com_ngrok::NativeEdgeConnectionRs<'local> for NativeEdgeConnectionR
         }
     }
 
-    fn close(&self, this: ComNgrokNativeEdgeConnection<'local>) -> Result<(), Error<IOExceptionErr>> {
+    fn close(
+        &self,
+        this: ComNgrokNativeEdgeConnection<'local>,
+    ) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut conn: EdgeConn = self.take_native(this);

@@ -82,6 +82,10 @@ public class NativeSession implements Session {
      */
     public native NativeTcpTunnel tcpTunnel(TcpTunnel.Builder builder) throws IOException;
 
+    public native NativeTcpListener listenTcp(TcpTunnel.Builder builder) throws IOException;
+
+    public native NativeTcpForwarder forwardTcp(TcpTunnel.Builder builder, String url) throws IOException;
+
     /**
      * Creates a new {@link NativeTlsTunnel} using the specified builder.
      *
