@@ -845,10 +845,11 @@ impl<'local> com_ngrok::NativeTcpTunnelRs<'local> for NativeTcpTunnelRsImpl<'loc
         this: ComNgrokNativeTcpTunnel<'local>,
         addr: String,
     ) -> Result<(), Error<IOExceptionErr>> {
-        let rt = RT.get().expect("runtime not initialized");
+        panic!("not implemented")
+        // let rt = RT.get().expect("runtime not initialized");
 
-        let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
-        rt.block_on(tun.forward_to(addr)).map_err(io_exc)
+        // let mut tun: MutexGuard<TcpTunnel> = self.get_native(this);
+        // rt.block_on(tun.forward_to(addr)).map_err(io_exc)
     }
 
     fn close(&self, this: ComNgrokNativeTcpTunnel<'local>) -> Result<(), Error<IOExceptionErr>> {
@@ -901,10 +902,11 @@ impl<'local> com_ngrok::NativeTlsTunnelRs<'local> for NativeTlsTunnelRsImpl<'loc
         this: ComNgrokNativeTlsTunnel<'local>,
         addr: String,
     ) -> Result<(), Error<IOExceptionErr>> {
-        let rt = RT.get().expect("runtime not initialized");
+        panic!("not implemented")
+        // let rt = RT.get().expect("runtime not initialized");
 
-        let mut tun: MutexGuard<TlsTunnel> = self.get_native(this);
-        rt.block_on(tun.forward_tcp(addr)).map_err(io_exc)
+        // let mut tun: MutexGuard<TlsTunnel> = self.get_native(this);
+        // rt.block_on(tun.forward_tcp(addr)).map_err(io_exc)
     }
 
     fn close(&self, this: ComNgrokNativeTlsTunnel<'local>) -> Result<(), Error<IOExceptionErr>> {
@@ -957,10 +959,11 @@ impl<'local> com_ngrok::NativeHttpTunnelRs<'local> for NativeHttpTunnelRsImpl<'l
         this: ComNgrokNativeHttpTunnel<'local>,
         addr: String,
     ) -> Result<(), Error<IOExceptionErr>> {
-        let rt = RT.get().expect("runtime not initialized");
+        panic!("not implemented")
+        // let rt = RT.get().expect("runtime not initialized");
 
-        let mut tun: MutexGuard<HttpTunnel> = self.get_native(this);
-        rt.block_on(tun.forward_tcp(addr)).map_err(io_exc)
+        // let mut tun: MutexGuard<HttpTunnel> = self.get_native(this);
+        // rt.block_on(tun.forward_tcp(addr)).map_err(io_exc)
     }
 
     fn close(
@@ -1022,10 +1025,11 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
         this: ComNgrokNativeLabeledTunnel<'local>,
         addr: String,
     ) -> Result<(), Error<IOExceptionErr>> {
-        let rt = RT.get().expect("runtime not initialized");
+        panic!("not implemented")
+        // let rt = RT.get().expect("runtime not initialized");
 
-        let mut tun: MutexGuard<LabeledTunnel> = self.get_native(this);
-        rt.block_on(tun.forward_tcp(addr)).map_err(io_exc)
+        // let mut tun: MutexGuard<LabeledTunnel> = self.get_native(this);
+        // rt.block_on(tun.forward_tcp(addr)).map_err(io_exc)
     }
 
     fn close(
