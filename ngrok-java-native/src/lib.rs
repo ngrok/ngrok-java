@@ -30,7 +30,7 @@ use ngrok::{
     session::{CommandHandler, HeartbeatHandler, Restart, Stop, Update},
     tunnel::{HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel, TunnelInfo, EndpointInfo, TunnelCloser},
     conn::ConnInfo,
-    Conn, Session, EndpointConn, EdgeConn,
+    Session, EndpointConn, EdgeConn,
 };
 
 #[allow(clippy::all)]
@@ -431,7 +431,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.tcp_endpoint();
 
-        let jatb = jttb.as_com_ngrok_agent_tunnel_builder();
+        let jatb = jttb.as_com_ngrok_endpoint_tunnel_builder();
         let jtb = jatb.as_com_ngrok_tunnel_builder();
 
         // from Tunnel.Builder
@@ -497,7 +497,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.tls_endpoint();
 
-        let jatb = jttb.as_com_ngrok_agent_tunnel_builder();
+        let jatb = jttb.as_com_ngrok_endpoint_tunnel_builder();
         let jtb = jatb.as_com_ngrok_tunnel_builder();
 
         // from Tunnel.Builder
@@ -584,7 +584,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let sess: MutexGuard<Session> = self.get_native(this);
         let mut bldr = sess.http_endpoint();
 
-        let jatb = jhtb.as_com_ngrok_agent_tunnel_builder();
+        let jatb = jhtb.as_com_ngrok_endpoint_tunnel_builder();
         let jtb = jatb.as_com_ngrok_tunnel_builder();
 
         // from Tunnel.Builder
@@ -1001,7 +1001,12 @@ impl<'local> com_ngrok::NativeLabeledTunnelRs<'local> for NativeLabeledTunnelRsI
                 let jconn = ComNgrokNativeEdgeConnection::new_1com_ngrok_native_edge_connection(
                     self.env,
                     conn.remote_addr().to_string(),
-                    conn.edge_type().to_string(),
+                    match conn.edge_type() {
+                        ngrok::prelude::EdgeType::Https => "HTTPS",
+                        ngrok::prelude::EdgeType::Tls => "TLS",
+                        ngrok::prelude::EdgeType::Tcp => "TCP",
+                        ngrok::prelude::EdgeType::Undefined => "",
+                    }.to_string(),
                     conn.passthrough_tls(),
                 );
                 self.set_native(jconn, conn);
