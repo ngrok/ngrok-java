@@ -73,18 +73,11 @@ public class NativeSession implements Session {
         return metadata;
     }
 
-    /**
-     * Creates a new {@link NativeTcpTunnel} using the specified builder.
-     *
-     * @param builder the builder to use for the tunnel
-     * @return a new NativeTcpTunnel object representing the created tunnel
-     * @throws IOException if an I/O error occurs
-     */
-    public native NativeTcpTunnel tcpTunnel(TcpTunnel.Builder builder) throws IOException;
+    @Override
+    public native NativeTcpListener listenTcp(Tcp.Builder builder) throws IOException;
 
-    public native NativeTcpListener listenTcp(TcpTunnel.Builder builder) throws IOException;
-
-    public native NativeTcpForwarder forwardTcp(TcpTunnel.Builder builder, String url) throws IOException;
+    @Override
+    public native NativeTcpForwarder forwardTcp(Tcp.Builder builder, String url) throws IOException;
 
     /**
      * Creates a new {@link NativeTlsTunnel} using the specified builder.

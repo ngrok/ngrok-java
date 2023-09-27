@@ -2,7 +2,7 @@ package com.ngrok;
 
 import java.io.IOException;
 
-public class NativeTcpListener implements Listener<EndpointInfo, EndpointConnection> {
+public class NativeTcpListener implements Tcp.Listener {
     private long native_address;
 
     private final EndpointInfo info;

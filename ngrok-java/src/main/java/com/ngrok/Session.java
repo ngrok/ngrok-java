@@ -62,29 +62,17 @@ public interface Session extends AutoCloseable {
      */
     public String getMetadata();
 
-    /**
-     * Creates and returns a new {@link TcpTunnel} instance with the default builder.
-     *
-     * @return a {@link TcpTunnel} reference configured with the default builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
-     */
-    public default TcpTunnel tcpTunnel() throws IOException {
-        return tcpTunnel(new TcpTunnel.Builder());
+    default Tcp.Listener listenTcp() throws IOException {
+        return listenTcp(new Tcp.Builder());
     }
 
-    /**
-     * Creates and returns a new {@link TcpTunnel} with the specified builder.
-     *
-     * @param builder the {@link TcpTunnel.Builder} instance to use for the tunnel
-     *                creation
-     * @return a {@link TcpTunnel} reference configured with the specified builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
-     */
-    public TcpTunnel tcpTunnel(TcpTunnel.Builder builder) throws IOException;
+    Tcp.Listener listenTcp(Tcp.Builder builder) throws IOException;
 
-    Listener<EndpointInfo, EndpointConnection> listenTcp(TcpTunnel.Builder builder) throws IOException;
+    default Tcp.Forwarder forwardTcp(String url) throws IOException {
+        return forwardTcp(new Tcp.Builder(), url);
+    }
 
-    Forwarder<EndpointInfo> forwardTcp(TcpTunnel.Builder builder, String url) throws IOException;
+    Tcp.Forwarder forwardTcp(Tcp.Builder builder, String url) throws IOException;
 
     /**
      * Creates a new {@link TlsTunnel} instance with the default builder.
@@ -153,6 +141,9 @@ public interface Session extends AutoCloseable {
      * @throws IOException if an I/O error occurs during tunnel close
      */
     public void closeTunnel(String tunnelId) throws IOException;
+
+    @Override
+    void close() throws IOException;
 
     /**
      * Configures a function which is called when the ngrok service requests that this {@link Session} stops.

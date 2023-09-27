@@ -16,7 +16,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let classes = vec![
         Cow::from("com.ngrok.Runtime"),
         Cow::from("com.ngrok.NativeSession"),
-        Cow::from("com.ngrok.NativeTcpTunnel"),
         Cow::from("com.ngrok.NativeTcpListener"),
         Cow::from("com.ngrok.NativeTcpForwarder"),
         Cow::from("com.ngrok.NativeTlsTunnel"),
@@ -38,8 +37,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.Tunnel$Builder"),
         Cow::from("com.ngrok.EndpointTunnel"),
         Cow::from("com.ngrok.EndpointTunnel$Builder"),
-        Cow::from("com.ngrok.TcpTunnel"),
-        Cow::from("com.ngrok.TcpTunnel$Builder"),
         Cow::from("com.ngrok.TlsTunnel"),
         Cow::from("com.ngrok.TlsTunnel$Builder"),
         Cow::from("com.ngrok.HttpTunnel"),
@@ -59,6 +56,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.EndpointInfo"),
         Cow::from("com.ngrok.Listener"),
         Cow::from("com.ngrok.Forwarder"),
+        Cow::from("com.ngrok.Tcp"),
+        Cow::from("com.ngrok.Tcp$Builder"),
     ];
     let output_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR not set"));
 

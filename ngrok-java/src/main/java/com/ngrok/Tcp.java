@@ -2,30 +2,14 @@ package com.ngrok;
 
 import java.util.Objects;
 
-/**
- * Represents a TCP tunnel with the ngrok service.
- * 
- * {@link EndpointTunnel}
- */
-public abstract class TcpTunnel extends EndpointTunnel {
-    /**
-     * Constructs a new {@link TcpTunnel} instance with the specified ID, forwarding
-     * address, metadata, protocol, and URL.
-     *
-     * @param id         the ID of the tunnel
-     * @param forwardsTo the forwarding address of the tunnel
-     * @param metadata   the metadata of the tunnel
-     * @param proto      the protocol of the tunnel
-     * @param url        the URL of the tunnel
-     */
-    public TcpTunnel(String id, String forwardsTo, String metadata, String proto, String url) {
-        super(id, forwardsTo, metadata, proto, url);
-    }
+public interface Tcp {
+    interface Listener extends com.ngrok.Listener<EndpointInfo, EndpointConnection> {}
+    interface Forwarder extends com.ngrok.Forwarder<EndpointInfo> {}
 
     /**
-     * A builder for a {@link TcpTunnel}.
+     * A builder for a {@link Tcp}.
      */
-    public static class Builder extends EndpointTunnel.Builder<Builder> {
+    class Builder extends EndpointTunnel.Builder<Builder> {
         private String remoteAddress;
 
         /**
@@ -34,7 +18,7 @@ public abstract class TcpTunnel extends EndpointTunnel {
          * @param remoteAddress the remote address of the tunnel
          * @return the builder instance
          */
-        public Builder remoteAddress(String remoteAddress) {
+        public Tcp.Builder remoteAddress(String remoteAddress) {
             this.remoteAddress = Objects.requireNonNull(remoteAddress);
             return this;
         }

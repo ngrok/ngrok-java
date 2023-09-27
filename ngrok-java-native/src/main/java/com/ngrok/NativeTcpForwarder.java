@@ -2,7 +2,7 @@ package com.ngrok;
 
 import java.io.IOException;
 
-public class NativeTcpForwarder implements Forwarder<EndpointInfo> {
+public class NativeTcpForwarder implements Tcp.Forwarder {
     private long native_address;
 
     private final EndpointInfo info;

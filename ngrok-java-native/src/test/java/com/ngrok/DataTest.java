@@ -36,7 +36,7 @@ public class DataTest {
         var session = Session.connect(Session.newBuilder());
         assertNotNull(session);
 
-        var tunnel = session.tcpTunnel();
+        var tunnel = session.listenTcp();
         assertNotNull(tunnel);
 
         var conn = tunnel.accept();
