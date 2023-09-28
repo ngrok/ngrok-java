@@ -9,7 +9,7 @@ public class TcpBuilder extends EndpointBuilder<TcpBuilder>
 
     private final Session session;
 
-    private Optional<String> remoteAddress;
+    private Optional<String> remoteAddress = Optional.empty();
 
     public TcpBuilder(Session session) {
         this.session = session;

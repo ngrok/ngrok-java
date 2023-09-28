@@ -157,7 +157,7 @@ public interface Session extends AutoCloseable {
         private Duration heartbeatInterval;
         private Duration heartbeatTolerance;
 
-        private Optional<String> metadata;
+        private Optional<String> metadata = Optional.empty();
 
         private String serverAddr;
         private byte[] caCert;

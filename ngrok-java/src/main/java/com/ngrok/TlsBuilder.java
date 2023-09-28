@@ -8,7 +8,7 @@ public class TlsBuilder extends EndpointBuilder<TlsBuilder>
         implements Listener.Builder<Listener.Endpoint>, Forwarder.Builder<Forwarder.Endpoint> {
     private final Session session;
 
-    private Optional<String> domain;
+    private Optional<String> domain = Optional.empty();
 
     private byte[] mutualTLSCA;
 
