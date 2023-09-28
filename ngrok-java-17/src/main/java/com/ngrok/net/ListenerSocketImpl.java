@@ -1,6 +1,6 @@
 package com.ngrok.net;
 
-import com.ngrok.Tunnel;
+import com.ngrok.Listener;
 
 import java.io.IOException;
 import java.net.SocketImpl;
@@ -9,16 +9,16 @@ import java.net.SocketImpl;
  * An implementation of the {@link AbstractSocketImpl} interface for
  * establishing a connection to an ngrok tunnel.
  */
-public class TunnelSocketImpl extends AbstractSocketImpl {
-    private final Tunnel tunnel;
+public class ListenerSocketImpl extends AbstractSocketImpl {
+    private final Listener listener;
 
     /**
      * Creates a new tunnel socket implementation for the given tunnel.
      *
      * @param tunnel the tunnel to establish a connection to
      */
-    public TunnelSocketImpl(Tunnel tunnel) {
-        this.tunnel = tunnel;
+    public ListenerSocketImpl(Listener listener) {
+        this.listener = listener;
     }
 
     /**
@@ -30,6 +30,6 @@ public class TunnelSocketImpl extends AbstractSocketImpl {
     @Override
     protected void accept(SocketImpl s) throws IOException {
         var csi = (ConnectionSocketImpl) s;
-        csi.setConnection(tunnel.accept());
+        csi.setConnection(listener.accept());
     }
 }

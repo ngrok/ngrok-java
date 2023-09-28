@@ -2,10 +2,10 @@ package com.ngrok;
 
 import java.io.IOException;
 
-public class NativeTcpForwarder extends AbstractEndpoint implements Forwarder.Endpoint {
+public class NativeHttpForwarder extends AbstractEndpoint implements Forwarder.Endpoint {
     private long native_address;
 
-    public NativeTcpForwarder(String id, String metadata, String forwardsTo, String proto, String url) {
+    public NativeHttpForwarder(String id, String metadata, String forwardsTo, String proto, String url) {
         super(id, metadata, forwardsTo, proto, url);
     }
 

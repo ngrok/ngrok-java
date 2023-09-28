@@ -1,9 +1,8 @@
 package com.ngrok.jetty;
 
-import com.ngrok.EndpointTunnel;
+import com.ngrok.Listener;
 import com.ngrok.Session;
 
-import com.ngrok.Tunnel;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -18,9 +17,9 @@ import java.util.function.Supplier;
  */
 public class NgrokConnector extends AbstractConnector {
     private final Supplier<Session> sessionSupplier;
-    private final Function<Session, Tunnel> tunnelFunction;
+    private final Function<Session, com.ngrok.Listener> tunnelFunction;
     private Session session;
-    private Tunnel tunnel;
+    private com.ngrok.Listener tunnel;
 
     /**
      * Constructs a new ngrok connector with the specified server, session supplier,
@@ -31,7 +30,7 @@ public class NgrokConnector extends AbstractConnector {
      * @param tunnelFunction  the function for creating the tunnel used by the
      *                        connector
      */
-    public NgrokConnector(Server server, Supplier<Session> sessionSupplier, Function<Session, Tunnel> tunnelFunction) {
+    public NgrokConnector(Server server, Supplier<Session> sessionSupplier, Function<Session, com.ngrok.Listener> tunnelFunction) {
         super(server, null, null, null, -1, new HttpConnectionFactory());
         setDefaultProtocol(HttpVersion.HTTP_1_1.asString());
 
@@ -48,8 +47,8 @@ public class NgrokConnector extends AbstractConnector {
     protected void doStart() throws Exception {
         this.session = sessionSupplier.get();
         this.tunnel = tunnelFunction.apply(this.session);
-        if (this.tunnel instanceof EndpointTunnel) {
-            EndpointTunnel agentTunnel = (EndpointTunnel) this.tunnel;
+        if (this.tunnel instanceof com.ngrok.Listener.Endpoint) {
+            var agentTunnel = (com.ngrok.Listener.Endpoint) this.tunnel;
             System.out.printf("URL: %s\n", agentTunnel.getUrl());
         }
 

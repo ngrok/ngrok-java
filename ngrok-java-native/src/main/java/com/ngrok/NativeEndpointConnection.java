@@ -6,8 +6,12 @@ import java.nio.ByteBuffer;
 /**
  * An implementation of {@link Connection} that delegates calls to a native library.
  */
-public class NativeEndpointConnection extends EndpointConnection {
+public class NativeEndpointConnection implements Connection.Endpoint {
     private long native_address;
+
+    private final String proto;
+
+    private final String remoteAddr;
 
     /**
      * Constructs a new connection with the specified remote address.
@@ -15,7 +19,17 @@ public class NativeEndpointConnection extends EndpointConnection {
      * @param remoteAddr the remote address of the connection
      */
     public NativeEndpointConnection(String remoteAddr, String proto) {
-        super(remoteAddr, proto);
+        this.proto = proto;
+        this.remoteAddr = remoteAddr;
+    }
+
+    public String getProto() {
+        return proto;
+    }
+
+    @Override
+    public String getRemoteAddr() {
+        return remoteAddr;
     }
 
     /**

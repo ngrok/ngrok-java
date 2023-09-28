@@ -2,10 +2,10 @@ package com.ngrok;
 
 import java.io.IOException;
 
-public class NativeTcpListener extends AbstractEndpoint implements Listener.Endpoint {
+public class NativeTlsListener extends AbstractEndpoint implements Listener.Endpoint {
     private long native_address;
 
-    public NativeTcpListener(String id, String metadata, String forwardsTo, String proto, String url) {
+    public NativeTlsListener(String id, String metadata, String forwardsTo, String proto, String url) {
         super(id, metadata, forwardsTo, proto, url);
     }
 

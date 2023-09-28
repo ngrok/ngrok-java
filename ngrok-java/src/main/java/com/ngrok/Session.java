@@ -2,44 +2,26 @@ package com.ngrok;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * A session with the ngrok service.
  */
 public interface Session extends AutoCloseable {
-
-    /**
-     * Creates a new {@link Builder} instance. The ngrok authtoken will be set from the value of the `NGROK_AUTHOKEN` environment variable.
-     *
-     * @return a new {@link Builder} instance with the default authentication token
-     */
-    public static Builder newBuilder() {
-        return newBuilder(System.getenv("NGROK_AUTHTOKEN"));
+    static Builder withAuthtoken(String authtoken) {
+        return new Builder(authtoken);
     }
 
-    /**
-     * Creates a new {@link Builder} instance with specified authtoken.
-     *
-     * @param authtoken the authentication token to use
-     * @return a new {@link Builder} instance with the specified authentication
-     *         token
-     */
-    public static Builder newBuilder(String authtoken) {
-        return new Builder().authtoken(authtoken);
+    static Builder withAuthtokenFromEnv() {
+        return new Builder(System.getenv("NGROK_AUTHTOKEN"));
     }
 
-    /**
-     * Connects to the ngrok service using the specified {@link Builder} instance.
-     *
-     * @param builder the {@link Builder} instance to use for the connection
-     * @return a new {@link Session} instance connected to the ngrok service
-     * @throws IOException if an I/O error occurs during the connection
-     */
-    public static Session connect(Builder builder) throws IOException {
+    static Session connect(Builder builder) throws IOException {
         try {
             var clazz = Class.forName("com.ngrok.NativeSession");
             var method = clazz.getMethod("connect", Builder.class);
@@ -55,92 +37,43 @@ public interface Session extends AutoCloseable {
         }
     }
 
-    /**
-     * Returns the metadata for the session.
-     *
-     * @return the metadata for the session
-     */
-    public String getMetadata();
+    String getMetadata();
 
-    default Tcp.Listener listenTcp() throws IOException {
-        return listenTcp(new Tcp.Builder());
+    default TcpBuilder tcpEndpoint() {
+        return new TcpBuilder(this);
     }
 
-    Tcp.Listener listenTcp(Tcp.Builder builder) throws IOException;
+    Listener.Endpoint listenTcp(TcpBuilder builder) throws IOException;
 
-    default Tcp.Forwarder forwardTcp(String url) throws IOException {
-        return forwardTcp(new Tcp.Builder(), url);
+    Forwarder.Endpoint forwardTcp(TcpBuilder builder, URL url) throws IOException;
+
+    default TlsBuilder tlsEndpoint() {
+        return new TlsBuilder(this);
     }
 
-    Tcp.Forwarder forwardTcp(Tcp.Builder builder, String url) throws IOException;
+    Listener.Endpoint listenTls(TlsBuilder builder) throws IOException;
 
-    /**
-     * Creates a new {@link TlsTunnel} instance with the default builder.
-     *
-     * @return a {@link TlsTunnel} reference configured with the default builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
-     */
-    public default TlsTunnel tlsTunnel() throws IOException {
-        return tlsTunnel(new TlsTunnel.Builder());
+    Forwarder.Endpoint forwardTls(TlsBuilder builder, URL url) throws IOException;
+
+    default HttpBuilder httpEndpoint() {
+        return new HttpBuilder(this);
     }
 
-    /**
-     * Creates and returns a new {@link TlsTunnel} with the specified builder.
-     * 
-     * @param builder the {@link TlsTunnel.Builder} instance to use for the tunnel
-     *                creation
-     * @return a {@link TlsTunnel} reference configured with the specified builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
-     */
-    public TlsTunnel tlsTunnel(TlsTunnel.Builder builder) throws IOException;
+    Listener.Endpoint listenHttp(HttpBuilder builder) throws IOException;
 
-    /**
-     * Creates and returns a new {@link HttpTunnel} instance with the default builder.
-     *
-     * @return a {@link HttpTunnel} reference configured with the default builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
-     */
-    public default HttpTunnel httpTunnel() throws IOException {
-        return httpTunnel(new HttpTunnel.Builder());
+    Forwarder.Endpoint forwardHttp(HttpBuilder builder, URL url) throws IOException;
+
+    default EdgeBuilder edge() {
+        return new EdgeBuilder(this);
     }
 
-    /**
-     * Creates a new {@link HttpTunnel} instance with the specified settings.
-     *
-     * @param builder the {@link HttpTunnel.Builder} instance to use for the tunnel
-     *                creation
-     * @return a new {@link HttpTunnel} instance with the specified settings
-     * @throws IOException if an I/O error occurs during the tunnel creation
-     */
-    public HttpTunnel httpTunnel(HttpTunnel.Builder builder) throws IOException;
+    Listener.Edge listenEdge(EdgeBuilder builder) throws IOException;
 
-    /**
-     * Returns a new {@link LabeledTunnel} instance with the default settings.
-     *
-     * @return a new {@link LabeledTunnel} instance with the default settings
-     * @throws IOException if an I/O error occurs during the tunnel creation
-     */
-    public default LabeledTunnel labeledTunnel() throws IOException {
-        return labeledTunnel(new LabeledTunnel.Builder());
-    }
+    Forwarder.Edge forwardEdge(EdgeBuilder builder, URL url) throws IOException;
 
-    /**
-     * Returns a new {@link LabeledTunnel} instance with the specified settings.
-     *
-     * @param builder the {@link LabeledTunnel.Builder} instance to use for the tunnel
-     *                creation
-     * @return a new {@link LabeledTunnel} instance with the specified settings
-     * @throws IOException if an I/O error occurs during the tunnel creation
-     */
-    public LabeledTunnel labeledTunnel(LabeledTunnel.Builder builder) throws IOException;
+    void closeListener(String listenerId) throws IOException;
 
-    /**
-     * Closes a tunnel by its ID.
-     * 
-     * @param tunnelId the id of the tunnel to close
-     * @throws IOException if an I/O error occurs during tunnel close
-     */
-    public void closeTunnel(String tunnelId) throws IOException;
+    void closeForwarder(String forwarderId) throws IOException;
 
     @Override
     void close() throws IOException;
@@ -150,7 +83,7 @@ public interface Session extends AutoCloseable {
      * Your application may choose to interpret this callback as a request to terminate the {@link Session} or the entire process.
      */
     public interface StopCallback {
-        public void onStopCommand();
+        void onStopCommand();
     }
 
     /**
@@ -158,7 +91,7 @@ public interface Session extends AutoCloseable {
      * Your application may choose to interpret this callback as a request to restart the {@link Session} or the entire process.
      */
     public interface RestartCallback {
-        public void onRestartCommand();
+        void onRestartCommand();
     }
 
     /**
@@ -166,25 +99,25 @@ public interface Session extends AutoCloseable {
      * Your application may choose to interpret this callback as a request to update its configuration, itself, or to invoke some other application-specific behavior.
      * 
      */
-    public interface UpdateCallback {
-        public void onUpdateCommand();
+    interface UpdateCallback {
+        void onUpdateCommand();
     }
 
     /**
      * The `HeartbeatHandler` interface represents a handler for session heartbeats.
      */
-    public interface HeartbeatHandler {
+    interface HeartbeatHandler {
         /**
          * Handles a session heartbeat with the specified duration.
          *
          * @param durationMs the duration of the heartbeat in milliseconds
          */
-        public void heartbeat(long durationMs);
+        void heartbeat(long durationMs);
 
         /**
          * Handles a session heartbeat timeout.
          */
-        public default void timeout() {}
+        default void timeout() {}
     }
 
     class ClientInfo {
@@ -217,14 +150,14 @@ public interface Session extends AutoCloseable {
         }
     }
 
-    public static class Builder {
+    class Builder {
 
-        private String authtoken;
+        private final String authtoken;
 
         private Duration heartbeatInterval;
         private Duration heartbeatTolerance;
 
-        private String metadata;
+        private Optional<String> metadata;
 
         private String serverAddr;
         private byte[] caCert;
@@ -237,16 +170,8 @@ public interface Session extends AutoCloseable {
 
         private final List<ClientInfo> clientInfos = new ArrayList<>();
 
-        public Builder() {
-        }
-
-        public Builder authtoken(String authtoken) {
-            this.authtoken = authtoken;
-            return this;
-        }
-
-        public boolean hasAuthtoken() {
-            return authtoken != null;
+        private Builder(String authtoken) {
+            this.authtoken = Objects.requireNonNullElse(authtoken, "");
         }
 
         public String getAuthtoken() {
@@ -280,15 +205,11 @@ public interface Session extends AutoCloseable {
         }
 
         public Builder metadata(String metadata) {
-            this.metadata = metadata;
+            this.metadata = Optional.of(metadata);
             return this;
         }
 
-        public boolean hasMetadata() {
-            return metadata != null;
-        }
-
-        public String getMetadata() {
+        public Optional<String> getMetadata() {
             return metadata;
         }
 
@@ -362,6 +283,10 @@ public interface Session extends AutoCloseable {
 
         public List<ClientInfo> getClientInfos() {
             return clientInfos;
+        }
+
+        public Session connect() throws IOException {
+            return Session.connect(this);
         }
     }
 }

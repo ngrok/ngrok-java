@@ -6,16 +6,37 @@ import java.nio.ByteBuffer;
 /**
  * An implementation of {@link Connection} that delegates calls to a native library.
  */
-public class NativeEdgeConnection extends EdgeConnection {
+public class NativeEdgeConnection implements Connection.Edge {
     private long native_address;
+
+    private final String remoteAddr;
+    private final String edgeType;
+    private final boolean passthroughTls;
 
     /**
      * Constructs a new connection with the specified remote address.
      *
      * @param remoteAddr the remote address of the connection
      */
-    public NativeEdgeConnection(String remoteAddr, String type, boolean passthroughTls) {
-        super(remoteAddr, type, passthroughTls);
+    public NativeEdgeConnection(String remoteAddr, String edgeType, boolean passthroughTls) {
+        this.remoteAddr = remoteAddr;
+        this.edgeType = edgeType;
+        this.passthroughTls = passthroughTls;
+    }
+
+    @Override
+    public String getRemoteAddr() {
+        return remoteAddr;
+    }
+
+    @Override
+    public String getEdgeType() {
+        return edgeType;
+    }
+
+    @Override
+    public boolean isPassthroughTls() {
+        return passthroughTls;
     }
 
     /**

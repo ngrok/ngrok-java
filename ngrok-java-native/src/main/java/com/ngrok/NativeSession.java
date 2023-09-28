@@ -1,6 +1,7 @@
 package com.ngrok;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Properties;
 
 /**
@@ -74,46 +75,34 @@ public class NativeSession implements Session {
     }
 
     @Override
-    public native NativeTcpListener listenTcp(Tcp.Builder builder) throws IOException;
+    public native NativeTcpListener listenTcp(TcpBuilder builder) throws IOException;
 
     @Override
-    public native NativeTcpForwarder forwardTcp(Tcp.Builder builder, String url) throws IOException;
+    public native NativeTcpForwarder forwardTcp(TcpBuilder builder, URL url) throws IOException;
 
-    /**
-     * Creates a new {@link NativeTlsTunnel} using the specified builder.
-     *
-     * @param builder the builder to use for the tunnel
-     * @return a new NativeTlsTunnel object representing the created tunnel
-     * @throws IOException if an I/O error occurs
-     */
-    public native NativeTlsTunnel tlsTunnel(NativeTlsTunnel.Builder builder) throws IOException;
-
-    /**
-     * Creates a new {@link NativeHttpTunnel} using the specified builder.
-     *
-     * @param builder the builder to use for the tunnel
-     * @return a new NativeHttpTunnel object representing the created tunnel
-     * @throws IOException if an I/O error occurs
-     */
-    public native NativeHttpTunnel httpTunnel(NativeHttpTunnel.Builder builder) throws IOException;
-
-    /**
-     * Creates a new {@link NativeLabeledTunnel} using the specified builder.
-     *
-     * @param builder the builder to use for the tunnel
-     * @return a new NativeLabeledTunnel object representing the created tunnel
-     * @throws IOException if an I/O error occurs
-     */
-    public native NativeLabeledTunnel labeledTunnel(NativeLabeledTunnel.Builder builder) throws IOException;
-
-    /**
-     * Closes the native tunnel by ID in this session.
-     * 
-     * @param tunnelId the ID of the tunnel to close
-     * @throws IOException if an I/O error occurs
-     */
     @Override
-    public native void closeTunnel(String tunnelId) throws IOException;
+    public native NativeTlsListener listenTls(TlsBuilder builder) throws IOException;
+
+    @Override
+    public native NativeTlsForwarder forwardTls(TlsBuilder builder, URL url) throws IOException;
+
+    @Override
+    public native NativeHttpListener listenHttp(HttpBuilder builder) throws IOException;
+
+    @Override
+    public native NativeHttpForwarder forwardHttp(HttpBuilder builder, URL url) throws IOException;
+
+    @Override
+    public native NativeEdgeListener listenEdge(EdgeBuilder builder) throws IOException;
+
+    @Override
+    public native NativeEdgeForwarder forwardEdge(EdgeBuilder builder, URL url) throws IOException;
+
+    @Override
+    public native void closeListener(String id) throws IOException;
+
+    @Override
+    public native void closeForwarder(String id) throws IOException;
 
     /**
      * Closes the native session.

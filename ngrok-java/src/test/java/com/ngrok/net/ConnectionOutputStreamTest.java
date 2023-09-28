@@ -6,10 +6,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
 
 public class ConnectionOutputStreamTest {
     @Test
@@ -35,10 +33,12 @@ public class ConnectionOutputStreamTest {
         }
     }
 
-    private static class CollectingConnection extends Connection {
+    private static class CollectingConnection implements Connection {
         private final ByteBuffer data = ByteBuffer.allocate(1024);
-        CollectingConnection() {
-            super("local");
+
+        @Override
+        public String getRemoteAddr() {
+            return "local";
         }
 
         @Override
