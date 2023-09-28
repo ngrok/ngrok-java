@@ -14,7 +14,7 @@ public class ForwardTest {
         assertNotNull(session);
 
         var listener = session.httpEndpoint().domain("ngrok-java-test.ngrok.io")
-                .forward(new URL("127.0.0.1:8000"));
+                .forward(new URL("http://127.0.0.1:8000"));
         assertNotNull(listener);
 
         Thread.sleep(10000);
