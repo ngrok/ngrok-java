@@ -652,7 +652,7 @@ impl<'local> NativeSessionRsImpl<'local> {
 
     fn labels_map(&self, labels: &HashMap<String, String>) -> JavaUtilMap<'local> {
         let map_class = self.env.find_class("java/util/HashMap").expect("msg");
-        let map = self.env.new_object(map_class, "()", &[]).expect("msg");
+        let map = self.env.new_object(map_class, "()V", &[]).expect("msg");
         let mmap = self.env.get_map(map).expect("msg");
         for (key, value) in labels {
             let jkey = self.env.new_string(key).expect("msg");
