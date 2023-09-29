@@ -38,7 +38,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.Session$HeartbeatHandler"),
         Cow::from("com.ngrok.MetadataBuilder"),
         Cow::from("com.ngrok.EdgeBuilder"),
-        Cow::from("com.ngrok.EdgeBuilder$Label"),
         Cow::from("com.ngrok.EndpointBuilder"),
         Cow::from("com.ngrok.HttpBuilder"),
         Cow::from("com.ngrok.Http$Header"),

@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use bytes::Bytes;
 use com_ngrok::{
-    ComNgrokEdgeBuilder, ComNgrokEdgeBuilderLabel, ComNgrokHttpBuilder, ComNgrokHttpHeader,
+    ComNgrokEdgeBuilder, ComNgrokHttpBuilder, ComNgrokHttpHeader,
     ComNgrokNativeEdgeConnection, ComNgrokNativeEdgeForwarder, ComNgrokNativeEdgeListener,
     ComNgrokNativeEndpointConnection, ComNgrokNativeHttpForwarder, ComNgrokNativeHttpListener,
     ComNgrokNativeSession, ComNgrokNativeSessionClass, ComNgrokNativeTcpForwarder,
@@ -641,11 +641,15 @@ impl<'local> NativeSessionRsImpl<'local> {
         }
 
         // from LabeledTunnel.Builder
-        let labels = jltb.get_labels(self.env);
-        for i in 0..labels.size(self.env) {
-            let label: ComNgrokEdgeBuilderLabel = labels.get(self.env, i).into();
-            bldr.label(label.get_name(self.env), label.get_value(self.env));
-        }
+        let labels = self.env.get_map(jltb.get_labels(self.env).into()).expect("msg");
+        labels.iter().and_then(|mut iter| {
+            while let Some(e) = iter.next() {
+                let key = self.env.get_string(e.0.into())?;
+                let value = self.env.get_string(e.1.into())?;
+                bldr.label(key, value);
+            }
+            Ok(())
+        }).expect("msg");
 
         bldr
     }
