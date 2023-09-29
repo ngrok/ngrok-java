@@ -4,13 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 
-public interface Forwarder extends AutoCloseable {
-    String getId();
-
-    String getMetadata();
-
-    String getForwardsTo();
-
+public interface Forwarder extends ListenerInfo, AutoCloseable {
     void join() throws IOException;
 
     @Override
@@ -20,13 +14,9 @@ public interface Forwarder extends AutoCloseable {
         F forward(URL url) throws IOException;
     }
 
-    interface Endpoint extends Forwarder {
-        String getProto();
-
-        String getUrl();
+    interface Endpoint extends Forwarder, ListenerInfo.Endpoint {
     }
 
-    interface Edge extends Forwarder {
-        Map<String, String> getLabels();
+    interface Edge extends Forwarder, ListenerInfo.Edge {
     }
 }
