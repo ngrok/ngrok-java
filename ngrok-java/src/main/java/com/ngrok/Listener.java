@@ -3,6 +3,10 @@ package com.ngrok;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ *
+ * @param <C>
+ */
 public interface Listener<C extends Connection> extends ListenerInfo, AutoCloseable {
     C accept() throws IOException;
 

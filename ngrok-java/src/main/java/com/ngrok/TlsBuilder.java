@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
 import java.util.Optional;
+
 public class TlsBuilder extends EndpointBuilder<TlsBuilder>
         implements Listener.Builder<Listener.Endpoint>, Forwarder.Builder<Forwarder.Endpoint> {
     private final Session session;

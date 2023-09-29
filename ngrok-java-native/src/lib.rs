@@ -1,15 +1,15 @@
 use async_trait::async_trait;
 use bytes::Bytes;
 use com_ngrok::{
-    ComNgrokEdgeBuilder, ComNgrokHttpBuilder, ComNgrokHttpHeader,
-    ComNgrokNativeEdgeConnection, ComNgrokNativeEdgeForwarder, ComNgrokNativeEdgeListener,
-    ComNgrokNativeEndpointConnection, ComNgrokNativeHttpForwarder, ComNgrokNativeHttpListener,
-    ComNgrokNativeSession, ComNgrokNativeSessionClass, ComNgrokNativeTcpForwarder,
-    ComNgrokNativeTcpListener, ComNgrokNativeTlsForwarder, ComNgrokNativeTlsListener,
-    ComNgrokRuntimeLogger, ComNgrokSessionBuilder, ComNgrokSessionClientInfo,
-    ComNgrokSessionHeartbeatHandler, ComNgrokSessionRestartCallback, ComNgrokSessionStopCallback,
-    ComNgrokSessionUpdateCallback, ComNgrokTcpBuilder, ComNgrokTlsBuilder, IOException,
-    IOExceptionErr, JavaNetUrl, JavaUtilList, JavaUtilMap, JavaUtilOptional,
+    ComNgrokEdgeBuilder, ComNgrokHttpBuilder, ComNgrokHttpHeader, ComNgrokNativeEdgeConnection,
+    ComNgrokNativeEdgeForwarder, ComNgrokNativeEdgeListener, ComNgrokNativeEndpointConnection,
+    ComNgrokNativeHttpForwarder, ComNgrokNativeHttpListener, ComNgrokNativeSession,
+    ComNgrokNativeSessionClass, ComNgrokNativeTcpForwarder, ComNgrokNativeTcpListener,
+    ComNgrokNativeTlsForwarder, ComNgrokNativeTlsListener, ComNgrokRuntimeLogger,
+    ComNgrokSessionBuilder, ComNgrokSessionClientInfo, ComNgrokSessionHeartbeatHandler,
+    ComNgrokSessionRestartCallback, ComNgrokSessionStopCallback, ComNgrokSessionUpdateCallback,
+    ComNgrokTcpBuilder, ComNgrokTlsBuilder, IOException, IOExceptionErr, JavaNetUrl, JavaUtilList,
+    JavaUtilMap, JavaUtilOptional,
 };
 use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
@@ -641,15 +641,21 @@ impl<'local> NativeSessionRsImpl<'local> {
         }
 
         // from LabeledTunnel.Builder
-        let labels = self.env.get_map(jltb.get_labels(self.env).into()).expect("msg");
-        labels.iter().and_then(|mut iter| {
-            while let Some(e) = iter.next() {
-                let key = self.env.get_string(e.0.into())?;
-                let value = self.env.get_string(e.1.into())?;
-                bldr.label(key, value);
-            }
-            Ok(())
-        }).expect("msg");
+        let labels = self
+            .env
+            .get_map(jltb.get_labels(self.env).into())
+            .expect("msg");
+        labels
+            .iter()
+            .and_then(|iter| {
+                for e in iter {
+                    let key = self.env.get_string(e.0.into())?;
+                    let value = self.env.get_string(e.1.into())?;
+                    bldr.label(key, value);
+                }
+                Ok(())
+            })
+            .expect("msg");
 
         bldr
     }

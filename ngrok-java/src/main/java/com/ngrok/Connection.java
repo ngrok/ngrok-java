@@ -5,11 +5,21 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 /**
- *  Represents a connection established over a tunnel.
+ * Represents a connection established over a listener.
  */
 public interface Connection extends AutoCloseable {
+    /**
+     * Returns the remote address that established this connection.
+     *
+     * @return an internet address, in IP:port form
+     */
     String getRemoteAddr();
 
+    /**
+     * Creates an {@link InetSocketAddress} for this connection's remote address.
+     *
+     * @return {@link InetSocketAddress} representing the internet address
+     */
     default InetSocketAddress inetAddress() {
         var parts = getRemoteAddr().split(":");
         return new InetSocketAddress(parts[0], Integer.parseInt(parts[1]));
@@ -40,13 +50,34 @@ public interface Connection extends AutoCloseable {
      */
     void close() throws IOException;
 
+    /**
+     * Represents a connection establish over an endpoint listener.
+     */
     interface Endpoint extends Connection {
+        /**
+         * Returns the protocol of this connection.
+         *
+         * @return the protocol, for example {@code http} or {@code tcp}
+         */
         String getProto();
     }
 
+    /**
+     * Represents a connection established over an edge listener
+     */
     interface Edge extends Connection {
+        /**
+         * Returns the edge type for this connection.
+         *
+         * @return the edge type, for example {@code https} or {@code tcp}
+         */
         String getEdgeType();
 
+        /**
+         * Returns if this connection is passthrough TLS connection
+         *
+         * @return true if passthrough TLS, false otherwise
+         */
         boolean isPassthroughTls();
     }
 }

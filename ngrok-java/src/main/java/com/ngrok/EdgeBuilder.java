@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * A builder for a {@link EdgeBuilder}.
+ * A builder for an edge listener.
  */
 public class EdgeBuilder extends MetadataBuilder<EdgeBuilder>
         implements Listener.Builder<Listener.Edge>, Forwarder.Builder<Forwarder.Edge> {
@@ -16,6 +16,14 @@ public class EdgeBuilder extends MetadataBuilder<EdgeBuilder>
 
     private final Map<String, String> labels = new HashMap<>();
 
+    /**
+     * Creates a new {@link EdgeBuilder} with a given session.
+     *
+     * @param session the session over which this listener will connect.
+     *                If {@code null}, {@link #listen()} and {@link #forward(URL)}
+     *                will throw {@link NullPointerException}, use the corresponding
+     *                methods on the {@link Session} object directly.
+     */
     public EdgeBuilder(Session session) {
         this.session = session;
     }
