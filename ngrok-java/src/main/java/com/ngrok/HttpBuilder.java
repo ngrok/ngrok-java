@@ -53,9 +53,9 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets the domain for the HTTP tunnel.
+     * Sets the domain for this builder.
      *
-     * @param domain the domain for the HTTP tunnel
+     * @param domain the domain
      * @return the builder instance
      */
     public HttpBuilder domain(String domain) {
@@ -303,7 +303,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the OIDC options for this tunnel.
+     * Returns the OIDC options for this builder.
      *
      * @return the OIDC options
      */
@@ -312,7 +312,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the webhook verification options for this tunnel.
+     * Returns the webhook verification options for this builder.
      *
      * @return the webhook verification options
      */

@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 /**
- * An input stream for reading data from an ngrok connection.
+ * An input stream for reading data from {@link Connection}.
  */
 public class ConnectionInputStream extends InputStream {
     private final Connection connection;

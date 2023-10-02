@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
- * An output stream for writing data to an ngrok connection.
+ * An output stream for writing data to {@link Connection}.
  */
 public class ConnectionOutputStream extends OutputStream {
     private final Connection connection;

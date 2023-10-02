@@ -7,22 +7,22 @@ import java.net.SocketImpl;
 
 /**
  * An implementation of the {@link AbstractSocketImpl} interface for
- * establishing a connection to an ngrok tunnel.
+ * accepting connections on a {@link Listener}
  */
 public class ListenerSocketImpl extends AbstractSocketImpl {
     private final Listener listener;
 
     /**
-     * Creates a new tunnel socket implementation for the given tunnel.
+     * Creates a new listener socket implementation for the given listener.
      *
-     * @param tunnel the tunnel to establish a connection to
+     * @param listener the listener
      */
     public ListenerSocketImpl(Listener listener) {
         this.listener = listener;
     }
 
     /**
-     * Accepts a tunnel connection to the socket.
+     * Accepts a listener connection to the socket.
      *
      * @param s the socket to accept the connection on
      * @throws IOException if an I/O error occurs

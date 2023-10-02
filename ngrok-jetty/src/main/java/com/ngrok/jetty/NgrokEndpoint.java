@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A class representing an endpoint for ngrok tunnels.
+ * A class representing an endpoint for ngrok connection.
  */
 public class NgrokEndpoint extends AbstractEndPoint {
     private final Connection conn;

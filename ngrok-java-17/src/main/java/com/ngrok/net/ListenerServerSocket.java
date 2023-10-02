@@ -8,13 +8,13 @@ import java.net.Socket;
 import java.net.SocketException;
 
 /**
- * A server socket for accepting connections to an ngrok tunnel.
+ * A server socket for accepting connections from a {@link Listener}.
  */
 public class ListenerServerSocket extends ServerSocket {
     /**
-     * Creates a new server socket for the given tunnel.
+     * Creates a new server socket for the given listener.
      *
-     * @param tunnel the tunnel to accept connections for
+     * @param listener the listener to accept connections for
      * @throws IOException if an I/O error occurs
      */
     public ListenerServerSocket(Listener listener) throws IOException {
