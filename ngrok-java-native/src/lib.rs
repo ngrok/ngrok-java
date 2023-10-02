@@ -583,18 +583,18 @@ impl<'local> NativeSessionRsImpl<'local> {
         let joauth = jhtb.get_oauth(self.env);
         if !joauth.is_null() {
             let mut oauth = OauthOptions::new(joauth.get_provider(self.env));
-            if joauth.has_client_id(self.env) {
+            if joauth.has_client_configured(self.env) {
                 oauth.client_id(joauth.get_client_id(self.env));
                 oauth.client_secret(joauth.get_client_secret(self.env));
             }
-            if joauth.has_allow_email(self.env) {
-                oauth.allow_email(joauth.get_allow_email(self.env));
+            if let Some(email) = joauth.get_allow_email(self.env).of_string(self.env) {
+                oauth.allow_email(email);
             }
-            if joauth.has_allow_domain(self.env) {
-                oauth.allow_domain(joauth.get_allow_domain(self.env));
+            if let Some(domain) = joauth.get_allow_domain(self.env).of_string(self.env) {
+                oauth.allow_domain(domain);
             }
-            if joauth.has_scope(self.env) {
-                oauth.scope(joauth.get_scope(self.env));
+            if let Some(scope) = joauth.get_scope(self.env).of_string(self.env) {
+                oauth.scope(scope);
             }
             bldr.oauth(oauth);
         }
@@ -606,14 +606,14 @@ impl<'local> NativeSessionRsImpl<'local> {
                 joidc.get_client_id(self.env),
                 joidc.get_client_secret(self.env),
             );
-            if joidc.has_allow_email(self.env) {
-                oidc.allow_email(joidc.get_allow_email(self.env));
+            if let Some(email) = joidc.get_allow_email(self.env).of_string(self.env) {
+                oidc.allow_email(email);
             }
-            if joidc.has_allow_domain(self.env) {
-                oidc.allow_domain(joidc.get_allow_domain(self.env));
+            if let Some(domain) = joidc.get_allow_domain(self.env).of_string(self.env) {
+                oidc.allow_domain(domain);
             }
-            if joidc.has_scope(self.env) {
-                oidc.scope(joidc.get_scope(self.env));
+            if let Some(scope) = joidc.get_scope(self.env).of_string(self.env) {
+                oidc.scope(scope);
             }
             bldr.oidc(oidc);
         }

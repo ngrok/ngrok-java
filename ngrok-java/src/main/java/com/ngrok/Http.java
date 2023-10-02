@@ -1,9 +1,15 @@
 package com.ngrok;
 
 import java.util.Objects;
+import java.util.Optional;
 
+/**
+ * A set of data classes to support creation of HTTP endpoint listeners.
+ */
 public interface Http {
-
+    /**
+     * Represents the scheme for an HTTP listener.
+     */
     enum Scheme {
         HTTP("HTTP"),
         HTTPS("HTTPS");
@@ -19,7 +25,7 @@ public interface Http {
     }
 
     /**
-     * A class representing an HTTP header.
+     * Represents an HTTP header.
      */
     class Header {
         private final String name;
@@ -55,23 +61,19 @@ public interface Http {
         }
     }
 
+    /**
+     * Represents basic authentication options for an HTTP listener.
+     */
     class BasicAuth {
-
-        /**
-         * The username for the authentication.
-         */
         private final String username;
-        /**
-         * The password for the authentication.
-         */
         private final String password;
 
         /**
          * Constructs a new set of basic authentication options with the specified
          * username and password.
          *
-         * @param username the username for the authentication
-         * @param password the password for the authentication
+         * @param username the username
+         * @param password the password
          */
         public BasicAuth(String username, String password) {
             this.username = Objects.requireNonNull(username);
@@ -79,18 +81,18 @@ public interface Http {
         }
 
         /**
-         * Returns the username for the authentication.
+         * Returns the username for basic auth.
          *
-         * @return the username for the authentication
+         * @return the username
          */
         public String getUsername() {
             return username;
         }
 
         /**
-         * Returns the password for the authentication.
+         * Returns the password for basic auth.
          *
-         * @return the password for the authentication
+         * @return the password
          */
         public String getPassword() {
             return password;
@@ -98,7 +100,7 @@ public interface Http {
     }
 
     /**
-     * A class representing OAuth options for an HTTP tunnel.
+     * Represents OAuth configuration for an HTTP listener.
      */
     class OAuth {
 
@@ -108,27 +110,27 @@ public interface Http {
 
         private String clientSecret;
 
-        private String allowEmail;
+        private Optional<String> allowEmail = Optional.empty();
 
-        private String allowDomain;
+        private Optional<String> allowDomain = Optional.empty();
 
-        private String scope;
+        private Optional<String> scope = Optional.empty();
 
         /**
-         * Constructs new OAuth options with the specified provider.
+         * Constructs new OAuth configuration with the specified provider.
          *
-         * @param provider the provider of the OAuth options
+         * @param provider the provider for OAuth
          */
         public OAuth(String provider) {
             this.provider = Objects.requireNonNull(provider);
         }
 
         /**
-         * Sets the client ID and client secret for the OAuth options.
+         * Sets the client ID and client secret for OAuth.
          *
-         * @param id     the client ID for the OAuth options
-         * @param secret the client secret for the OAuth options
-         * @return this OAuthOptions object
+         * @param id     the client ID for the OAuth
+         * @param secret the client secret for the OAuth
+         * @return this OAuth object
          */
         public OAuth client(String id, String secret) {
             this.clientId = Objects.requireNonNull(id);
@@ -139,178 +141,118 @@ public interface Http {
         /**
          * Sets the email address allowed by OAuth.
          *
-         * @param email the email address allowed by the OAuth options
-         * @return this OAuthOptions object
+         * @param email the email address allowed by OAuth
+         * @return this OAuth object
          */
         public OAuth allowEmail(String email) {
-            this.allowEmail = Objects.requireNonNull(email);
+            this.allowEmail = Optional.ofNullable(email);
             return this;
         }
 
         /**
-         * Sets the domain allowed by the OAuth options.
+         * Sets the domain allowed by the OAuth.
          *
-         * @param domain the domain allowed by the OAuth options
-         * @return this OAuthOptions object
+         * @param domain the domain allowed by OAuth
+         * @return this OAuth object
          */
         public OAuth allowDomain(String domain) {
-            this.allowDomain = Objects.requireNonNull(domain);
+            this.allowDomain = Optional.ofNullable(domain);
             return this;
         }
 
         /**
-         * Sets the scope of the OAuth options.
+         * Sets the scope for OAuth.
          *
-         * @param scope the scope of the OAuth options
-         * @return this OAuthOptions object
+         * @param scope the scope for OAuth
+         * @return this OAuth object
          */
         public OAuth scope(String scope) {
-            this.scope = Objects.requireNonNull(scope);
+            this.scope = Optional.ofNullable(scope);
             return this;
         }
 
         /**
-         * Returns the provider of the OAuth options.
+         * Returns the OAuth provider.
          *
-         * @return the provider of the OAuth options
+         * @return the provider
          */
         public String getProvider() {
             return provider;
         }
 
         /**
-         * Returns whether the OAuth options have a client ID.
+         * Returns is client ID and secret have been configured for OAuth
          *
-         * @return true if the OAuth options have a client ID, false otherwise
+         * @return true if both client ID and secret has been set, false otherwise
          */
-        public boolean hasClientId() {
-            return clientId != null;
+        public boolean hasClientConfigured() {
+            return clientId != null && clientSecret != null;
         }
 
         /**
-         * Returns the client ID for the OAuth options.
+         * Returns the client ID for OAuth.
          *
-         * @return the client ID for the OAuth options
+         * @return the client ID
          */
         public String getClientId() {
             return clientId;
         }
 
         /**
-         * Returns whether the OAuth options have a client secret.
+         * Returns the client secret for OAuth.
          *
-         * @return true if the OAuth options have a client secret, false otherwise
-         */
-        public boolean hasClientSecret() {
-            return clientSecret != null;
-        }
-
-        /**
-         * Returns the client secret for the OAuth options.
-         *
-         * @return the client secret for the OAuth options
+         * @return the client secret
          */
         public String getClientSecret() {
             return clientSecret;
         }
 
         /**
-         * Returns whether the OAuth options have an allowed email address.
+         * Returns the email address to be allowed by OAuth.
          *
-         * @return true if the OAuth options have an allowed email address, false
-         * otherwise
+         * @return the email address
          */
-        public boolean hasAllowEmail() {
-            return allowEmail != null;
-        }
-
-        /**
-         * Returns the email address allowed by the OAuth options.
-         *
-         * @return the email address allowed by the OAuth options
-         */
-        public String getAllowEmail() {
+        public Optional<String> getAllowEmail() {
             return allowEmail;
         }
 
         /**
-         * Returns whether the OAuth options have an allowed domain.
+         * Returns the domain to be allowed by OAuth.
          *
-         * @return true if the OAuth options have an allowed domain, false otherwise
+         * @return the domain
          */
-        public boolean hasAllowDomain() {
-            return allowDomain != null;
-        }
-
-        /**
-         * Returns the domain allowed by the OAuth options.
-         *
-         * @return the domain allowed by the OAuth options
-         */
-        public String getAllowDomain() {
+        public Optional<String> getAllowDomain() {
             return allowDomain;
         }
 
         /**
-         * Returns whether the OAuth options have a scope.
+         * Returns the scope to be used by OAuth.
          *
-         * @return true if the OAuth options have a scope, false otherwise
+         * @return the scope
          */
-        public boolean hasScope() {
-            return scope != null;
-        }
-
-        /**
-         * Returns the scope of the OAuth options.
-         *
-         * @return the scope of the OAuth options
-         */
-        public String getScope() {
+        public Optional<String> getScope() {
             return scope;
         }
     }
 
     /**
-     * A class representing OIDC options for an HTTP tunnel.
+     * Represents OIDC configuration for an HTTP listener.
      */
     class OIDC {
-        /**
-         * The issuer URL for the OIDC options.
-         */
         private final String issuerUrl;
-
-        /**
-         * The client ID for the OIDC options.
-         */
         private final String clientId;
-
-        /**
-         * The client secret for the OIDC options.
-         */
         private final String clientSecret;
+        private Optional<String> allowEmail = Optional.empty();
+        private Optional<String> allowDomain = Optional.empty();
+        private Optional<String> scope = Optional.empty();
 
         /**
-         * The email address allowed by the OIDC options.
-         */
-        private String allowEmail;
-
-        /**
-         * The domain allowed by the OIDC options.
-         */
-        private String allowDomain;
-
-        /**
-         * The scope of the OIDC options.
-         */
-        private String scope;
-
-        /**
-         * Constructs a new set of OIDC options with the specified issuer URL, client
-         * ID, and client secret.
+         * Constructs a new OIDC configuration with the specified
+         * issuer URL, client ID, and client secret.
          *
-         * @param issuerUrl    the issuer URL for the OIDC options
-         * @param clientId     the client ID for the OIDC options
-         * @param clientSecret the client secret for the OIDC options
+         * @param issuerUrl    the issuer URL
+         * @param clientId     the client ID
+         * @param clientSecret the client secret
          */
         public OIDC(String issuerUrl, String clientId, String clientSecret) {
             this.issuerUrl = Objects.requireNonNull(issuerUrl);
@@ -319,141 +261,106 @@ public interface Http {
         }
 
         /**
-         * Sets the email address allowed by the OIDC options.
+         * Sets the email address that will be allowed by OIDC.
          *
-         * @param email the email address allowed by the OIDC options
-         * @return this OIDCOptions object
+         * @param email the email address, unused if {@code null}
+         * @return this OIDC object
          */
         public OIDC allowEmail(String email) {
-            this.allowEmail = Objects.requireNonNull(email);
+            this.allowEmail = Optional.ofNullable(email);
             return this;
         }
 
         /**
-         * Sets the domain allowed by the OIDC options.
+         * Sets the domain that will be allowed by OIDC.
          *
-         * @param domain the domain allowed by the OIDC options
-         * @return this OIDCOptions object
+         * @param domain the domain, unused if {@code null}
+         * @return this OIDC object
          */
         public OIDC allowDomain(String domain) {
-            this.allowDomain = Objects.requireNonNull(domain);
+            this.allowDomain = Optional.ofNullable(domain);
             return this;
         }
 
         /**
-         * Sets the scope of the OIDC options.
+         * Sets the scope to be used by OIDC.
          *
-         * @param scope the scope of the OIDC options
-         * @return this OIDCOptions object
+         * @param scope the scope, unused if {@code null}
+         * @return this OIDC object
          */
         public OIDC scope(String scope) {
-            this.scope = Objects.requireNonNull(scope);
+            this.scope = Optional.ofNullable(scope);
             return this;
         }
 
         /**
-         * Returns the issuer URL for the OIDC options.
+         * Returns the issuer URL for OIDC.
          *
-         * @return the issuer URL for the OIDC options
+         * @return the issuer URL
          */
         public String getIssuerUrl() {
             return issuerUrl;
         }
 
         /**
-         * Returns the client ID for the OIDC options.
+         * Returns the client ID for OIDC.
          *
-         * @return the client ID for the OIDC options
+         * @return the client ID
          */
         public String getClientId() {
             return clientId;
         }
 
         /**
-         * Returns the client secret for the OIDC options.
+         * Returns the client secret for OIDC.
          *
-         * @return the client secret for the OIDC options
+         * @return the client secret
          */
         public String getClientSecret() {
             return clientSecret;
         }
 
         /**
-         * Returns whether the OIDC options have an allowed email address.
+         * Returns the email address to be allowed by OIDC.
          *
-         * @return true if the OIDC options have an allowed email address, false
-         * otherwise
+         * @return the email address
          */
-        public boolean hasAllowEmail() {
-            return allowEmail != null;
-        }
-
-        /**
-         * Returns the email address allowed by the OIDC options.
-         *
-         * @return the email address allowed by the OIDC options
-         */
-        public String getAllowEmail() {
+        public Optional<String> getAllowEmail() {
             return allowEmail;
         }
 
         /**
-         * Returns whether the OIDC options have an allowed domain.
+         * Returns the domain to be allowed by OIDC.
          *
-         * @return true if the OIDC options have an allowed domain, false otherwise
+         * @return the domain
          */
-        public boolean hasAllowDomain() {
-            return allowDomain != null;
-        }
-
-        /**
-         * Returns the domain allowed by the OIDC options.
-         *
-         * @return the domain allowed by the OIDC options
-         */
-        public String getAllowDomain() {
+        public Optional<String> getAllowDomain() {
             return allowDomain;
         }
 
         /**
-         * Returns whether the OIDC options have a scope.
+         * Returns the scope to be used by OIDC.
          *
-         * @return true if the OIDC options have a scope, false otherwise
+         * @return the scope
          */
-        public boolean hasScope() {
-            return scope != null;
-        }
-
-        /**
-         * Returns the scope of the OIDC options.
-         *
-         * @return the scope of the OIDC options
-         */
-        public String getScope() {
+        public Optional<String> getScope() {
             return scope;
         }
     }
 
     /**
-     * A class representing webhook verification options for an HTTP tunnel.
+     * Represents webhook verification options for an HTTP listener.
      */
     class WebhookVerification {
-        /**
-         * The provider of the webhook verification options.
-         */
         private final String provider;
-
-        /**
-         * The secret for the webhook verification options.
-         */
         private final String secret;
 
         /**
          * Constructs a new set of webhook verification options with the specified
          * provider and secret.
          *
-         * @param provider the provider of the webhook verification options
-         * @param secret   the secret for the webhook verification options
+         * @param provider the provider
+         * @param secret   the secret
          */
         public WebhookVerification(String provider, String secret) {
             this.provider = Objects.requireNonNull(provider);
@@ -461,18 +368,18 @@ public interface Http {
         }
 
         /**
-         * Returns the provider of the webhook verification options.
+         * Returns the provider for the webhook verification.
          *
-         * @return the provider of the webhook verification options
+         * @return the provider
          */
         public String getProvider() {
             return provider;
         }
 
         /**
-         * Returns the secret for the webhook verification options.
+         * Returns the secret for the webhook verification.
          *
-         * @return the secret for the webhook verification options
+         * @return the secret
          */
         public String getSecret() {
             return secret;
