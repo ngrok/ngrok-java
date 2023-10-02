@@ -30,18 +30,23 @@ public interface Forwarder extends ListenerInfo, AutoCloseable {
      * @param <F> the concrete type for the forwarder.
      */
     interface Builder<F extends Forwarder> {
+        /**
+         * Start listening and forwarding connections to given url.
+         *
+         * @param url to forward connections to
+         * @return the concrete {@link Forwarder} instance
+         * @throws IOException if an I/O error occurs
+         */
         F forward(URL url) throws IOException;
     }
 
     /**
      * Represents an endpoint {@link Forwarder}
      */
-    interface Endpoint extends Forwarder, ListenerInfo.Endpoint {
-    }
+    interface Endpoint extends Forwarder, ListenerInfo.Endpoint {}
 
     /**
      * Represents an edge {@link Forwarder}
      */
-    interface Edge extends Forwarder, ListenerInfo.Edge {
-    }
+    interface Edge extends Forwarder, ListenerInfo.Edge {}
 }

@@ -25,7 +25,7 @@ public enum ProxyProto {
     /**
      * Returns the version of the proxy protocol.
      *
-     * @return the version of the proxy protocol
+     * @return the version
      */
     public long version() {
         return version;

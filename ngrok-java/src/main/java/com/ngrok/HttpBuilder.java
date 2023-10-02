@@ -8,149 +8,66 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * A builder class for constructing an HTTP tunnel.
+ * A builder for creating a HTTP endpoint listener
  */
 public class HttpBuilder extends EndpointBuilder<HttpBuilder>
         implements Listener.Builder<Listener.Endpoint>, Forwarder.Builder<Forwarder.Endpoint> {
     private final Session session;
 
-    /**
-     * The scheme for the HTTP tunnel.
-     */
     private Http.Scheme scheme;
-
-    /**
-     * The domain for the HTTP tunnel.
-     */
-    private String domain;
-
-    /**
-     * The mutual TLS CA for the HTTP tunnel.
-     */
+    private Optional<String> domain = Optional.empty();
     private byte[] mutualTLSCA;
-
-    /**
-     * Whether compression is enabled for the HTTP tunnel.
-     */
     private boolean compression = false;
-
-    /**
-     * Whether WebSocket to TCP conversion is enabled for the HTTP tunnel.
-     */
     private boolean websocketTcpConversion = false;
-
-    /**
-     * The circuit breaker value for the HTTP tunnel.
-     */
     private Optional<Double> circuitBreaker = Optional.empty();
-
-    /**
-     * The request headers for the HTTP tunnel.
-     */
     private final List<Http.Header> requestHeaders = new ArrayList<>();
-
-    /**
-     * The response headers for the HTTP tunnel.
-     */
     private final List<Http.Header> responseHeaders = new ArrayList<>();
-
-    /**
-     * The request headers to remove for the HTTP tunnel.
-     */
     private final List<String> removeRequestHeaders = new ArrayList<>();
-
-    /**
-     * The response headers to remove for the HTTP tunnel.
-     */
     private final List<String> removeResponseHeaders = new ArrayList<>();
-
-    /**
-     * The basic authentication options for the HTTP tunnel.
-     */
     private Http.BasicAuth basicAuthOptions;
-
-    /**
-     * The OAuth options for the HTTP tunnel.
-     */
     private Http.OAuth oauthOptions;
-
-    /**
-     * The OIDC options for the HTTP tunnel.
-     */
     private Http.OIDC oidcOptions;
-
-    /**
-     * The webhook verification options for the HTTP tunnel.
-     */
     private Http.WebhookVerification webhookVerification;
 
+    /**
+     * Creates a new {@link HttpBuilder} with a given session.
+     *
+     * @param session the session over which this listener will connect.
+     *                If {@code null}, {@link #listen()} and {@link #forward(URL)}
+     *                will throw {@link NullPointerException}, use the corresponding
+     *                methods on the {@link Session} object directly.
+     */
     public HttpBuilder(Session session) {
         this.session = session;
     }
 
     /**
-     * Sets the scheme for the HTTP tunnel.
+     * Sets the scheme for this builder.
      *
-     * @param scheme the scheme for the HTTP tunnel
-     * @return this Builder object
+     * @param scheme the scheme
+     * @return the builder instance
      */
     public HttpBuilder scheme(Http.Scheme scheme) {
-        this.scheme = scheme;
+        this.scheme = Objects.requireNonNull(scheme);
         return this;
-    }
-
-    /**
-     * Returns whether the HTTP tunnel has a scheme.
-     *
-     * @return true if the HTTP tunnel has a scheme, false otherwise
-     */
-    public boolean hasScheme() {
-        return scheme != null;
-    }
-
-    /**
-     * Returns the name of the scheme for the HTTP tunnel.
-     *
-     * @return the name of the scheme for the HTTP tunnel
-     */
-    public String getSchemeName() {
-        return scheme.name;
     }
 
     /**
      * Sets the domain for the HTTP tunnel.
      *
      * @param domain the domain for the HTTP tunnel
-     * @return this Builder object
+     * @return the builder instance
      */
     public HttpBuilder domain(String domain) {
-        this.domain = Objects.requireNonNull(domain);
+        this.domain = Optional.of(domain);
         return this;
     }
 
     /**
-     * Returns whether the HTTP tunnel has a domain.
+     * Set the mutual TLS certificate authority for this builder.
      *
-     * @return true if the HTTP tunnel has a domain, false otherwise
-     */
-    public boolean hasDomain() {
-        return domain != null;
-    }
-
-    /**
-     * Returns the domain for the HTTP tunnel.
-     *
-     * @return the domain for the HTTP tunnel
-     */
-    public String getDomain() {
-        return domain;
-    }
-
-    /**
-     * Sets the mutual TLS CA for the HTTP tunnel.
-     *
-     * @param mutualTLSCA the mutual TLS CA for the HTTP tunnel
-     * @return this Builder object
+     * @param mutualTLSCA the TLS certificate authority, in bytes
+     * @return the builder instance
      */
     public HttpBuilder mutualTLSCA(byte[] mutualTLSCA) {
         this.mutualTLSCA = Objects.requireNonNull(mutualTLSCA);
@@ -158,18 +75,9 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the mutual TLS CA for the HTTP tunnel.
+     * Enables compression for this builder.
      *
-     * @return the mutual TLS CA for the HTTP tunnel
-     */
-    public byte[] getMutualTLSCA() {
-        return mutualTLSCA;
-    }
-
-    /**
-     * Enables compression for the HTTP tunnel.
-     *
-     * @return this Builder object
+     * @return the builder instance
      */
     public HttpBuilder compression() {
         this.compression = true;
@@ -177,18 +85,9 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns whether compression is enabled for the HTTP tunnel.
+     * Enables WebSocket to TCP conversion for this builder.
      *
-     * @return true if compression is enabled for the HTTP tunnel, false otherwise
-     */
-    public boolean isCompression() {
-        return compression;
-    }
-
-    /**
-     * Enables WebSocket to TCP conversion for the HTTP tunnel.
-     *
-     * @return this Builder object
+     * @return the builder instance
      */
     public HttpBuilder websocketTcpConversion() {
         this.websocketTcpConversion = true;
@@ -196,20 +95,10 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns whether WebSocket to TCP conversion is enabled for the HTTP tunnel.
+     * Sets the circuit breaker value for this builder.
      *
-     * @return true if WebSocket to TCP conversion is enabled for the HTTP tunnel,
-     * false otherwise
-     */
-    public boolean isWebsocketTcpConversion() {
-        return websocketTcpConversion;
-    }
-
-    /**
-     * Sets the circuit breaker value for the HTTP tunnel.
-     *
-     * @param value the circuit breaker value for the HTTP tunnel
-     * @return this Builder object
+     * @param value the circuit breaker value, between 0 and 1
+     * @return the builder instance
      */
     public HttpBuilder circuitBreaker(double value) {
         this.circuitBreaker = Optional.of(value);
@@ -217,29 +106,11 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns whether the HTTP tunnel has a circuit breaker value.
+     * Adds a header to the list of added request headers for this builder.
      *
-     * @return true if the HTTP tunnel has a circuit breaker value, false otherwise
-     */
-    public boolean hasCircuitBreaker() {
-        return circuitBreaker.isPresent();
-    }
-
-    /**
-     * Returns the circuit breaker value for the HTTP tunnel.
-     *
-     * @return the circuit breaker value for the HTTP tunnel
-     */
-    public double getCircuitBreaker() {
-        return circuitBreaker.get();
-    }
-
-    /**
-     * Adds a request header to the HTTP tunnel.
-     *
-     * @param name  the name of the request header to add
-     * @param value the value of the request header to add
-     * @return this Builder object
+     * @param name  the name of the header to add
+     * @param value the value of the header to add
+     * @return the builder instance
      */
     public HttpBuilder addRequestHeader(String name, String value) {
         this.requestHeaders.add(new Http.Header(name, value));
@@ -247,20 +118,11 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the request headers for the HTTP tunnel.
+     * Adds a header to the list of added response headers for this builder.
      *
-     * @return the request headers for the HTTP tunnel
-     */
-    public List<Http.Header> getRequestHeaders() {
-        return requestHeaders;
-    }
-
-    /**
-     * Adds a response header to the HTTP tunnel.
-     *
-     * @param name  the name of the response header to add
-     * @param value the value of the response header to add
-     * @return this Builder object
+     * @param name  the name of the header to add
+     * @param value the value of the header to add
+     * @return the builder instance
      */
     public HttpBuilder addResponseHeader(String name, String value) {
         this.responseHeaders.add(new Http.Header(name, value));
@@ -268,19 +130,10 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the response headers for the HTTP tunnel.
+     * Adds a header to the list of removed request headers for this builder.
      *
-     * @return the response headers for the HTTP tunnel
-     */
-    public List<Http.Header> getResponseHeaders() {
-        return responseHeaders;
-    }
-
-    /**
-     * Adds a request header to remove from the HTTP tunnel.
-     *
-     * @param name the name of the request header to remove
-     * @return this Builder object
+     * @param name the name of the header to remove
+     * @return the builder instance
      */
     public HttpBuilder removeRequestHeader(String name) {
         this.removeRequestHeaders.add(Objects.requireNonNull(name));
@@ -288,19 +141,10 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the request headers to remove from the HTTP tunnel.
+     * Adds a header to the list of removed response headers for this builder.
      *
-     * @return the request headers to remove from the HTTP tunnel
-     */
-    public List<String> getRemoveRequestHeaders() {
-        return removeRequestHeaders;
-    }
-
-    /**
-     * Adds a response header to remove from the HTTP tunnel.
-     *
-     * @param name the name of the response header to remove
-     * @return this Builder object
+     * @param name the name of the header to remove
+     * @return the builder instance
      */
     public HttpBuilder removeResponseHeader(String name) {
         this.removeResponseHeaders.add(Objects.requireNonNull(name));
@@ -308,19 +152,10 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the response headers to remove from the HTTP tunnel.
+     * Sets basic authentication for this builder.
      *
-     * @return the response headers to remove from the HTTP tunnel
-     */
-    public List<String> getRemoveResponseHeaders() {
-        return removeResponseHeaders;
-    }
-
-    /**
-     * Sets the basic authentication options for the HTTP tunnel.
-     *
-     * @param options the basic authentication options for the HTTP tunnel
-     * @return this Builder object
+     * @param options the basic authentication options
+     * @return the builder instance
      */
     public HttpBuilder basicAuthOptions(Http.BasicAuth options) {
         this.basicAuthOptions = options;
@@ -328,10 +163,10 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets the OAuth options for the HTTP tunnel.
+     * Sets OAuth for this builder.
      *
-     * @param options the OAuth options for the HTTP tunnel
-     * @return this Builder object
+     * @param options the OAuth options
+     * @return the builder instance
      */
     public HttpBuilder oauthOptions(Http.OAuth options) {
         this.oauthOptions = options;
@@ -339,10 +174,10 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets the OIDC options for the HTTP tunnel.
+     * Sets OIDC for this builder.
      *
-     * @param options the OIDC options for the HTTP tunnel
-     * @return this Builder object
+     * @param options the OIDC options
+     * @return the builder instance
      */
     public HttpBuilder oidcOptions(Http.OIDC options) {
         this.oidcOptions = options;
@@ -350,48 +185,136 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets the webhook verification options for the HTTP tunnel.
+     * Sets webhook verification for this builder.
      *
-     * @param webhookVerification the webhook verification options for the HTTP
-     *                            tunnel
-     * @return this Builder object
+     * @param webhookVerification the webhook verification options
+     * @return the builder instance
      */
-    public MetadataBuilder webhookVerification(Http.WebhookVerification webhookVerification) {
+    public HttpBuilder webhookVerification(Http.WebhookVerification webhookVerification) {
         this.webhookVerification = webhookVerification;
         return this;
     }
 
+    public Http.Scheme getScheme() {
+        return scheme;
+    }
+
+    public Optional<String> getSchemeName() {
+        return Optional.ofNullable(scheme).map((s) -> s.name);
+    }
+
     /**
-     * Returns the basic authentication options for the HTTP tunnel.
+     * Returns the domain on this builder.
      *
-     * @return the basic authentication options for the HTTP tunnel
+     * @return the domain
+     */
+    public Optional<String> getDomain() {
+        return domain;
+    }
+
+    /**
+     * Returns the mutual TLS certificate authority on this builder.
+     *
+     * @return the TLS certificate authority, in bytes.
+     */
+    public byte[] getMutualTLSCA() {
+        return mutualTLSCA;
+    }
+
+    /**
+     * Returns whether compression is enabled for this builder.
+     *
+     * @return {@code true} if compression is enabled, {@code false} otherwise
+     */
+    public boolean isCompression() {
+        return compression;
+    }
+
+    /**
+     * Returns whether WebSocket to TCP conversion is enabled for this builder.
+     *
+     * @return {@code true} if WebSocket to TCP conversion is enabled, {@code false} otherwise
+     */
+    public boolean isWebsocketTcpConversion() {
+        return websocketTcpConversion;
+    }
+
+    /**
+     * Returns the circuit breaker value for this builder.
+     *
+     * @return the circuit breaker value
+     */
+    public Optional<Double> getCircuitBreaker() {
+        return circuitBreaker;
+    }
+
+    /**
+     * Returns the list of request headers to add for this builder.
+     *
+     * @return the list of headers
+     */
+    public List<Http.Header> getRequestHeaders() {
+        return requestHeaders;
+    }
+
+    /**
+     * Returns the list of response headers to add for this builder.
+     *
+     * @return the list of headers
+     */
+    public List<Http.Header> getResponseHeaders() {
+        return responseHeaders;
+    }
+
+    /**
+     * Returns the list of request headers to remove for this builder.
+     *
+     * @return the list of headers
+     */
+    public List<String> getRemoveRequestHeaders() {
+        return removeRequestHeaders;
+    }
+
+    /**
+     * Returns the list of response headers to remove for this builder.
+     *
+     * @return the list of headers
+     */
+    public List<String> getRemoveResponseHeaders() {
+        return removeResponseHeaders;
+    }
+
+    /**
+     * Returns the basic authentication options for this builder.
+     *
+     * @return the basic authentication options
      */
     public Http.BasicAuth getBasicAuth() {
         return basicAuthOptions;
     }
 
     /**
-     * Returns the OAuth options for the HTTP tunnel.
+     * Returns the OAuth options for this builder.
      *
-     * @return the OAuth options for the HTTP tunnel
+     * @return the OAuth options
      */
     public Http.OAuth getOauth() {
         return oauthOptions;
     }
 
     /**
-     * Returns the OIDC options for the HTTP tunnel.
+     * Returns the OIDC options for this tunnel.
      *
-     * @return the OIDC options for the HTTP tunnel
+     * @return the OIDC options
      */
     public Http.OIDC getOidc() {
         return oidcOptions;
     }
 
     /**
-     * Returns the webhook verification options for the HTTP tunnel.
+     * Returns the webhook verification options for this tunnel.
      *
-     * @return the webhook verification options for the HTTP tunnel
+     * @return the webhook verification options
      */
     public Http.WebhookVerification getWebhookVerification() {
         return webhookVerification;

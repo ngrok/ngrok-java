@@ -10,8 +10,6 @@ import java.util.Optional;
 public abstract class MetadataBuilder<T extends MetadataBuilder> {
     private Optional<String> metadata = Optional.empty();
 
-    // Chainable methods
-
     /**
      * Sets the metadata for this builder.
      *
@@ -22,8 +20,6 @@ public abstract class MetadataBuilder<T extends MetadataBuilder> {
         this.metadata = Optional.of(metadata);
         return (T) this;
     }
-
-    // Accessors
 
     /**
      * Returns the metadata for this builder.

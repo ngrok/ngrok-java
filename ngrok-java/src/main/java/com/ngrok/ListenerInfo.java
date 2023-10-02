@@ -6,10 +6,25 @@ import java.util.Map;
  * Represents information about a running {@link Listener}.
  */
 public interface ListenerInfo {
+    /**
+     * Returns the id associated with this listener
+     *
+     * @return the id
+     */
     String getId();
 
+    /**
+     * Returns the metadata associated with this listener
+     *
+     * @return the metadata
+     */
     String getMetadata();
 
+    /**
+     * Returns the target of that listener
+     *
+     * @return the target
+     */
     String getForwardsTo();
 
     /**

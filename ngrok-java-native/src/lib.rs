@@ -233,6 +233,22 @@ impl<'local> JavaUtilOptional<'local> {
         }
     }
 
+    fn of_double(self, env: JNIEnv<'local>) -> Option<f64> {
+        if self.is_present(env) {
+            let d = env
+                .call_method(self, "get", "()Ljava/lang/Object;", &[])
+                .and_then(|o| o.l())
+                .expect("could not get double value from optional");
+            let dv = env
+                .call_method(d, "doubleValue", "()D", &[])
+                .and_then(|o| o.d())
+                .expect("could not get f64 from Double");
+            Some(dv)
+        } else {
+            None
+        }
+    }
+
     fn is_present(self, env: JNIEnv<'local>) -> bool {
         env.call_method(self, "isPresent", "()Z", &[])
             .and_then(|o| o.z())
@@ -516,14 +532,13 @@ impl<'local> NativeSessionRsImpl<'local> {
         }
 
         // from HttpTunnel.Builder
-        if jhtb.has_scheme(self.env) {
-            let scheme = Scheme::from_str(jhtb.get_scheme_name(self.env).as_str())
-                .expect("invalid scheme name");
+        if let Some(scheme) = jhtb.get_scheme_name(self.env).of_string(self.env) {
+            let scheme = Scheme::from_str(scheme.as_str()).expect("invalid scheme name");
             bldr.scheme(scheme);
         }
 
-        if jhtb.has_domain(self.env) {
-            bldr.domain(jhtb.get_domain(self.env));
+        if let Some(domain) = jhtb.get_domain(self.env).of_string(self.env) {
+            bldr.domain(domain);
         }
 
         let mtls = jhtb.get_mutual_tlsca(self.env);
@@ -540,8 +555,8 @@ impl<'local> NativeSessionRsImpl<'local> {
             bldr.websocket_tcp_conversion();
         }
 
-        if jhtb.has_circuit_breaker(self.env) {
-            bldr.circuit_breaker(jhtb.get_circuit_breaker(self.env));
+        if let Some(circuit_breaker) = jhtb.get_circuit_breaker(self.env).of_double(self.env) {
+            bldr.circuit_breaker(circuit_breaker);
         }
 
         let request_headers = jhtb.get_request_headers(self.env);

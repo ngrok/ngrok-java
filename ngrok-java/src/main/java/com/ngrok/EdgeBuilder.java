@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * A builder for an edge listener.
+ * A builder for creating an edge listener
  */
 public class EdgeBuilder extends MetadataBuilder<EdgeBuilder>
         implements Listener.Builder<Listener.Edge>, Forwarder.Builder<Forwarder.Edge> {
@@ -41,9 +41,9 @@ public class EdgeBuilder extends MetadataBuilder<EdgeBuilder>
     }
 
     /**
-     * Generates and returns a list of unique labels for this builder.
+     * Returns the label map for this builder.
      *
-     * @return a list of unique labels for this builder
+     * @return a label map, string keys and values
      */
     public Map<String, String> getLabels() {
         return Collections.unmodifiableMap(labels);

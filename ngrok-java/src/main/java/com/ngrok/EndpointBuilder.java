@@ -16,8 +16,6 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     private ProxyProto proxyProto = ProxyProto.None;
     private Optional<String> forwardsTo = Optional.empty();
 
-    // Chainable methods
-
     /**
      * Adds a CIDR to the list of allowed CIDRs for this builder.
      *
@@ -65,8 +63,6 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
         this.forwardsTo = Optional.of(forwardsTo);
         return (T) this;
     }
-
-    // Accessors
 
     /**
      * Returns a list of strings representing allowed CIDR addresses.
