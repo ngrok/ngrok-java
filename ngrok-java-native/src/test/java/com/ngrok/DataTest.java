@@ -24,8 +24,8 @@ public class DataTest {
     @Test
     public void testTunnelClose() throws Exception {
         try (var session = Session.withAuthtokenFromEnv().connect();
-             var listener = session.httpEndpoint().metadata("java-tunnel").listen()) {
-            assertEquals("java-tunnel", listener.getMetadata());
+             var listener = session.httpEndpoint().metadata("java-endpoint").listen()) {
+            assertEquals("java-endpoint", listener.getMetadata());
             Runtime.getLogger().log("info", "session", listener.getUrl());
         }
     }
@@ -35,10 +35,10 @@ public class DataTest {
         var session = Session.withAuthtokenFromEnv().connect();
         assertNotNull(session);
 
-        var tunnel = session.tcpEndpoint().listen();
-        assertNotNull(tunnel);
+        var listener = session.tcpEndpoint().listen();
+        assertNotNull(listener);
 
-        var conn = tunnel.accept();
+        var conn = listener.accept();
 
         var buf = ByteBuffer.allocateDirect(10);
         conn.read(buf);
