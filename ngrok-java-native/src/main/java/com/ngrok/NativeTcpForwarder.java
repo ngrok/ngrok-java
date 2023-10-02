@@ -2,6 +2,9 @@ package com.ngrok;
 
 import java.io.IOException;
 
+/**
+ * An implementation of {@link Forwarder.Endpoint} that delegates implementation to a native library.
+ */
 public class NativeTcpForwarder extends AbstractEndpoint implements Forwarder.Endpoint {
     private long native_address;
 

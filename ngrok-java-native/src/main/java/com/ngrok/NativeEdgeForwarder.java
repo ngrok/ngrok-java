@@ -3,6 +3,9 @@ package com.ngrok;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * An implementation of {@link Forwarder.Edge} that delegates implementation to a native library.
+ */
 public class NativeEdgeForwarder extends AbstractEdge implements Forwarder.Edge {
     private long native_address;
 

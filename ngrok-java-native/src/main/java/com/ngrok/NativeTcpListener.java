@@ -2,6 +2,9 @@ package com.ngrok;
 
 import java.io.IOException;
 
+/**
+ * An implementation of {@link Listener.Endpoint} that delegates implementation to a native library.
+ */
 public class NativeTcpListener extends AbstractEndpoint implements Listener.Endpoint {
     private long native_address;
 
