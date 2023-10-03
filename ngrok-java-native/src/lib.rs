@@ -714,14 +714,16 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             .get_heartbeat_interval(self.env)
             .of_duration_ms(self.env)
         {
-            bldr.heartbeat_interval(interval).expect("invalid heartbeat interval");
+            bldr.heartbeat_interval(interval)
+                .expect("invalid heartbeat interval");
         }
 
         if let Some(tolerance) = jsb
             .get_heartbeat_tolerance(self.env)
             .of_duration_ms(self.env)
         {
-            bldr.heartbeat_tolerance(tolerance).expect("invalid heartbeat tolerance");
+            bldr.heartbeat_tolerance(tolerance)
+                .expect("invalid heartbeat tolerance");
         }
 
         let mut session_metadata = String::from("");
