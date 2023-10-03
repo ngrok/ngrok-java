@@ -30,9 +30,12 @@ public class NativeSession implements Session {
     }
 
     private long native_address;
+
+    private final String id;
     private final String metadata;
 
-    public NativeSession(String metadata) {
+    public NativeSession(String id, String metadata) {
+        this.id = id;
         this.metadata = metadata;
     }
 
@@ -43,6 +46,11 @@ public class NativeSession implements Session {
     }
 
     private static native NativeSession connectNative(Session.Builder builder) throws IOException;
+
+    @Override
+    public String getId() {
+        return id;
+    }
 
     @Override
     public String getMetadata() {

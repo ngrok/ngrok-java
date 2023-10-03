@@ -6,10 +6,9 @@ use com_ngrok::{
     ComNgrokNativeHttpForwarder, ComNgrokNativeHttpListener, ComNgrokNativeSession,
     ComNgrokNativeSessionClass, ComNgrokNativeTcpForwarder, ComNgrokNativeTcpListener,
     ComNgrokNativeTlsForwarder, ComNgrokNativeTlsListener, ComNgrokRuntimeLogger,
-    ComNgrokSessionBuilder, ComNgrokSessionClientInfo, ComNgrokSessionHeartbeatHandler,
-    ComNgrokSessionRestartCallback, ComNgrokSessionStopCallback, ComNgrokSessionUpdateCallback,
-    ComNgrokTcpBuilder, ComNgrokTlsBuilder, IOException, IOExceptionErr, JavaNetUrl, JavaUtilList,
-    JavaUtilMap, JavaUtilOptional,
+    ComNgrokSessionBuilder, ComNgrokSessionClientInfo, ComNgrokSessionCommandHandler,
+    ComNgrokSessionHeartbeatHandler, ComNgrokTcpBuilder, ComNgrokTlsBuilder, IOException,
+    IOExceptionErr, JavaNetUrl, JavaUtilList, JavaUtilMap, JavaUtilOptional,
 };
 use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
@@ -264,13 +263,13 @@ fn io_exc_err<T, E: ToString>(e: E) -> Result<T, Error<IOExceptionErr>> {
     Err(io_exc(e))
 }
 
-struct StopCallback {
+struct CommandHandlerCallback {
     cbk: GlobalRef,
 }
 
-impl StopCallback {
-    fn from(env: JNIEnv<'_>, obj: ComNgrokSessionStopCallback) -> Self {
-        StopCallback {
+impl CommandHandlerCallback {
+    fn from(env: JNIEnv<'_>, obj: ComNgrokSessionCommandHandler) -> Self {
+        CommandHandlerCallback {
             cbk: env
                 .new_global_ref(obj)
                 .expect("cannot get global reference"),
@@ -279,65 +278,37 @@ impl StopCallback {
 }
 
 #[async_trait]
-impl CommandHandler<Stop> for StopCallback {
+impl CommandHandler<Stop> for CommandHandlerCallback {
     async fn handle_command(&self, _req: Stop) -> Result<(), String> {
         let jvm = JVM.get().expect("no jvm");
         let jenv = jvm.attach_current_thread().expect("cannot attach");
 
-        let lcbk = ComNgrokSessionStopCallback::from(self.cbk.as_obj());
-        lcbk.on_stop_command(*jenv);
+        let lcbk = ComNgrokSessionCommandHandler::from(self.cbk.as_obj());
+        lcbk.on_command(*jenv);
         Ok(())
     }
 }
 
-struct RestartCallback {
-    cbk: GlobalRef,
-}
-
-impl RestartCallback {
-    fn from(env: JNIEnv<'_>, obj: ComNgrokSessionRestartCallback) -> Self {
-        RestartCallback {
-            cbk: env
-                .new_global_ref(obj)
-                .expect("cannot get global reference"),
-        }
-    }
-}
-
 #[async_trait]
-impl CommandHandler<Restart> for RestartCallback {
+impl CommandHandler<Restart> for CommandHandlerCallback {
     async fn handle_command(&self, _req: Restart) -> Result<(), String> {
         let jvm = JVM.get().expect("no jvm");
         let jenv = jvm.attach_current_thread().expect("cannot attach");
 
-        let lcbk = ComNgrokSessionRestartCallback::from(self.cbk.as_obj());
-        lcbk.on_restart_command(*jenv);
+        let lcbk = ComNgrokSessionCommandHandler::from(self.cbk.as_obj());
+        lcbk.on_command(*jenv);
         Ok(())
     }
 }
 
-struct UpdateCallback {
-    cbk: GlobalRef,
-}
-
-impl UpdateCallback {
-    fn from(env: JNIEnv<'_>, obj: ComNgrokSessionUpdateCallback) -> Self {
-        UpdateCallback {
-            cbk: env
-                .new_global_ref(obj)
-                .expect("cannot get global reference"),
-        }
-    }
-}
-
 #[async_trait]
-impl CommandHandler<Update> for UpdateCallback {
+impl CommandHandler<Update> for CommandHandlerCallback {
     async fn handle_command(&self, _req: Update) -> Result<(), String> {
         let jvm = JVM.get().expect("no jvm");
         let jenv = jvm.attach_current_thread().expect("cannot attach");
 
-        let lcbk = ComNgrokSessionUpdateCallback::from(self.cbk.as_obj());
-        lcbk.on_update_command(*jenv);
+        let lcbk = ComNgrokSessionCommandHandler::from(self.cbk.as_obj());
+        lcbk.on_command(*jenv);
         Ok(())
     }
 }
@@ -739,8 +710,8 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             bldr.metadata(metadata);
         }
 
-        if jsb.has_server_addr(self.env) {
-            bldr.server_addr(jsb.get_server_addr(self.env))
+        if let Some(server_addr) = jsb.get_server_addr(self.env).of_string(self.env) {
+            bldr.server_addr(server_addr)
                 .expect("invalid server address");
         }
 
@@ -757,17 +728,17 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         let stop_obj = jsb.stop_callback(self.env);
         if !stop_obj.is_null() {
-            bldr.handle_stop_command(StopCallback::from(self.env, stop_obj));
+            bldr.handle_stop_command(CommandHandlerCallback::from(self.env, stop_obj));
         }
 
         let restart_obj = jsb.restart_callback(self.env);
         if !restart_obj.is_null() {
-            bldr.handle_restart_command(RestartCallback::from(self.env, restart_obj));
+            bldr.handle_restart_command(CommandHandlerCallback::from(self.env, restart_obj));
         }
 
         let update_obj = jsb.update_callback(self.env);
         if !update_obj.is_null() {
-            bldr.handle_update_command(UpdateCallback::from(self.env, update_obj));
+            bldr.handle_update_command(CommandHandlerCallback::from(self.env, update_obj));
         }
 
         let heartbeat_obj = jsb.heartbeat_handler(self.env);
@@ -778,15 +749,10 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let client_infos = jsb.get_client_infos(self.env);
         for i in 0..client_infos.size(self.env) {
             let client_info: ComNgrokSessionClientInfo = client_infos.get(self.env, i).into();
-            let comments = if client_info.has_comments(self.env) {
-                Option::<String>::Some(client_info.get_comments(self.env))
-            } else {
-                Option::<String>::None
-            };
             bldr.client_info(
                 client_info.get_type(self.env),
                 client_info.get_version(self.env),
-                comments,
+                client_info.get_comments(self.env).of_string(self.env),
             );
         }
 
@@ -794,6 +760,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             Ok(sess) => {
                 let jsess = ComNgrokNativeSession::new_1com_ngrok_native_session(
                     self.env,
+                    sess.id(),
                     session_metadata,
                 );
                 self.set_native(jsess, sess);
