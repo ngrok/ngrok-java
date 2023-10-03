@@ -13,14 +13,33 @@ import java.util.Optional;
  * A session with the ngrok service.
  */
 public interface Session extends AutoCloseable {
+    /**
+     * Creates a new session {@link Builder} with specified ngrok authtoken
+     *
+     * @param authtoken the authtoken
+     * @return the builder
+     */
     static Builder withAuthtoken(String authtoken) {
         return new Builder(authtoken);
     }
 
+    /**
+     * Creates a new session {@link Builder} resolving
+     * the ngrok authtoken from {@code NGROK_AUTHTOKEN} env variable
+     *
+     * @return the builder
+     */
     static Builder withAuthtokenFromEnv() {
         return new Builder(System.getenv("NGROK_AUTHTOKEN"));
     }
 
+    /**
+     * Connects a session with specified {@link Builder}
+     *
+     * @param builder the builder
+     * @return newly created session
+     * @throws IOException if an I/O error occurs
+     */
     static Session connect(Builder builder) throws IOException {
         try {
             var clazz = Class.forName("com.ngrok.NativeSession");
@@ -270,8 +289,8 @@ public interface Session extends AutoCloseable {
 
         private final String authtoken;
 
-        private Duration heartbeatInterval;
-        private Duration heartbeatTolerance;
+        private Optional<Duration> heartbeatInterval = Optional.empty();
+        private Optional<Duration> heartbeatTolerance = Optional.empty();
 
         private Optional<String> metadata = Optional.empty();
 
@@ -290,56 +309,125 @@ public interface Session extends AutoCloseable {
             this.authtoken = Objects.requireNonNullElse(authtoken, "");
         }
 
+        /**
+         * Sets the heartbeat interval for this builder
+         *
+         * @param duration the interval duration
+         * @return the builder instance
+         */
         public Builder heartbeatInterval(Duration duration) {
-            this.heartbeatInterval = duration;
+            this.heartbeatInterval = Optional.of(duration);
             return this;
         }
 
+        /**
+         * Sets the heartbeat tolerance for this builder
+         *
+         * @param duration the tolerance duration
+         * @return the builder instance
+         */
         public Builder heartbeatTolerance(Duration duration) {
-            this.heartbeatTolerance = duration;
+            this.heartbeatTolerance = Optional.of(duration);
             return this;
         }
 
+        /**
+         * Sets the metadata for this builder
+         *
+         * @param metadata the metadata
+         * @return the builder instance
+         */
         public Builder metadata(String metadata) {
             this.metadata = Optional.of(metadata);
             return this;
         }
 
+        /**
+         * Sets the server address for this builder
+         *
+         * @param addr the server address
+         * @return the builder instance
+         */
         public Builder serverAddr(String addr) {
             this.serverAddr = Optional.of(addr);
             return this;
         }
 
+        /**
+         * Sets the ca certificate for this builder
+         *
+         * @param data the ca certificate
+         * @return the builder instance
+         */
         public Builder caCert(byte[] data) {
             this.caCert = data;
             return this;
         }
 
+        /**
+         * Sets the stop callback handler for this builder
+         *
+         * @param callback the stop callback
+         * @return the builder instance
+         */
         public Builder stopCallback(CommandHandler callback) {
             this.stopCallback = callback;
             return this;
         }
 
+        /**
+         * Sets the restart callback handler for this builder
+         *
+         * @param callback the restart callback
+         * @return the builder instance
+         */
         public Builder restartCallback(CommandHandler callback) {
             this.restartCallback = callback;
             return this;
         }
 
+        /**
+         * Sets the update callback handler for this builder
+         *
+         * @param callback the update callback
+         * @return the builder instance
+         */
         public Builder updateCallback(CommandHandler callback) {
             this.updateCallback = callback;
             return this;
         }
 
+        /**
+         * Sets the heartbeat handler for this builder
+         *
+         * @param heartbeatHandler the heartbeat callback
+         * @return the builder instance
+         */
         public Builder heartbeatHandler(HeartbeatHandler heartbeatHandler) {
             this.heartbeatHandler = heartbeatHandler;
             return this;
         }
 
+        /**
+         * Adds a client info to the list of client info objects for this builder
+         *
+         * @param name the client name
+         * @param version the client version
+         * @return the builder instance
+         */
         public Builder addClientInfo(String name, String version) {
             this.clientInfos.add(new ClientInfo(name, version, null));
             return this;
         }
 
+        /**
+         * Adds a client info to the list of client info objects for this builder
+         *
+         * @param name the client name
+         * @param version the client version
+         * @param comments the comments
+         * @return the builder instance
+         */
         public Builder addClientInfo(String name, String version, String comments) {
             this.clientInfos.add(new ClientInfo(name, version, comments));
             return this;
@@ -354,54 +442,102 @@ public interface Session extends AutoCloseable {
             return authtoken;
         }
 
-        public boolean hasHeartbeatInterval() {
-            return heartbeatInterval != null;
+        /**
+         * Returns the heartbeat interval for this builder
+         *
+         * @return the heartbeat interval
+         */
+        public Optional<Duration> getHeartbeatInterval() {
+            return heartbeatInterval;
         }
 
-        public long getHeartbeatIntervalMs() {
-            return heartbeatInterval.toMillis();
+        /**
+         * Returns the heartbeat tolerance for this builder
+         *
+         * @return the heartbeat tolerance
+         */
+        public Optional<Duration> getHeartbeatTolerance() {
+            return heartbeatTolerance;
         }
 
-        public boolean hasHeartbeatTolerance() {
-            return heartbeatTolerance != null;
-        }
-
-        public long getHeartbeatToleranceMs() {
-            return heartbeatTolerance.toMillis();
-        }
-
+        /**
+         * Returns the metadata for this builder.
+         *
+         * @return the metadata
+         */
         public Optional<String> getMetadata() {
             return metadata;
         }
 
+        /**
+         * Returns the server address for this builder.
+         *
+         * @return the server address
+         */
         public Optional<String> getServerAddr() {
             return serverAddr;
         }
 
+        /**
+         * Returns the certificate for this builder.
+         *
+         * @return the certificate
+         */
         public byte[] getCaCert() {
             return caCert;
         }
 
+        /**
+         * Returns the stop callback handler for this builder.
+         *
+         * @return the stop handler
+         */
         public CommandHandler stopCallback() {
             return stopCallback;
         }
 
+        /**
+         * Returns the restart callback handler for this builder.
+         *
+         * @return the restart handler
+         */
         public CommandHandler restartCallback() {
             return restartCallback;
         }
 
+        /**
+         * Returns the update callback handler for this builder.
+         *
+         * @return the update handler
+         */
         public CommandHandler updateCallback() {
             return updateCallback;
         }
 
+        /**
+         * Returns the heartbeat handler for this builder.
+         *
+         * @return the heartbeat handler
+         */
         public HeartbeatHandler heartbeatHandler() {
             return heartbeatHandler;
         }
 
+        /**
+         * Returns the list of client info objects to add for this builder
+         *
+         * @return the list of client info objects
+         */
         public List<ClientInfo> getClientInfos() {
             return clientInfos;
         }
 
+        /**
+         * Connects a session with the current {@link Builder}
+         *
+         * @return newly created session
+         * @throws IOException if an I/O error occurs
+         */
         public Session connect() throws IOException {
             return Session.connect(this);
         }

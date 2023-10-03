@@ -13,7 +13,7 @@ public abstract class MetadataBuilder<T extends MetadataBuilder> {
     /**
      * Sets the metadata for this builder.
      *
-     * @param metadata the metadata for the builder
+     * @param metadata the metadata
      * @return An instance the builder represented by type T
      */
     public T metadata(String metadata) {
@@ -24,7 +24,7 @@ public abstract class MetadataBuilder<T extends MetadataBuilder> {
     /**
      * Returns the metadata for this builder.
      *
-     * @return the currently set metadata
+     * @return the metadata
      */
     public Optional<String> getMetadata() {
         return metadata;

@@ -219,9 +219,8 @@ impl<'local> JavaNetUrl<'local> {
 impl<'local> JavaUtilOptional<'local> {
     fn of_string(self, env: JNIEnv<'local>) -> Option<String> {
         if self.is_present(env) {
-            let s: String = env
-                .call_method(self, "get", "()Ljava/lang/Object;", &[])
-                .and_then(|o| o.l())
+            let s: String = self
+                .get(env)
                 .map(JString::from)
                 .and_then(|o| env.get_string(o))
                 .expect("could not convert url to string")
@@ -234,18 +233,37 @@ impl<'local> JavaUtilOptional<'local> {
 
     fn of_double(self, env: JNIEnv<'local>) -> Option<f64> {
         if self.is_present(env) {
-            let d = env
-                .call_method(self, "get", "()Ljava/lang/Object;", &[])
-                .and_then(|o| o.l())
-                .expect("could not get double value from optional");
-            let dv = env
-                .call_method(d, "doubleValue", "()D", &[])
+            let d = self
+                .get(env)
+                .and_then(|o| env.call_method(o, "doubleValue", "()D", &[]))
                 .and_then(|o| o.d())
-                .expect("could not get f64 from Double");
-            Some(dv)
+                .expect("could not get double");
+            Some(d)
         } else {
             None
         }
+    }
+
+    fn of_duration_ms(self, env: JNIEnv<'local>) -> Option<Duration> {
+        if self.is_present(env) {
+            let d = self
+                .get(env)
+                .and_then(|o| env.call_method(o, "toMillis", "()J", &[]))
+                .and_then(|o| o.j())
+                .expect("cannot get duration millis");
+            let du: u64 = d.try_into().expect("cannot convert to unsigned");
+            Some(Duration::from_millis(du))
+        } else {
+            None
+        }
+    }
+
+    fn get(
+        self,
+        env: JNIEnv<'local>,
+    ) -> Result<JObject<'local>, jaffi_support::jni::errors::Error> {
+        env.call_method(self, "get", "()Ljava/lang/Object;", &[])
+            .and_then(|o| o.l())
     }
 
     fn is_present(self, env: JNIEnv<'local>) -> bool {
@@ -692,16 +710,18 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
 
         bldr.authtoken(jsb.get_authtoken(self.env));
 
-        if jsb.has_heartbeat_interval(self.env) {
-            let d: u64 = jsb.get_heartbeat_interval_ms(self.env).try_into().unwrap();
-            bldr.heartbeat_interval(Duration::from_millis(d))
-                .expect("invalid heartbeat interval");
+        if let Some(interval) = jsb
+            .get_heartbeat_interval(self.env)
+            .of_duration_ms(self.env)
+        {
+            bldr.heartbeat_interval(interval).expect("invalid heartbeat interval");
         }
 
-        if jsb.has_heartbeat_tolerance(self.env) {
-            let d: u64 = jsb.get_heartbeat_tolerance_ms(self.env).try_into().unwrap();
-            bldr.heartbeat_tolerance(Duration::from_millis(d))
-                .expect("invalid heartbeat tolerance");
+        if let Some(tolerance) = jsb
+            .get_heartbeat_tolerance(self.env)
+            .of_duration_ms(self.env)
+        {
+            bldr.heartbeat_tolerance(tolerance).expect("invalid heartbeat tolerance");
         }
 
         let mut session_metadata = String::from("");
