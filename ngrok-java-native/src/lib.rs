@@ -203,6 +203,12 @@ impl<'local> JavaUtilList<'local> {
             .and_then(|o| o.l())
             .expect("could not get list item")
     }
+
+    fn get_string(self, env: JNIEnv<'local>, idx: i32) -> String {
+        env.get_string(JString::from(self.get(env, idx)))
+            .expect("could not convert to string")
+            .into()
+    }
 }
 
 impl<'local> JavaNetUrl<'local> {
@@ -386,18 +392,12 @@ impl<'local> NativeSessionRsImpl<'local> {
         // from EndpointTunnel.Builder
         let allow_cidr = jeb.get_allow_cidr(self.env);
         for i in 0..allow_cidr.size(self.env) {
-            let cidr: JString = allow_cidr.get(self.env, i).into();
-            if let Some(cidr) = self.as_string(cidr) {
-                bldr.allow_cidr(cidr);
-            }
+            bldr.allow_cidr(allow_cidr.get_string(self.env, i));
         }
 
         let deny_cidr = jeb.get_deny_cidr(self.env);
         for i in 0..deny_cidr.size(self.env) {
-            let cidr: JString = deny_cidr.get(self.env, i).into();
-            if let Some(cidr) = self.as_string(cidr) {
-                bldr.deny_cidr(cidr);
-            }
+            bldr.deny_cidr(deny_cidr.get_string(self.env, i));
         }
 
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
@@ -432,18 +432,12 @@ impl<'local> NativeSessionRsImpl<'local> {
         // from EndpointTunnel.Builder
         let allow_cidr = jeb.get_allow_cidr(self.env);
         for i in 0..allow_cidr.size(self.env) {
-            let cidr: JString = allow_cidr.get(self.env, i).into();
-            if let Some(cidr) = self.as_string(cidr) {
-                bldr.allow_cidr(cidr);
-            }
+            bldr.allow_cidr(allow_cidr.get_string(self.env, i));
         }
 
         let deny_cidr = jeb.get_deny_cidr(self.env);
         for i in 0..deny_cidr.size(self.env) {
-            let cidr: JString = deny_cidr.get(self.env, i).into();
-            if let Some(cidr) = self.as_string(cidr) {
-                bldr.deny_cidr(cidr);
-            }
+            bldr.deny_cidr(deny_cidr.get_string(self.env, i));
         }
 
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
@@ -500,18 +494,12 @@ impl<'local> NativeSessionRsImpl<'local> {
         // from EndpointTunnel.Builder
         let allow_cidr = jeb.get_allow_cidr(self.env);
         for i in 0..allow_cidr.size(self.env) {
-            let cidr: JString = allow_cidr.get(self.env, i).into();
-            if let Some(cidr) = self.as_string(cidr) {
-                bldr.allow_cidr(cidr);
-            }
+            bldr.allow_cidr(allow_cidr.get_string(self.env, i));
         }
 
         let deny_cidr = jeb.get_deny_cidr(self.env);
         for i in 0..deny_cidr.size(self.env) {
-            let cidr: JString = deny_cidr.get(self.env, i).into();
-            if let Some(cidr) = self.as_string(cidr) {
-                bldr.deny_cidr(cidr);
-            }
+            bldr.deny_cidr(deny_cidr.get_string(self.env, i));
         }
 
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
@@ -562,18 +550,12 @@ impl<'local> NativeSessionRsImpl<'local> {
 
         let remove_request_headers = jhtb.get_remove_request_headers(self.env);
         for i in 0..remove_request_headers.size(self.env) {
-            let header: JString = remove_request_headers.get(self.env, i).into();
-            if let Some(name) = self.as_string(header) {
-                bldr.remove_request_header(name);
-            }
+            bldr.remove_request_header(remove_request_headers.get_string(self.env, i));
         }
 
         let remove_response_headers = jhtb.get_remove_response_headers(self.env);
         for i in 0..remove_response_headers.size(self.env) {
-            let header: JString = remove_response_headers.get(self.env, i).into();
-            if let Some(name) = self.as_string(header) {
-                bldr.remove_response_header(name);
-            }
+            bldr.remove_response_header(remove_response_headers.get_string(self.env, i));
         }
 
         let basic_auth = jhtb.get_basic_auth(self.env);
@@ -591,15 +573,22 @@ impl<'local> NativeSessionRsImpl<'local> {
                 oauth.client_id(joauth.get_client_id(self.env));
                 oauth.client_secret(joauth.get_client_secret(self.env));
             }
-            if let Some(email) = joauth.get_allow_email(self.env).of_string(self.env) {
-                oauth.allow_email(email);
+
+            let allow_emails = joauth.get_allow_emails(self.env);
+            for i in 0..allow_emails.size(self.env) {
+                oauth.allow_email(allow_emails.get_string(self.env, i));
             }
-            if let Some(domain) = joauth.get_allow_domain(self.env).of_string(self.env) {
-                oauth.allow_domain(domain);
+
+            let allow_domains = joauth.get_allow_domains(self.env);
+            for i in 0..allow_domains.size(self.env) {
+                oauth.allow_domain(allow_domains.get_string(self.env, i));
             }
-            if let Some(scope) = joauth.get_scope(self.env).of_string(self.env) {
-                oauth.scope(scope);
+
+            let scopes: JavaUtilList<'_> = joauth.get_scopes(self.env);
+            for i in 0..scopes.size(self.env) {
+                oauth.scope(scopes.get_string(self.env, i));
             }
+
             bldr.oauth(oauth);
         }
 
@@ -610,15 +599,22 @@ impl<'local> NativeSessionRsImpl<'local> {
                 joidc.get_client_id(self.env),
                 joidc.get_client_secret(self.env),
             );
-            if let Some(email) = joidc.get_allow_email(self.env).of_string(self.env) {
-                oidc.allow_email(email);
+
+            let allow_emails = joauth.get_allow_emails(self.env);
+            for i in 0..allow_emails.size(self.env) {
+                oidc.allow_email(allow_emails.get_string(self.env, i));
             }
-            if let Some(domain) = joidc.get_allow_domain(self.env).of_string(self.env) {
-                oidc.allow_domain(domain);
+
+            let allow_domains = joauth.get_allow_domains(self.env);
+            for i in 0..allow_domains.size(self.env) {
+                oidc.allow_domain(allow_domains.get_string(self.env, i));
             }
-            if let Some(scope) = joidc.get_scope(self.env).of_string(self.env) {
-                oidc.scope(scope);
+
+            let scopes: JavaUtilList<'_> = joauth.get_scopes(self.env);
+            for i in 0..scopes.size(self.env) {
+                oidc.scope(scopes.get_string(self.env, i));
             }
+
             bldr.oidc(oidc);
         }
 
@@ -648,7 +644,7 @@ impl<'local> NativeSessionRsImpl<'local> {
         let labels = self
             .env
             .get_map(jltb.get_labels(self.env).into())
-            .expect("msg");
+            .expect("cannot get labels map");
         labels
             .iter()
             .and_then(|iter| {
@@ -659,7 +655,7 @@ impl<'local> NativeSessionRsImpl<'local> {
                 }
                 Ok(())
             })
-            .expect("msg");
+            .expect("cannot iterate over labels map");
 
         bldr
     }

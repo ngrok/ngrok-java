@@ -1,7 +1,6 @@
 package com.ngrok;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * A set of data classes to support creation of HTTP endpoint listeners.
@@ -103,18 +102,12 @@ public interface Http {
      * Represents OAuth configuration for an HTTP listener.
      */
     class OAuth {
-
         private final String provider;
-
         private String clientId;
-
         private String clientSecret;
-
-        private Optional<String> allowEmail = Optional.empty();
-
-        private Optional<String> allowDomain = Optional.empty();
-
-        private Optional<String> scope = Optional.empty();
+        private final List<String> allowEmails = new ArrayList<>();
+        private final List<String> allowDomains = new ArrayList<>();
+        private final List<String> scopes = new ArrayList<>();
 
         /**
          * Constructs new OAuth configuration with the specified provider.
@@ -145,7 +138,7 @@ public interface Http {
          * @return this OAuth object
          */
         public OAuth allowEmail(String email) {
-            this.allowEmail = Optional.ofNullable(email);
+            allowEmails.add(Objects.requireNonNull(email));
             return this;
         }
 
@@ -156,7 +149,7 @@ public interface Http {
          * @return this OAuth object
          */
         public OAuth allowDomain(String domain) {
-            this.allowDomain = Optional.ofNullable(domain);
+            allowDomains.add(Objects.requireNonNull(domain));
             return this;
         }
 
@@ -167,7 +160,7 @@ public interface Http {
          * @return this OAuth object
          */
         public OAuth scope(String scope) {
-            this.scope = Optional.ofNullable(scope);
+            scopes.add(Objects.requireNonNull(scope));
             return this;
         }
 
@@ -181,7 +174,7 @@ public interface Http {
         }
 
         /**
-         * Returns is client ID and secret have been configured for OAuth
+         * Returns of client ID and secret have been configured for OAuth
          *
          * @return true if both client ID and secret has been set, false otherwise
          */
@@ -212,8 +205,8 @@ public interface Http {
          *
          * @return the email address
          */
-        public Optional<String> getAllowEmail() {
-            return allowEmail;
+        public List<String> getAllowEmails() {
+            return allowEmails;
         }
 
         /**
@@ -221,8 +214,8 @@ public interface Http {
          *
          * @return the domain
          */
-        public Optional<String> getAllowDomain() {
-            return allowDomain;
+        public List<String> getAllowDomains() {
+            return allowDomains;
         }
 
         /**
@@ -230,8 +223,8 @@ public interface Http {
          *
          * @return the scope
          */
-        public Optional<String> getScope() {
-            return scope;
+        public List<String> getScopes() {
+            return scopes;
         }
     }
 
@@ -242,9 +235,9 @@ public interface Http {
         private final String issuerUrl;
         private final String clientId;
         private final String clientSecret;
-        private Optional<String> allowEmail = Optional.empty();
-        private Optional<String> allowDomain = Optional.empty();
-        private Optional<String> scope = Optional.empty();
+        private final List<String> allowEmails = new ArrayList<>();
+        private final List<String> allowDomains = new ArrayList<>();
+        private final List<String> scopes = new ArrayList<>();
 
         /**
          * Constructs a new OIDC configuration with the specified
@@ -267,7 +260,7 @@ public interface Http {
          * @return this OIDC object
          */
         public OIDC allowEmail(String email) {
-            this.allowEmail = Optional.ofNullable(email);
+            allowEmails.add(Objects.requireNonNull(email));
             return this;
         }
 
@@ -278,7 +271,7 @@ public interface Http {
          * @return this OIDC object
          */
         public OIDC allowDomain(String domain) {
-            this.allowDomain = Optional.ofNullable(domain);
+            allowDomains.add(Objects.requireNonNull(domain));
             return this;
         }
 
@@ -289,7 +282,7 @@ public interface Http {
          * @return this OIDC object
          */
         public OIDC scope(String scope) {
-            this.scope = Optional.ofNullable(scope);
+            scopes.add(Objects.requireNonNull(scope));
             return this;
         }
 
@@ -325,8 +318,8 @@ public interface Http {
          *
          * @return the email address
          */
-        public Optional<String> getAllowEmail() {
-            return allowEmail;
+        public List<String> getAllowEmail() {
+            return allowEmails;
         }
 
         /**
@@ -334,8 +327,8 @@ public interface Http {
          *
          * @return the domain
          */
-        public Optional<String> getAllowDomain() {
-            return allowDomain;
+        public List<String> getAllowDomain() {
+            return allowDomains;
         }
 
         /**
@@ -343,8 +336,8 @@ public interface Http {
          *
          * @return the scope
          */
-        public Optional<String> getScope() {
-            return scope;
+        public List<String> getScope() {
+            return scopes;
         }
     }
 

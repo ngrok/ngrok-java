@@ -212,7 +212,7 @@ public interface Session extends AutoCloseable {
     }
 
     /**
-     * Provides a way to monitor current's session heartbeats and disconnects.
+     * Provides a way to monitor current session's heartbeats and disconnects.
      */
     interface HeartbeatHandler {
         /**
