@@ -660,16 +660,16 @@ impl<'local> NativeSessionRsImpl<'local> {
         bldr
     }
 
-    fn labels_map(&self, labels: &HashMap<String, String>) -> JavaUtilMap<'local> {
-        let map_class = self.env.find_class("java/util/HashMap").expect("msg");
-        let map = self.env.new_object(map_class, "()V", &[]).expect("msg");
-        let mmap = self.env.get_map(map).expect("msg");
+    fn labels_map(&self, labels: &HashMap<String, String>) -> jaffi_support::jni::errors::Result<JavaUtilMap<'local>> {
+        let map_class = self.env.find_class("java/util/HashMap")?;
+        let map = self.env.new_object(map_class, "()V", &[])?;
+        let mmap = self.env.get_map(map)?;
         for (key, value) in labels {
-            let jkey = self.env.new_string(key).expect("msg");
-            let jvalue = self.env.new_string(value).expect("msg");
-            mmap.put(jkey.into(), jvalue.into()).expect("xxx");
+            let jkey = self.env.new_string(key)?;
+            let jvalue = self.env.new_string(value)?;
+            mmap.put(jkey.into(), jvalue.into())?;
         }
-        map.into()
+        Ok(map.into())
     }
 
     fn close_tunnel(
@@ -983,7 +983,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                     tun.id().into(),
                     tun.metadata().into(),
                     tun.forwards_to().into(),
-                    self.labels_map(tun.labels()),
+                    self.labels_map(tun.labels()).expect("cannot get result labels"),
                 );
                 self.set_native(jlistener, tun);
                 Ok(jlistener)
@@ -1013,7 +1013,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                     tun.id().into(),
                     tun.metadata().into(),
                     tun.forwards_to().into(),
-                    self.labels_map(tun.labels()),
+                    self.labels_map(tun.labels()).expect("cannot get result labels"),
                 );
                 self.set_native(jforwarder, tun);
                 Ok(jforwarder)
@@ -1436,7 +1436,7 @@ impl<'local> com_ngrok::NativeEndpointConnectionRs<'local>
             .env
             .get_direct_buffer_address(jbuff)
             .expect("cannot get buff addr");
-        let act = &addr[..limit.try_into().expect("xxx")];
+        let act = &addr[..(limit as usize)];
         match rt.block_on(conn.write(act)) {
             Ok(sz) => Ok(sz.try_into().expect("cannot convert to i32")),
             Err(err) => io_exc_err(err),
@@ -1501,7 +1501,7 @@ impl<'local> com_ngrok::NativeEdgeConnectionRs<'local> for NativeEdgeConnectionR
             .env
             .get_direct_buffer_address(jbuff)
             .expect("cannot get buff addr");
-        let act = &addr[..limit.try_into().expect("xxx")];
+        let act = &addr[..(limit as usize)];
         match rt.block_on(conn.write(act)) {
             Ok(sz) => Ok(sz.try_into().expect("cannot convert to i32")),
             Err(err) => io_exc_err(err),
