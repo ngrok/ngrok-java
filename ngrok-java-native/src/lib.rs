@@ -660,7 +660,10 @@ impl<'local> NativeSessionRsImpl<'local> {
         bldr
     }
 
-    fn labels_map(&self, labels: &HashMap<String, String>) -> jaffi_support::jni::errors::Result<JavaUtilMap<'local>> {
+    fn labels_map(
+        &self,
+        labels: &HashMap<String, String>,
+    ) -> jaffi_support::jni::errors::Result<JavaUtilMap<'local>> {
         let map_class = self.env.find_class("java/util/HashMap")?;
         let map = self.env.new_object(map_class, "()V", &[])?;
         let mmap = self.env.get_map(map)?;
@@ -983,7 +986,8 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                     tun.id().into(),
                     tun.metadata().into(),
                     tun.forwards_to().into(),
-                    self.labels_map(tun.labels()).expect("cannot get result labels"),
+                    self.labels_map(tun.labels())
+                        .expect("cannot get result labels"),
                 );
                 self.set_native(jlistener, tun);
                 Ok(jlistener)
@@ -1013,7 +1017,8 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                     tun.id().into(),
                     tun.metadata().into(),
                     tun.forwards_to().into(),
-                    self.labels_map(tun.labels()).expect("cannot get result labels"),
+                    self.labels_map(tun.labels())
+                        .expect("cannot get result labels"),
                 );
                 self.set_native(jforwarder, tun);
                 Ok(jforwarder)
