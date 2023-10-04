@@ -75,7 +75,7 @@ If you want to use [jetty](https://www.eclipse.org/jetty/) integration, also add
 </dependency>
 ```
 
-(Java 17+) If you wish to use ngrok tunnels as a [server socket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/ServerSocket.html), also add:
+(Java 17+) If you wish to use ngrok listeners as a [server socket](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/ServerSocket.html), also add:
 
 ```xml
 <dependency>
@@ -97,23 +97,23 @@ import com.ngrok.HttpTunnel;
 
 public class Echo {
    public static void main(String[] args) throws IOException {
-      // Session.newBuilder() will create a new session builder, pulling NGROK_AUTHTOKEN env variable.
+      // Session.withAuthtokenFromEnv() will create a new session builder, pulling NGROK_AUTHTOKEN env variable.
       // You can get your authtoken by registering at https://dashboard.ngrok.com
-      var sessionBuilder = Session.newBuilder().metadata("my session");
+      var sessionBuilder = Session.withAuthtokenFromEnv().metadata("my session");
       // Session.Builder let you customize different aspects of the session, see docs for details.
       // After customizing the builder, you connect:
-      try (var session = Session.connect(sessionBuilder)) {
-         // Creates an http tunnel that will be using oauth to secure it
-         var tunnelBuilder = new HttpTunnel.Builder().metadata("my tunnel")
-                                                     .oauthOptions(new HttpTunnel.OAuthOptions("google")));
-         // Now start the tunnel with the above configuration
-         try (var tunnel = session.httpTunnel(tunnelBuilder)) {
-            System.out.println("ngrok url: " + tunnel.getUrl());
+      try (var session = sessionBuilder.connect()) {
+         // Creates and configures http listener that will be using oauth to secure it
+         var listenerBuilder = session.httpEndpoint().metadata("my listener")
+                                                     .oauth(new Http.OAuthOptions("google")));
+         // Now start listening with the above configuration
+         try (var listener = listenerBuilder.listen()) {
+            System.out.println("ngrok url: " + listener.getUrl());
             var buf = ByteBuffer.allocateDirect(1024);
 
             while (true) {
                // Accept a new connection
-               var conn = tunnel.accept();
+               var conn = listener.accept();
 
                // Read from the connection
                conn.read(buf);

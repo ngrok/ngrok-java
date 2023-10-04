@@ -1,10 +1,11 @@
 package com.ngrok;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Properties;
 
 /**
- * An implementation of {@link Session} that delegates calls to a native library.
+ * An implementation of {@link Session} that delegates implementation to a native library.
  */
 public class NativeSession implements Session {
     private static String version = "0.0.0-UNKNOWN";
@@ -29,100 +30,63 @@ public class NativeSession implements Session {
     }
 
     private long native_address;
+
+    private final String id;
     private final String metadata;
 
-    /**
-     * Constructs a new native session with the specified metadata.
-     *
-     * @param metadata the metadata of the session
-     */
-    public NativeSession(String metadata) {
+    public NativeSession(String id, String metadata) {
+        this.id = id;
         this.metadata = metadata;
     }
 
-    /**
-     * Establishes an ngrok session specified by the provided builder.
-     * Wraps {@link NativeSession#connectNative(Session.Builder)}.
-     *
-     * @param builder the session builder to use for the connection
-     * @return a new NativeSession object representing the connected session
-     * @throws IOException if an I/O error occurs
-     */
     public static NativeSession connect(Session.Builder builder) throws IOException {
         var jver = System.getProperty("java.version");
         builder.getClientInfos().add(0, new ClientInfo("ngrok-java", version, jver));
         return connectNative(builder);
     }
 
-    /**
-     * Establishes an ngrok session specified by the provided builder.
-     *
-     * @param builder the session builder to use for the connection
-     * @return a new {@link NativeSession} object representing the connected session
-     * @throws IOException if an I/O error occurs
-     */
-    public static native NativeSession connectNative(Session.Builder builder) throws IOException;
+    private static native NativeSession connectNative(Session.Builder builder) throws IOException;
 
-    /**
-     * Returns the metadata of the session.
-     *
-     * @return the metadata of the session
-     */
+    @Override
+    public String getId() {
+        return id;
+    }
+
     @Override
     public String getMetadata() {
         return metadata;
     }
 
-    /**
-     * Creates a new {@link NativeTcpTunnel} using the specified builder.
-     *
-     * @param builder the builder to use for the tunnel
-     * @return a new NativeTcpTunnel object representing the created tunnel
-     * @throws IOException if an I/O error occurs
-     */
-    public native NativeTcpTunnel tcpTunnel(TcpTunnel.Builder builder) throws IOException;
-
-    /**
-     * Creates a new {@link NativeTlsTunnel} using the specified builder.
-     *
-     * @param builder the builder to use for the tunnel
-     * @return a new NativeTlsTunnel object representing the created tunnel
-     * @throws IOException if an I/O error occurs
-     */
-    public native NativeTlsTunnel tlsTunnel(NativeTlsTunnel.Builder builder) throws IOException;
-
-    /**
-     * Creates a new {@link NativeHttpTunnel} using the specified builder.
-     *
-     * @param builder the builder to use for the tunnel
-     * @return a new NativeHttpTunnel object representing the created tunnel
-     * @throws IOException if an I/O error occurs
-     */
-    public native NativeHttpTunnel httpTunnel(NativeHttpTunnel.Builder builder) throws IOException;
-
-    /**
-     * Creates a new {@link NativeLabeledTunnel} using the specified builder.
-     *
-     * @param builder the builder to use for the tunnel
-     * @return a new NativeLabeledTunnel object representing the created tunnel
-     * @throws IOException if an I/O error occurs
-     */
-    public native NativeLabeledTunnel labeledTunnel(NativeLabeledTunnel.Builder builder) throws IOException;
-
-    /**
-     * Closes the native tunnel by ID in this session.
-     * 
-     * @param tunnelId the ID of the tunnel to close
-     * @throws IOException if an I/O error occurs
-     */
     @Override
-    public native void closeTunnel(String tunnelId) throws IOException;
+    public native NativeTcpListener listenTcp(TcpBuilder builder) throws IOException;
 
-    /**
-     * Closes the native session.
-     *
-     * @throws IOException if an I/O error occurs
-     */
+    @Override
+    public native NativeTcpForwarder forwardTcp(TcpBuilder builder, URL url) throws IOException;
+
+    @Override
+    public native NativeTlsListener listenTls(TlsBuilder builder) throws IOException;
+
+    @Override
+    public native NativeTlsForwarder forwardTls(TlsBuilder builder, URL url) throws IOException;
+
+    @Override
+    public native NativeHttpListener listenHttp(HttpBuilder builder) throws IOException;
+
+    @Override
+    public native NativeHttpForwarder forwardHttp(HttpBuilder builder, URL url) throws IOException;
+
+    @Override
+    public native NativeEdgeListener listenEdge(EdgeBuilder builder) throws IOException;
+
+    @Override
+    public native NativeEdgeForwarder forwardEdge(EdgeBuilder builder, URL url) throws IOException;
+
+    @Override
+    public native void closeListener(String id) throws IOException;
+
+    @Override
+    public native void closeForwarder(String id) throws IOException;
+
     @Override
     public native void close() throws IOException;
 }

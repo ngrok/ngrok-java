@@ -2,44 +2,45 @@ package com.ngrok;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * A session with the ngrok service.
  */
 public interface Session extends AutoCloseable {
-
     /**
-     * Creates a new {@link Builder} instance. The ngrok authtoken will be set from the value of the `NGROK_AUTHOKEN` environment variable.
+     * Creates a new session {@link Builder} with specified ngrok authtoken
      *
-     * @return a new {@link Builder} instance with the default authentication token
+     * @param authtoken the authtoken
+     * @return the builder
      */
-    public static Builder newBuilder() {
-        return newBuilder(System.getenv("NGROK_AUTHTOKEN"));
+    static Builder withAuthtoken(String authtoken) {
+        return new Builder(authtoken);
     }
 
     /**
-     * Creates a new {@link Builder} instance with specified authtoken.
+     * Creates a new session {@link Builder} resolving
+     * the ngrok authtoken from {@code NGROK_AUTHTOKEN} env variable
      *
-     * @param authtoken the authentication token to use
-     * @return a new {@link Builder} instance with the specified authentication
-     *         token
+     * @return the builder
      */
-    public static Builder newBuilder(String authtoken) {
-        return new Builder().authtoken(authtoken);
+    static Builder withAuthtokenFromEnv() {
+        return new Builder(System.getenv("NGROK_AUTHTOKEN"));
     }
 
     /**
-     * Connects to the ngrok service using the specified {@link Builder} instance.
+     * Connects a session with specified {@link Builder}
      *
-     * @param builder the {@link Builder} instance to use for the connection
-     * @return a new {@link Session} instance connected to the ngrok service
-     * @throws IOException if an I/O error occurs during the connection
+     * @param builder the builder
+     * @return newly created session
+     * @throws IOException if an I/O error occurs
      */
-    public static Session connect(Builder builder) throws IOException {
+    static Session connect(Builder builder) throws IOException {
         try {
             var clazz = Class.forName("com.ngrok.NativeSession");
             var method = clazz.getMethod("connect", Builder.class);
@@ -56,317 +57,489 @@ public interface Session extends AutoCloseable {
     }
 
     /**
-     * Returns the metadata for the session.
+     * Returns the ID of this session
      *
-     * @return the metadata for the session
+     * @return session ID
      */
-    public String getMetadata();
+    String getId();
 
     /**
-     * Creates and returns a new {@link TcpTunnel} instance with the default builder.
+     * Returns the metadata of this session
      *
-     * @return a {@link TcpTunnel} reference configured with the default builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @return session metadata
      */
-    public default TcpTunnel tcpTunnel() throws IOException {
-        return tcpTunnel(new TcpTunnel.Builder());
+    String getMetadata();
+
+    /**
+     * Creates a new {@link TcpBuilder} associated with this session.
+     *
+     * @return the builder
+     */
+    default TcpBuilder tcpEndpoint() {
+        return new TcpBuilder(this);
     }
 
     /**
-     * Creates and returns a new {@link TcpTunnel} with the specified builder.
+     * Configures and starts a TCP {@link Listener.Endpoint}
      *
-     * @param builder the {@link TcpTunnel.Builder} instance to use for the tunnel
-     *                creation
-     * @return a {@link TcpTunnel} reference configured with the specified builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @param builder the builder
+     * @return the running listener
+     * @throws IOException if an I/O error occurs
      */
-    public TcpTunnel tcpTunnel(TcpTunnel.Builder builder) throws IOException;
+    Listener.Endpoint listenTcp(TcpBuilder builder) throws IOException;
 
     /**
-     * Creates a new {@link TlsTunnel} instance with the default builder.
+     * Configures and starts a TCP {@link Forwarder.Endpoint}
      *
-     * @return a {@link TlsTunnel} reference configured with the default builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @param builder the builder
+     * @param url the url to forward to
+     * @return the running forwarder
+     * @throws IOException if an I/O error occurs
      */
-    public default TlsTunnel tlsTunnel() throws IOException {
-        return tlsTunnel(new TlsTunnel.Builder());
+    Forwarder.Endpoint forwardTcp(TcpBuilder builder, URL url) throws IOException;
+
+    /**
+     * Creates a new {@link TlsBuilder} associated with this session.
+     *
+     * @return the builder
+     */
+    default TlsBuilder tlsEndpoint() {
+        return new TlsBuilder(this);
     }
 
     /**
-     * Creates and returns a new {@link TlsTunnel} with the specified builder.
-     * 
-     * @param builder the {@link TlsTunnel.Builder} instance to use for the tunnel
-     *                creation
-     * @return a {@link TlsTunnel} reference configured with the specified builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
-     */
-    public TlsTunnel tlsTunnel(TlsTunnel.Builder builder) throws IOException;
-
-    /**
-     * Creates and returns a new {@link HttpTunnel} instance with the default builder.
+     * Configures and starts a TLS {@link Listener.Endpoint}
      *
-     * @return a {@link HttpTunnel} reference configured with the default builder
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @param builder the builder
+     * @return the running listener
+     * @throws IOException if an I/O error occurs
      */
-    public default HttpTunnel httpTunnel() throws IOException {
-        return httpTunnel(new HttpTunnel.Builder());
-    }
+    Listener.Endpoint listenTls(TlsBuilder builder) throws IOException;
 
     /**
-     * Creates a new {@link HttpTunnel} instance with the specified settings.
+     * Configures and starts a TLS {@link Forwarder.Endpoint}
      *
-     * @param builder the {@link HttpTunnel.Builder} instance to use for the tunnel
-     *                creation
-     * @return a new {@link HttpTunnel} instance with the specified settings
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @param builder the builder
+     * @param url the url to forward to
+     * @return the running forwarder
+     * @throws IOException if an I/O error occurs
      */
-    public HttpTunnel httpTunnel(HttpTunnel.Builder builder) throws IOException;
+    Forwarder.Endpoint forwardTls(TlsBuilder builder, URL url) throws IOException;
 
     /**
-     * Returns a new {@link LabeledTunnel} instance with the default settings.
+     * Creates a new {@link HttpBuilder} associated with this session.
      *
-     * @return a new {@link LabeledTunnel} instance with the default settings
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @return the builder
      */
-    public default LabeledTunnel labeledTunnel() throws IOException {
-        return labeledTunnel(new LabeledTunnel.Builder());
+    default HttpBuilder httpEndpoint() {
+        return new HttpBuilder(this);
     }
 
     /**
-     * Returns a new {@link LabeledTunnel} instance with the specified settings.
+     * Configures and starts a HTTP {@link Listener.Endpoint}
      *
-     * @param builder the {@link LabeledTunnel.Builder} instance to use for the tunnel
-     *                creation
-     * @return a new {@link LabeledTunnel} instance with the specified settings
-     * @throws IOException if an I/O error occurs during the tunnel creation
+     * @param builder the builder
+     * @return the running listener
+     * @throws IOException if an I/O error occurs
      */
-    public LabeledTunnel labeledTunnel(LabeledTunnel.Builder builder) throws IOException;
+    Listener.Endpoint listenHttp(HttpBuilder builder) throws IOException;
 
     /**
-     * Closes a tunnel by its ID.
-     * 
-     * @param tunnelId the id of the tunnel to close
-     * @throws IOException if an I/O error occurs during tunnel close
+     * Configures and starts a HTTP {@link Forwarder.Endpoint}
+     *
+     * @param builder the builder
+     * @param url the url to forward to
+     * @return the running forwarder
+     * @throws IOException if an I/O error occurs
      */
-    public void closeTunnel(String tunnelId) throws IOException;
+    Forwarder.Endpoint forwardHttp(HttpBuilder builder, URL url) throws IOException;
 
     /**
-     * Configures a function which is called when the ngrok service requests that this {@link Session} stops.
-     * Your application may choose to interpret this callback as a request to terminate the {@link Session} or the entire process.
+     * Creates a new {@link EdgeBuilder} associated with this session.
+     *
+     * @return the builder
      */
-    public interface StopCallback {
-        public void onStopCommand();
+    default EdgeBuilder edge() {
+        return new EdgeBuilder(this);
     }
 
     /**
-     * Configures a function which is called when the ngrok service requests that this {@link Session} updates.
-     * Your application may choose to interpret this callback as a request to restart the {@link Session} or the entire process.
+     * Configures and starts a {@link Listener.Edge}
+     *
+     * @param builder the builder
+     * @return the running listener
+     * @throws IOException if an I/O error occurs
      */
-    public interface RestartCallback {
-        public void onRestartCommand();
-    }
+    Listener.Edge listenEdge(EdgeBuilder builder) throws IOException;
 
     /**
-     * Configures a function which is called when the ngrok service requests that this {@link Session} updates.
-     * Your application may choose to interpret this callback as a request to update its configuration, itself, or to invoke some other application-specific behavior.
-     * 
+     * Configures and starts a {@link Forwarder.Edge}
+     *
+     * @param builder the builder
+     * @param url the url to forward to
+     * @return the running forwarder
+     * @throws IOException if an I/O error occurs
      */
-    public interface UpdateCallback {
-        public void onUpdateCommand();
-    }
+    Forwarder.Edge forwardEdge(EdgeBuilder builder, URL url) throws IOException;
 
     /**
-     * The `HeartbeatHandler` interface represents a handler for session heartbeats.
+     * Closes a listener by its ID
+     *
+     * @param listenerId the listener ID
+     * @throws IOException if an I/O error occurs
      */
-    public interface HeartbeatHandler {
+    void closeListener(String listenerId) throws IOException;
+
+    /**
+     * Closes a forwarder by its ID
+     *
+     * @param forwarderId the forwarder ID
+     * @throws IOException if an I/O error occurs
+     */
+    void closeForwarder(String forwarderId) throws IOException;
+
+    @Override
+    void close() throws IOException;
+
+    /**
+     * Provides a way to listen for specific server side events.
+     */
+    interface CommandHandler {
         /**
-         * Handles a session heartbeat with the specified duration.
+         * Called when the associated event triggers.
+         */
+        void onCommand();
+    }
+
+    /**
+     * Provides a way to monitor current session's heartbeats and disconnects.
+     */
+    interface HeartbeatHandler {
+        /**
+         * Called on each successful heartbeat, with the duration it took to execute it.
          *
          * @param durationMs the duration of the heartbeat in milliseconds
          */
-        public void heartbeat(long durationMs);
+        void heartbeat(long durationMs);
 
         /**
-         * Handles a session heartbeat timeout.
+         * Called when session times out (e.g. the heartbeat fails). The session will
+         * automatically reconnect, but this gives the application a chance to react.
          */
-        public default void timeout() {}
+        default void timeout() {}
     }
 
+    /**
+     * Represents additional information about the client. Use it to describe your application.
+     *
+     * This library also injects its own client information, describing lower levels of the stack.
+     */
     class ClientInfo {
         private final String type;
 
         private final String version;
 
-        private final String comments;
+        private final Optional<String> comments;
 
+        /**
+         * Creates a new client information with a given type, version and comment.
+         *
+         * @param type the type of the client, required
+         * @param version the version of the client, required
+         * @param comments additional comments, optional
+         */
         public ClientInfo(String type, String version, String comments) {
             this.type = Objects.requireNonNull(type);
             this.version = Objects.requireNonNull(version);
-            this.comments = comments;
+            this.comments = Optional.ofNullable(comments);
         }
 
+        /**
+         * Returns the type of this client.
+         *
+         * @return the type
+         */
         public String getType() {
             return type;
         }
 
+        /**
+         * Returns the version of this client.
+         *
+         * @return the version
+         */
         public String getVersion() {
             return version;
         }
 
-        public String getComments() {
+        /**
+         * Returns the comments for this client.
+         *
+         * @return the comments
+         */
+        public Optional<String> getComments() {
             return comments;
-        }
-
-        public boolean hasComments() {
-            return comments != null;
         }
     }
 
-    public static class Builder {
+    /**
+     * A builder for creating a session
+     */
+    class Builder {
 
-        private String authtoken;
+        private final String authtoken;
 
-        private Duration heartbeatInterval;
-        private Duration heartbeatTolerance;
+        private Optional<Duration> heartbeatInterval = Optional.empty();
+        private Optional<Duration> heartbeatTolerance = Optional.empty();
 
-        private String metadata;
+        private Optional<String> metadata = Optional.empty();
 
-        private String serverAddr;
+        private Optional<String> serverAddr = Optional.empty();
         private byte[] caCert;
 
-        private StopCallback stopCallback;
-        private RestartCallback restartCallback;
-        private UpdateCallback updateCallback;
+        private CommandHandler stopCallback;
+        private CommandHandler restartCallback;
+        private CommandHandler updateCallback;
 
         private HeartbeatHandler heartbeatHandler;
 
         private final List<ClientInfo> clientInfos = new ArrayList<>();
 
-        public Builder() {
+        private Builder(String authtoken) {
+            this.authtoken = Objects.requireNonNullElse(authtoken, "");
         }
 
-        public Builder authtoken(String authtoken) {
-            this.authtoken = authtoken;
-            return this;
-        }
-
-        public boolean hasAuthtoken() {
-            return authtoken != null;
-        }
-
-        public String getAuthtoken() {
-            return authtoken;
-        }
-
+        /**
+         * Sets the heartbeat interval for this builder
+         *
+         * @param duration the interval duration
+         * @return the builder instance
+         */
         public Builder heartbeatInterval(Duration duration) {
-            this.heartbeatInterval = duration;
+            this.heartbeatInterval = Optional.of(duration);
             return this;
         }
 
-        public boolean hasHeartbeatInterval() {
-            return heartbeatInterval != null;
-        }
-
-        public long getHeartbeatIntervalMs() {
-            return heartbeatInterval.toMillis();
-        }
-
+        /**
+         * Sets the heartbeat tolerance for this builder
+         *
+         * @param duration the tolerance duration
+         * @return the builder instance
+         */
         public Builder heartbeatTolerance(Duration duration) {
-            this.heartbeatTolerance = duration;
+            this.heartbeatTolerance = Optional.of(duration);
             return this;
         }
 
-        public boolean hasHeartbeatTolerance() {
-            return heartbeatTolerance != null;
-        }
-
-        public long getHeartbeatToleranceMs() {
-            return heartbeatTolerance.toMillis();
-        }
-
+        /**
+         * Sets the metadata for this builder
+         *
+         * @param metadata the metadata
+         * @return the builder instance
+         */
         public Builder metadata(String metadata) {
-            this.metadata = metadata;
+            this.metadata = Optional.of(metadata);
             return this;
         }
 
-        public boolean hasMetadata() {
-            return metadata != null;
-        }
-
-        public String getMetadata() {
-            return metadata;
-        }
-
+        /**
+         * Sets the server address for this builder
+         *
+         * @param addr the server address
+         * @return the builder instance
+         */
         public Builder serverAddr(String addr) {
-            this.serverAddr = addr;
+            this.serverAddr = Optional.of(addr);
             return this;
         }
 
-        public boolean hasServerAddr() {
-            return serverAddr != null;
-        }
-
-        public String getServerAddr() {
-            return serverAddr;
-        }
-
+        /**
+         * Sets the ca certificate for this builder
+         *
+         * @param data the ca certificate
+         * @return the builder instance
+         */
         public Builder caCert(byte[] data) {
             this.caCert = data;
             return this;
         }
 
-        public byte[] getCaCert() {
-            return caCert;
-        }
-
-        public Builder stopCallback(StopCallback callback) {
+        /**
+         * Sets the stop callback handler for this builder
+         *
+         * @param callback the stop callback
+         * @return the builder instance
+         */
+        public Builder stopCallback(CommandHandler callback) {
             this.stopCallback = callback;
             return this;
         }
 
-        public StopCallback stopCallback() {
-            return stopCallback;
-        }
-
-        public Builder restartCallback(RestartCallback callback) {
+        /**
+         * Sets the restart callback handler for this builder
+         *
+         * @param callback the restart callback
+         * @return the builder instance
+         */
+        public Builder restartCallback(CommandHandler callback) {
             this.restartCallback = callback;
             return this;
         }
 
-        public RestartCallback restartCallback() {
-            return restartCallback;
-        }
-
-        public Builder updateCallback(UpdateCallback callback) {
+        /**
+         * Sets the update callback handler for this builder
+         *
+         * @param callback the update callback
+         * @return the builder instance
+         */
+        public Builder updateCallback(CommandHandler callback) {
             this.updateCallback = callback;
             return this;
         }
 
-        public UpdateCallback updateCallback() {
-            return updateCallback;
-        }
-
+        /**
+         * Sets the heartbeat handler for this builder
+         *
+         * @param heartbeatHandler the heartbeat callback
+         * @return the builder instance
+         */
         public Builder heartbeatHandler(HeartbeatHandler heartbeatHandler) {
             this.heartbeatHandler = heartbeatHandler;
             return this;
         }
 
-        public HeartbeatHandler heartbeatHandler() {
-            return heartbeatHandler;
-        }
-
+        /**
+         * Adds a client info to the list of client info objects for this builder
+         *
+         * @param name the client name
+         * @param version the client version
+         * @return the builder instance
+         */
         public Builder addClientInfo(String name, String version) {
             this.clientInfos.add(new ClientInfo(name, version, null));
             return this;
         }
 
+        /**
+         * Adds a client info to the list of client info objects for this builder
+         *
+         * @param name the client name
+         * @param version the client version
+         * @param comments the comments
+         * @return the builder instance
+         */
         public Builder addClientInfo(String name, String version, String comments) {
             this.clientInfos.add(new ClientInfo(name, version, comments));
             return this;
         }
 
+        /**
+         * Returns the ngrok authtoken associated with this builder.
+         *
+         * @return the authtoken
+         */
+        public String getAuthtoken() {
+            return authtoken;
+        }
+
+        /**
+         * Returns the heartbeat interval for this builder
+         *
+         * @return the heartbeat interval
+         */
+        public Optional<Duration> getHeartbeatInterval() {
+            return heartbeatInterval;
+        }
+
+        /**
+         * Returns the heartbeat tolerance for this builder
+         *
+         * @return the heartbeat tolerance
+         */
+        public Optional<Duration> getHeartbeatTolerance() {
+            return heartbeatTolerance;
+        }
+
+        /**
+         * Returns the metadata for this builder.
+         *
+         * @return the metadata
+         */
+        public Optional<String> getMetadata() {
+            return metadata;
+        }
+
+        /**
+         * Returns the server address for this builder.
+         *
+         * @return the server address
+         */
+        public Optional<String> getServerAddr() {
+            return serverAddr;
+        }
+
+        /**
+         * Returns the certificate for this builder.
+         *
+         * @return the certificate
+         */
+        public byte[] getCaCert() {
+            return caCert;
+        }
+
+        /**
+         * Returns the stop callback handler for this builder.
+         *
+         * @return the stop handler
+         */
+        public CommandHandler stopCallback() {
+            return stopCallback;
+        }
+
+        /**
+         * Returns the restart callback handler for this builder.
+         *
+         * @return the restart handler
+         */
+        public CommandHandler restartCallback() {
+            return restartCallback;
+        }
+
+        /**
+         * Returns the update callback handler for this builder.
+         *
+         * @return the update handler
+         */
+        public CommandHandler updateCallback() {
+            return updateCallback;
+        }
+
+        /**
+         * Returns the heartbeat handler for this builder.
+         *
+         * @return the heartbeat handler
+         */
+        public HeartbeatHandler heartbeatHandler() {
+            return heartbeatHandler;
+        }
+
+        /**
+         * Returns the list of client info objects to add for this builder
+         *
+         * @return the list of client info objects
+         */
         public List<ClientInfo> getClientInfos() {
             return clientInfos;
+        }
+
+        /**
+         * Connects a session with the current {@link Builder}
+         *
+         * @return newly created session
+         * @throws IOException if an I/O error occurs
+         */
+        public Session connect() throws IOException {
+            return Session.connect(this);
         }
     }
 }

@@ -12,34 +12,33 @@ public class DataTest {
     @Before
     public void setup() {
         System.setProperty("org.slf4j.simpleLogger.log.com.ngrok.Runtime", "trace");
-
     }
 
     @Test
     public void testSessionClose() throws Exception {
-        try (var session = Session.connect(Session.newBuilder().metadata("java-session"))) {
+        try (var session = Session.withAuthtokenFromEnv().metadata("java-session").connect()) {
             assertEquals("java-session", session.getMetadata());
         }
     }
 
     @Test
     public void testTunnelClose() throws Exception {
-        try (var session = Session.connect(Session.newBuilder());
-            var tunnel = session.httpTunnel(new HttpTunnel.Builder().metadata("java-tunnel"))) {
-            assertEquals("java-tunnel", tunnel.getMetadata());
-            Runtime.getLogger().log("info", "session", tunnel.getUrl());
+        try (var session = Session.withAuthtokenFromEnv().connect();
+             var listener = session.httpEndpoint().metadata("java-endpoint").listen()) {
+            assertEquals("java-endpoint", listener.getMetadata());
+            Runtime.getLogger().log("info", "session", listener.getUrl());
         }
     }
 
 //    @Test
     public void testPingPong() throws Exception {
-        var session = Session.connect(Session.newBuilder());
+        var session = Session.withAuthtokenFromEnv().connect();
         assertNotNull(session);
 
-        var tunnel = session.tcpTunnel();
-        assertNotNull(tunnel);
+        var listener = session.tcpEndpoint().listen();
+        assertNotNull(listener);
 
-        var conn = tunnel.accept();
+        var conn = listener.accept();
 
         var buf = ByteBuffer.allocateDirect(10);
         conn.read(buf);

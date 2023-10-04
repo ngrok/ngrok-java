@@ -5,36 +5,23 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 /**
- *  Represents a connection established over a tunnel.
+ * Represents a connection established over a listener.
  */
-public abstract class Connection implements AutoCloseable {
-    private final String remoteAddr;
-
+public interface Connection extends AutoCloseable {
     /**
-     * Creates a new connection with the given remote address.
+     * Returns the remote address that established this connection.
      *
-     * @param remoteAddr the remote address to connect to
+     * @return an internet address, in IP:port form
      */
-    public Connection(String remoteAddr) {
-        this.remoteAddr = remoteAddr;
-    }
-
-    /**
-     * Retrieves the remote address of the connection.
-     *
-     * @return the remote address of the connection
-     */
-    public String getRemoteAddr() {
-        return remoteAddr;
-    }
+    String getRemoteAddr();
 
     /**
      * Creates an {@link InetSocketAddress} for this connection's remote address.
      *
      * @return {@link InetSocketAddress} representing the internet address
      */
-    public InetSocketAddress inetAddress() {
-        var parts = remoteAddr.split(":");
+    default InetSocketAddress inetAddress() {
+        var parts = getRemoteAddr().split(":");
         return new InetSocketAddress(parts[0], Integer.parseInt(parts[1]));
     }
 
@@ -45,7 +32,7 @@ public abstract class Connection implements AutoCloseable {
      * @return the number of bytes read, or -1 if the end of the stream has been reached
      * @throws IOException if an I/O error occurs
      */
-    public abstract int read(ByteBuffer dst) throws IOException;
+    int read(ByteBuffer dst) throws IOException;
 
     /**
      * Writes a sequence of bytes to this connection from the given buffer.
@@ -54,12 +41,43 @@ public abstract class Connection implements AutoCloseable {
      * @return the number of bytes written
      * @throws IOException if an I/O error occurs
      */
-    public abstract int write(ByteBuffer src) throws IOException;
+    int write(ByteBuffer src) throws IOException;
 
     /**
      * Closes this connection and releases any system resources associated with it.
      *
      * @throws IOException if an I/O error occurs
      */
-    public abstract void close() throws IOException;
+    void close() throws IOException;
+
+    /**
+     * Represents a connection establish over an endpoint listener.
+     */
+    interface Endpoint extends Connection {
+        /**
+         * Returns the protocol of this connection.
+         *
+         * @return the protocol, for example {@code http} or {@code tcp}
+         */
+        String getProto();
+    }
+
+    /**
+     * Represents a connection established over an edge listener
+     */
+    interface Edge extends Connection {
+        /**
+         * Returns the edge type for this connection.
+         *
+         * @return the edge type, for example {@code https} or {@code tcp}
+         */
+        String getEdgeType();
+
+        /**
+         * Returns if this connection is passthrough TLS connection
+         *
+         * @return true if passthrough TLS, false otherwise
+         */
+        boolean isPassthroughTls();
+    }
 }

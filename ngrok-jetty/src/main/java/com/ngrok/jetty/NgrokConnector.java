@@ -1,9 +1,9 @@
 package com.ngrok.jetty;
 
-import com.ngrok.AgentTunnel;
+import com.ngrok.Listener;
+import com.ngrok.ListenerInfo;
 import com.ngrok.Session;
 
-import com.ngrok.Tunnel;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -14,29 +14,28 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * A class representing a connector implementation for ngrok tunnels.
+ * A class representing a connector implementation for ngrok listeners.
  */
 public class NgrokConnector extends AbstractConnector {
     private final Supplier<Session> sessionSupplier;
-    private final Function<Session, Tunnel> tunnelFunction;
+    private final Function<Session, com.ngrok.Listener> listenerFunction;
     private Session session;
-    private Tunnel tunnel;
+    private com.ngrok.Listener listener;
 
     /**
      * Constructs a new ngrok connector with the specified server, session supplier,
-     * and tunnel function.
+     * and listener function.
      *
-     * @param server          the server to use for the connector
-     * @param sessionSupplier the supplier for the session used by the connector
-     * @param tunnelFunction  the function for creating the tunnel used by the
-     *                        connector
+     * @param server           the server to use for the connector
+     * @param sessionSupplier  the supplier for the session used by the connector
+     * @param listenerFunction the function for creating the listener
      */
-    public NgrokConnector(Server server, Supplier<Session> sessionSupplier, Function<Session, Tunnel> tunnelFunction) {
+    public NgrokConnector(Server server, Supplier<Session> sessionSupplier, Function<Session, com.ngrok.Listener> listenerFunction) {
         super(server, null, null, null, -1, new HttpConnectionFactory());
         setDefaultProtocol(HttpVersion.HTTP_1_1.asString());
 
         this.sessionSupplier = sessionSupplier;
-        this.tunnelFunction = tunnelFunction;
+        this.listenerFunction = listenerFunction;
     }
 
     /**
@@ -47,10 +46,10 @@ public class NgrokConnector extends AbstractConnector {
     @Override
     protected void doStart() throws Exception {
         this.session = sessionSupplier.get();
-        this.tunnel = tunnelFunction.apply(this.session);
-        if (this.tunnel instanceof AgentTunnel) {
-            AgentTunnel agentTunnel = (AgentTunnel) this.tunnel;
-            System.out.printf("URL: %s\n", agentTunnel.getUrl());
+        this.listener = listenerFunction.apply(this.session);
+        if (this.listener instanceof ListenerInfo.Endpoint) {
+            var endpointInfo = (ListenerInfo.Endpoint) this.listener;
+            System.out.printf("URL: %s\n", endpointInfo.getUrl());
         }
 
         super.doStart();
@@ -65,7 +64,7 @@ public class NgrokConnector extends AbstractConnector {
      */
     @Override
     protected void accept(int i) throws IOException, InterruptedException {
-        var nconn = tunnel.accept();
+        var nconn = listener.accept();
         System.out.printf("[%s] Accepted for %d\n", nconn.getRemoteAddr(), i);
         var ep = new NgrokEndpoint(getScheduler(), nconn);
 
@@ -83,7 +82,7 @@ public class NgrokConnector extends AbstractConnector {
     @Override
     protected void doStop() throws Exception {
         super.doStop();
-        this.tunnel.close();
+        this.listener.close();
     }
 
     /**
