@@ -3,8 +3,11 @@ package com.ngrok;
 import java.io.IOException;
 
 /**
+ * Listener enables applications to handle incoming traffic proxied by ngrok. Each
+ * connection to ngrok is forwarded to an instance of a {@link Listener} for processing
+ * the implementation specific logic.
  *
- * @param <C>
+ * @param <C> the type of {@link Connection}s this listener accepts
  */
 public interface Listener<C extends Connection> extends ListenerInfo, AutoCloseable {
     /**
@@ -39,12 +42,14 @@ public interface Listener<C extends Connection> extends ListenerInfo, AutoClosea
     }
 
     /**
-     * Represents an endpoint {@link Listener}
+     * Represents an endpoint {@link Listener}. This is a listener that is configured
+     * by the application on demand, as it is starting to listen.
      */
     interface Endpoint extends Listener<Connection.Endpoint>, ListenerInfo.Endpoint {}
 
     /**
-     * Represents an edge {@link Listener}
+     * Represents an edge {@link Listener}. This is a listener that is statically
+     * configured in ngrok either through the Dashboard or via the API.
      */
     interface Edge extends Listener<Connection.Edge>, ListenerInfo.Edge {}
 }
