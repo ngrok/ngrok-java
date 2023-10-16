@@ -184,25 +184,23 @@ These callbacks may be useful to your application in order to invoke custom logi
 
 JARs are provided on GitHub and Maven Central for the following platforms:
 
-| OS         | i686 | x64 | aarch64 | armv7 |
-| ---------- | -----|-----|---------|-------|
-| Windows    |   ✓  |  ✓  |         |       |
-| MacOS      |      |  ✓  |    ✓    |       |
-| Linux      |   ✓  |  ✓  |    ✓    |       |
-| Android    |      |     |    ✓    |   ✓   |
+| OS      | i686 | x64 | aarch64 | armv7 |
+| ------- | ---- | --- | ------- | ----- |
+| Windows | ✓    | ✓   |         |       |
+| MacOS   |      | ✓   | ✓       |       |
+| Linux   | ✓    | ✓   | ✓       |       |
+| Android |      |     | ✓       | ✓     |
 
 # License
 
 This project is licensed under either of
 
-- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
-  http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or
-  http://opensource.org/licenses/MIT)
+- [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+- [MIT license](http://opensource.org/licenses/MIT)
 
 at your option.
 
-### Contribution
+# Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in ngrok-java by you, as defined in the Apache-2.0 license, shall be
