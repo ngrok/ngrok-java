@@ -21,8 +21,11 @@ public interface Connection extends AutoCloseable {
      * @return {@link InetSocketAddress} representing the internet address
      */
     default InetSocketAddress inetAddress() {
-        var parts = getRemoteAddr().split(":");
-        return new InetSocketAddress(parts[0], Integer.parseInt(parts[1]));
+        var addr = getRemoteAddr();
+        var lastColumn = addr.lastIndexOf(":");
+        var host = addr.substring(0, lastColumn);
+        var port = addr.substring(lastColumn + 1);
+        return new InetSocketAddress(host, Integer.parseInt(port));
     }
 
     /**
