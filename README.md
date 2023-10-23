@@ -87,6 +87,21 @@ If you want to use [jetty](https://www.eclipse.org/jetty/) integration, also add
 
 For example of how to setup your project, check out [ngrok-java-demo](https://github.com/ngrok/ngrok-java-demo/blob/main/pom.xml)
 
+## Gradle
+
+If you use gradle as a build system, you need to add to your build the following:
+
+```kotlin
+plugins {
+    id("com.google.osdetector").version("1.7.3")
+}
+
+dependencies {
+    implementation("com.ngrok:ngrok-java:0.4.1")
+    implementation("com.ngrok:ngrok-java-native:0.4.1:${osdetector.classifier}")
+}
+```
+
 # Documentation
 
 ## Quickstart
