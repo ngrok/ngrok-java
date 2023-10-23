@@ -96,9 +96,11 @@ plugins {
     id("com.google.osdetector").version("1.7.3")
 }
 
+var ngrokVersion = "0.4.1"
+
 dependencies {
-    implementation("com.ngrok:ngrok-java:0.4.1")
-    implementation("com.ngrok:ngrok-java-native:0.4.1:${osdetector.classifier}")
+    implementation("com.ngrok:ngrok-java:${ngrokVersion}")
+    implementation("com.ngrok:ngrok-java-native:${ngrokVersion}:${osdetector.classifier}")
 }
 ```
 
