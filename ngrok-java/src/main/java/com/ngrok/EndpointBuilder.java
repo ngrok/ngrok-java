@@ -17,12 +17,15 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     private Optional<String> forwardsTo = Optional.empty();
 
     /**
-     * Adds a CIDR to the list of allowed CIDRs for this builder.
+     * Adds a CIDR to the list of allowed CIDRs for this endpoint.
      *
      * @param allowCIDR The parameter "allowCIDR" is a string that represents a
      *                  Classless Inter-Domain Routing (CIDR) notation. It is used to specify
      *                  a range of IP addresses that are allowed. For example, 10.0.0.0/24
      * @return An instance the builder represented by type T
+     *
+     * @see <a href="https://ngrok.com/docs/http/ip-restrictions/">IP Restrictions</a>
+     * in the ngrok docs for additional details.
      */
     public T allowCIDR(String allowCIDR) {
         this.allowCIDR.add(allowCIDR);
@@ -30,12 +33,15 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     }
 
     /**
-     * Adds a CIDR to the list of denied CIDRs for this builder.
+     * Adds a CIDR to the list of denied CIDRs for this endpoint.
      *
      * @param denyCIDR The parameter "denyCIDR" is a string that represents a
      *                 Classless Inter-Domain Routing (CIDR) notation. It is used to specify a
      *                 range of IP addresses that should be denied access. For example, 10.0.0.0/24
      * @return An instance the builder represented by type T
+     *
+     * @see <a href="https://ngrok.com/docs/http/ip-restrictions/">IP Restrictions</a>
+     * in the ngrok docs for additional details.
      */
     public T denyCIDR(String denyCIDR) {
         this.denyCIDR.add(denyCIDR);
@@ -43,7 +49,7 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     }
 
     /**
-     * Sets the proxy protocol for this builder.
+     * Sets the proxy protocol for this endpoint.
      *
      * @param proxyProto the proxy protocol for the builder
      * @return An instance the builder represented by type T
@@ -54,7 +60,7 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     }
 
     /**
-     * Sets the forwarding address for this builder.
+     * Sets the forwarding address for this endpoint.
      *
      * @param forwardsTo the forwarding address for the builder
      * @return An instance the builder represented by type T
@@ -65,7 +71,7 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     }
 
     /**
-     * Returns a list of strings representing allowed CIDR addresses.
+     * Returns a list of strings representing allowed CIDR addresses for this endpoint.
      *
      * @return the currently set allow CIDR addresses
      */
@@ -74,7 +80,7 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     }
 
     /**
-     * Returns a list of strings representing denied CIDR addresses.
+     * Returns a list of strings representing denied CIDR addresses for this endpoint.
      *
      * @return the currently set deny CIDR addresses
      */
@@ -92,7 +98,7 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     }
 
     /**
-     * Returns the version of the proxy protocol for this builder.
+     * Returns the version of the proxy protocol for this endpoint.
      *
      * @return the currently set version of the proxy protocol
      */
@@ -101,7 +107,7 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     }
 
     /**
-     * Returns the forwarding address for this builder.
+     * Returns the forwarding address for this endpoint.
      *
      * @return the currently set forwarding address
      */

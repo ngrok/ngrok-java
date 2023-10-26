@@ -27,7 +27,7 @@ public class TcpBuilder extends EndpointBuilder<TcpBuilder>
     }
 
     /**
-     * Sets the remote address for this builder.
+     * Sets the TCP address to request for this TCP endpoint.
      *
      * @param remoteAddress the remote address
      * @return the builder instance

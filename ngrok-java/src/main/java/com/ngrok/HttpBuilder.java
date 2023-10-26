@@ -42,7 +42,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets the scheme for this builder.
+     * Sets the scheme for this HTTP endpoint. The default scheme is {@code Http.Scheme.HTTPS}.
      *
      * @param scheme the scheme
      * @return the builder instance
@@ -53,7 +53,10 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets the domain for this builder.
+     * Sets the domain to request for this HTTP endpoint. Any valid domain or hostname
+     * that you have previously registered with ngrok. If using a custom domain, this requires
+     * registering in the <a href="https://dashboard.ngrok.com/cloud-edge/domains">ngrok dashboard</a>
+     * and setting a DNS CNAME value.
      *
      * @param domain the domain
      * @return the builder instance
@@ -64,10 +67,13 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Set the mutual TLS certificate authority for this builder.
+     * Sets the certificates to use for client authentication for this HTTP endpoint.
      *
-     * @param mutualTLSCA the TLS certificate authority, in bytes
+     * @param mutualTLSCA the TLS certificate, in bytes
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/mutual-tls/">Mutual TLS</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder mutualTLSCA(byte[] mutualTLSCA) {
         this.mutualTLSCA = Objects.requireNonNull(mutualTLSCA);
@@ -75,9 +81,12 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Enables compression for this builder.
+     * Enables HTTP response compression for this HTTP endpoint.
      *
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/compression/">Compression</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder compression() {
         this.compression = true;
@@ -85,9 +94,12 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Enables WebSocket to TCP conversion for this builder.
+     * Enables Websocket to TCP conversion for this HTTP endpoint.
      *
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/websocket-tcp-converter/">Websocket TCP Converter</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder websocketTcpConversion() {
         this.websocketTcpConversion = true;
@@ -95,10 +107,14 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets the circuit breaker value for this builder.
+     * Sets the circuit breaker value for this HTTP endpoint. ngrok will reject requests
+     * when 5XX responses exceed this ratio.
      *
      * @param value the circuit breaker value, between 0 and 1
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/circuit-breaker/">Circuit Breaker</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder circuitBreaker(double value) {
         this.circuitBreaker = Optional.of(value);
@@ -106,11 +122,14 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Adds a header to the list of added request headers for this builder.
+     * Adds a header to the list of added request headers for this HTTP endpoint.
      *
      * @param name  the name of the header to add
      * @param value the value of the header to add
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/request-headers/">Request Headers</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder addRequestHeader(String name, String value) {
         this.requestHeaders.add(new Http.Header(name, value));
@@ -118,11 +137,14 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Adds a header to the list of added response headers for this builder.
+     * Adds a header to the list of added response headers for this HTTP endpoint.
      *
      * @param name  the name of the header to add
      * @param value the value of the header to add
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/response-headers/">Response Headers</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder addResponseHeader(String name, String value) {
         this.responseHeaders.add(new Http.Header(name, value));
@@ -130,10 +152,13 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Adds a header to the list of removed request headers for this builder.
+     * Adds a header to the list of removed request headers for this HTTP endpoint.
      *
      * @param name the name of the header to remove
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/request-headers/">Request Headers</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder removeRequestHeader(String name) {
         this.removeRequestHeaders.add(Objects.requireNonNull(name));
@@ -141,10 +166,13 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Adds a header to the list of removed response headers for this builder.
+     * Adds a header to the list of removed response headers for this HTTP endpoint.
      *
      * @param name the name of the header to remove
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/response-headers/">Response Headers</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder removeResponseHeader(String name) {
         this.removeResponseHeaders.add(Objects.requireNonNull(name));
@@ -152,10 +180,13 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets basic authentication for this builder.
+     * Sets basic authentication for this HTTP endpoint.
      *
      * @param options the basic authentication options
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/basic-auth/">Basic Auth</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder basicAuthOptions(Http.BasicAuth options) {
         this.basicAuthOptions = options;
@@ -163,10 +194,13 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets OAuth for this builder.
+     * Sets OAuth for this HTTP endpoint.
      *
      * @param options the OAuth options
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/oauth/">OAuth</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder oauthOptions(Http.OAuth options) {
         this.oauthOptions = options;
@@ -174,10 +208,13 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets OIDC for this builder.
+     * Sets OIDC for this HTTP endpoint.
      *
      * @param options the OIDC options
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/openid-connect/">OpenID Connect</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder oidcOptions(Http.OIDC options) {
         this.oidcOptions = options;
@@ -185,26 +222,39 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Sets webhook verification for this builder.
+     * Sets webhook verification for this HTTP endpoint.
      *
      * @param webhookVerification the webhook verification options
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/http/webhook-verification/">Webhook Verification</a>
+     * in the ngrok docs for additional details.
      */
     public HttpBuilder webhookVerification(Http.WebhookVerification webhookVerification) {
         this.webhookVerification = webhookVerification;
         return this;
     }
 
+    /**
+     * Returns the scheme for this HTTP endpoint.
+     *
+     * @return the scheme
+     */
     public Http.Scheme getScheme() {
         return scheme;
     }
 
+    /**
+     * Returns the scheme name for this HTTP endpoint.
+     *
+     * @return the scheme name, either empty, HTTPS or HTTP
+     */
     public Optional<String> getSchemeName() {
         return Optional.ofNullable(scheme).map((s) -> s.name);
     }
 
     /**
-     * Returns the domain on this builder.
+     * Returns the domain on this HTTP endpoint.
      *
      * @return the domain
      */
@@ -213,16 +263,16 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the mutual TLS certificate authority on this builder.
+     * Returns the certificates to use for client authentication for this HTTP endpoint.
      *
-     * @return the TLS certificate authority, in bytes.
+     * @return the TLS certificates, in bytes.
      */
     public byte[] getMutualTLSCA() {
         return mutualTLSCA;
     }
 
     /**
-     * Returns whether compression is enabled for this builder.
+     * Returns whether compression is enabled for this HTTP endpoint.
      *
      * @return {@code true} if compression is enabled, {@code false} otherwise
      */
@@ -231,7 +281,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns whether WebSocket to TCP conversion is enabled for this builder.
+     * Returns whether WebSocket to TCP conversion is enabled for this HTTP endpoint.
      *
      * @return {@code true} if WebSocket to TCP conversion is enabled, {@code false} otherwise
      */
@@ -240,7 +290,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the circuit breaker value for this builder.
+     * Returns the circuit breaker value for this HTTP endpoint.
      *
      * @return the circuit breaker value
      */
@@ -249,7 +299,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the list of request headers to add for this builder.
+     * Returns the list of request headers to add for this HTTP endpoint.
      *
      * @return the list of headers
      */
@@ -258,7 +308,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the list of response headers to add for this builder.
+     * Returns the list of response headers to add for this HTTP endpoint.
      *
      * @return the list of headers
      */
@@ -267,7 +317,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the list of request headers to remove for this builder.
+     * Returns the list of request headers to remove for this HTTP endpoint.
      *
      * @return the list of headers
      */
@@ -276,7 +326,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the list of response headers to remove for this builder.
+     * Returns the list of response headers to remove for this HTTP endpoint.
      *
      * @return the list of headers
      */
@@ -285,7 +335,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the basic authentication options for this builder.
+     * Returns the basic authentication options for this HTTP endpoint.
      *
      * @return the basic authentication options
      */
@@ -294,7 +344,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the OAuth options for this builder.
+     * Returns the OAuth options for this HTTP endpoint.
      *
      * @return the OAuth options
      */
@@ -303,7 +353,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the OIDC options for this builder.
+     * Returns the OIDC options for this HTTP endpoint.
      *
      * @return the OIDC options
      */
@@ -312,7 +362,7 @@ public class HttpBuilder extends EndpointBuilder<HttpBuilder>
     }
 
     /**
-     * Returns the webhook verification options for this builder.
+     * Returns the webhook verification options for this HTTP endpoint.
      *
      * @return the webhook verification options
      */
