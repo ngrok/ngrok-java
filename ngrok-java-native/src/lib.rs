@@ -36,10 +36,10 @@ use ngrok::{
     prelude::{EdgeConnInfo, EndpointConnInfo, ForwarderBuilder, TunnelBuilder},
     session::{CommandHandler, HeartbeatHandler, Restart, Stop, Update},
     tunnel::{
-        EdgeInfo, EndpointInfo, HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel, TunnelCloser,
-        TunnelInfo,
+        AcceptError, EdgeInfo, EndpointInfo, HttpTunnel, LabeledTunnel, TcpTunnel, TlsTunnel,
+        TunnelCloser, TunnelInfo,
     },
-    EdgeConn, EndpointConn, Session,
+    EdgeConn, EndpointConn, Error as NError, Session,
 };
 
 #[allow(clippy::all)]
@@ -285,6 +285,28 @@ fn io_exc<E: ToString>(e: E) -> Error<IOExceptionErr> {
 
 fn io_exc_err<T, E: ToString>(e: E) -> Result<T, Error<IOExceptionErr>> {
     Err(io_exc(e))
+}
+
+fn ngrok_exc<E: ngrok::Error>(e: E) -> Error<IOExceptionErr> {
+    match e.error_code() {
+        Some(code) => io_exc(format!("{}\n\n{}", code, e.msg())),
+        None => io_exc(e.msg()),
+    }
+}
+
+fn ngrok_exc_err<T, E: ngrok::Error>(e: E) -> Result<T, Error<IOExceptionErr>> {
+    Err(ngrok_exc(e))
+}
+
+fn accept_exc_err<T>(e: AcceptError) -> Result<T, Error<IOExceptionErr>> {
+    match e {
+        AcceptError::Reconnect(err) => match err.error_code() {
+            Some(code) => io_exc_err(format!("{}\n\n{}", code, err.msg())),
+            None => io_exc_err(err.msg()),
+        },
+        AcceptError::Transport(err) => io_exc_err(err),
+        _ => io_exc_err(e),
+    }
 }
 
 struct CommandHandlerCallback {
@@ -679,11 +701,11 @@ impl<'local> NativeSessionRsImpl<'local> {
         &self,
         this: ComNgrokNativeSession<'local>,
         tunnel_id: String,
-    ) -> Result<(), jaffi_support::Error<IOExceptionErr>> {
+    ) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
-        rt.block_on(sess.close_tunnel(tunnel_id)).map_err(io_exc)
+        rt.block_on(sess.close_tunnel(tunnel_id)).map_err(ngrok_exc)
     }
 }
 
@@ -784,7 +806,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jsess, sess);
                 Ok(jsess)
             }
-            Err(err) => io_exc_err(err),
+            Err(err) => ngrok_exc_err(err),
         }
     }
 
@@ -812,7 +834,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jlistener, tun);
                 Ok(jlistener)
             }
-            Err(err) => io_exc_err(err),
+            Err(err) => ngrok_exc_err(err),
         }
     }
 
@@ -843,7 +865,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jforwarder, tun);
                 Ok(jforwarder)
             }
-            Err(err) => io_exc_err(err),
+            Err(err) => ngrok_exc_err(err),
         }
     }
 
@@ -871,7 +893,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jlistener, tun);
                 Ok(jlistener)
             }
-            Err(err) => io_exc_err(err),
+            Err(err) => ngrok_exc_err(err),
         }
     }
 
@@ -902,7 +924,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jforwarder, tun);
                 Ok(jforwarder)
             }
-            Err(err) => io_exc_err(err),
+            Err(err) => ngrok_exc_err(err),
         }
     }
 
@@ -930,7 +952,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jlistener, tun);
                 Ok(jlistener)
             }
-            Err(err) => io_exc_err(err),
+            Err(err) => ngrok_exc_err(err),
         }
     }
 
@@ -961,7 +983,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jforwarder, tun);
                 Ok(jforwarder)
             }
-            Err(err) => io_exc_err(err),
+            Err(err) => ngrok_exc_err(err),
         }
     }
 
@@ -989,7 +1011,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jlistener, tun);
                 Ok(jlistener)
             }
-            Err(err) => io_exc_err(err),
+            Err(err) => ngrok_exc_err(err),
         }
     }
 
@@ -1020,7 +1042,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jforwarder, tun);
                 Ok(jforwarder)
             }
-            Err(err) => io_exc_err(err),
+            Err(err) => ngrok_exc_err(err),
         }
     }
 
@@ -1028,7 +1050,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         &self,
         this: ComNgrokNativeSession<'local>,
         id: String,
-    ) -> Result<(), jaffi_support::Error<IOExceptionErr>> {
+    ) -> Result<(), Error<IOExceptionErr>> {
         self.close_tunnel(this, id)
     }
 
@@ -1036,18 +1058,15 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         &self,
         this: ComNgrokNativeSession<'local>,
         id: String,
-    ) -> Result<(), jaffi_support::Error<IOExceptionErr>> {
+    ) -> Result<(), Error<IOExceptionErr>> {
         self.close_tunnel(this, id)
     }
 
-    fn close(
-        &self,
-        this: ComNgrokNativeSession<'local>,
-    ) -> Result<(), jaffi_support::Error<IOExceptionErr>> {
+    fn close(&self, this: ComNgrokNativeSession<'local>) -> Result<(), Error<IOExceptionErr>> {
         let rt = RT.get().expect("runtime not initialized");
 
         let mut sess: Session = self.take_native(this);
-        rt.block_on(sess.close()).map_err(io_exc)
+        rt.block_on(sess.close()).map_err(ngrok_exc)
     }
 }
 
@@ -1085,7 +1104,7 @@ impl<'local> com_ngrok::NativeTcpListenerRs<'local> for NativeTcpListenerRsImpl<
                 Ok(jconn)
             }
             Ok(None) => io_exc_err("could not get next conn"),
-            Err(err) => io_exc_err(err),
+            Err(err) => accept_exc_err(err),
         }
     }
 
@@ -1093,7 +1112,7 @@ impl<'local> com_ngrok::NativeTcpListenerRs<'local> for NativeTcpListenerRsImpl<
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: TcpTunnel = self.take_native(this);
-        rt.block_on(tun.close()).map_err(io_exc)
+        rt.block_on(tun.close()).map_err(ngrok_exc)
     }
 }
 
@@ -1127,7 +1146,7 @@ impl<'local> com_ngrok::NativeTcpForwarderRs<'local> for NativeTcpForwarderRsImp
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: Forwarder<TcpTunnel> = self.take_native(this);
-        rt.block_on(tun.close()).map_err(io_exc)
+        rt.block_on(tun.close()).map_err(ngrok_exc)
     }
 }
 
@@ -1165,7 +1184,7 @@ impl<'local> com_ngrok::NativeTlsListenerRs<'local> for NativeTlsListenerRsImpl<
                 Ok(jconn)
             }
             Ok(None) => io_exc_err("could not get next conn"),
-            Err(err) => io_exc_err(err),
+            Err(err) => accept_exc_err(err),
         }
     }
 
@@ -1173,7 +1192,7 @@ impl<'local> com_ngrok::NativeTlsListenerRs<'local> for NativeTlsListenerRsImpl<
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: TlsTunnel = self.take_native(this);
-        rt.block_on(tun.close()).map_err(io_exc)
+        rt.block_on(tun.close()).map_err(ngrok_exc)
     }
 }
 
@@ -1207,7 +1226,7 @@ impl<'local> com_ngrok::NativeTlsForwarderRs<'local> for NativeTlsForwarderRsImp
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: TlsTunnel = self.take_native(this);
-        rt.block_on(tun.close()).map_err(io_exc)
+        rt.block_on(tun.close()).map_err(ngrok_exc)
     }
 }
 
@@ -1245,7 +1264,7 @@ impl<'local> com_ngrok::NativeHttpListenerRs<'local> for NativeHttpListenerRsImp
                 Ok(jconn)
             }
             Ok(None) => io_exc_err("could not get next conn"),
-            Err(err) => io_exc_err(err),
+            Err(err) => accept_exc_err(err),
         }
     }
 
@@ -1256,7 +1275,7 @@ impl<'local> com_ngrok::NativeHttpListenerRs<'local> for NativeHttpListenerRsImp
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: HttpTunnel = self.take_native(this);
-        rt.block_on(tun.close()).map_err(io_exc)
+        rt.block_on(tun.close()).map_err(ngrok_exc)
     }
 }
 
@@ -1293,7 +1312,7 @@ impl<'local> com_ngrok::NativeHttpForwarderRs<'local> for NativeHttpForwarderRsI
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: HttpTunnel = self.take_native(this);
-        rt.block_on(tun.close()).map_err(io_exc)
+        rt.block_on(tun.close()).map_err(ngrok_exc)
     }
 }
 
@@ -1337,7 +1356,7 @@ impl<'local> com_ngrok::NativeEdgeListenerRs<'local> for NativeEdgeListenerRsImp
                 Ok(jconn)
             }
             Ok(None) => io_exc_err("could not get next conn"),
-            Err(err) => io_exc_err(err),
+            Err(err) => accept_exc_err(err),
         }
     }
 
@@ -1348,7 +1367,7 @@ impl<'local> com_ngrok::NativeEdgeListenerRs<'local> for NativeEdgeListenerRsImp
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: LabeledTunnel = self.take_native(this);
-        rt.block_on(tun.close()).map_err(io_exc)
+        rt.block_on(tun.close()).map_err(ngrok_exc)
     }
 }
 
@@ -1385,7 +1404,7 @@ impl<'local> com_ngrok::NativeEdgeForwarderRs<'local> for NativeEdgeForwarderRsI
         let rt = RT.get().expect("runtime not initialized");
 
         let mut tun: LabeledTunnel = self.take_native(this);
-        rt.block_on(tun.close()).map_err(io_exc)
+        rt.block_on(tun.close()).map_err(ngrok_exc)
     }
 }
 
