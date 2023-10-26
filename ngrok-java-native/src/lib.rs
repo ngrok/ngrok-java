@@ -378,7 +378,7 @@ impl<'local> NativeSessionRsImpl<'local> {
         &self,
         sess: MutexGuard<Session>,
         jttb: ComNgrokTcpBuilder<'local>,
-    ) -> TcpTunnelBuilder {
+    ) -> Result<TcpTunnelBuilder, Error<IOExceptionErr>> {
         let mut bldr = sess.tcp_endpoint();
 
         let jeb = jttb.as_com_ngrok_endpoint_builder();
@@ -411,14 +411,14 @@ impl<'local> NativeSessionRsImpl<'local> {
             bldr.remote_addr(remote_addr);
         }
 
-        bldr
+        Ok(bldr)
     }
 
     fn tls_builder(
         &self,
         sess: MutexGuard<Session>,
         jttb: ComNgrokTlsBuilder<'local>,
-    ) -> TlsTunnelBuilder {
+    ) -> Result<TlsTunnelBuilder, Error<IOExceptionErr>> {
         let mut bldr = sess.tls_endpoint();
 
         let jeb = jttb.as_com_ngrok_endpoint_builder();
@@ -470,17 +470,17 @@ impl<'local> NativeSessionRsImpl<'local> {
                 );
             }
             (cert, key) if cert.is_null() && key.is_null() => {}
-            _ => panic!("requires both terminationCertPEM and terminationKeyPEM"),
+            _ => return io_exc_err("requires both terminationCertPEM and terminationKeyPEM"),
         }
 
-        bldr
+        Ok(bldr)
     }
 
     fn http_builder(
         &self,
         sess: MutexGuard<Session>,
         jhtb: ComNgrokHttpBuilder<'local>,
-    ) -> HttpTunnelBuilder {
+    ) -> Result<HttpTunnelBuilder, Error<IOExceptionErr>> {
         let mut bldr = sess.http_endpoint();
 
         let jeb = jhtb.as_com_ngrok_endpoint_builder();
@@ -510,7 +510,7 @@ impl<'local> NativeSessionRsImpl<'local> {
 
         // from HttpTunnel.Builder
         if let Some(scheme) = jhtb.get_scheme_name(self.env).of_string(self.env) {
-            let scheme = Scheme::from_str(scheme.as_str()).expect("invalid scheme name");
+            let scheme = Scheme::from_str(scheme.as_str()).map_err(io_exc)?;
             bldr.scheme(scheme);
         }
 
@@ -623,14 +623,14 @@ impl<'local> NativeSessionRsImpl<'local> {
             bldr.webhook_verification(jwv.get_provider(self.env), jwv.get_secret(self.env));
         }
 
-        bldr
+        Ok(bldr)
     }
 
     fn edge_builder(
         &self,
         sess: MutexGuard<Session>,
         jltb: ComNgrokEdgeBuilder<'local>,
-    ) -> LabeledTunnelBuilder {
+    ) -> Result<LabeledTunnelBuilder, Error<IOExceptionErr>> {
         let mut bldr = sess.labeled_tunnel();
 
         let jmb = jltb.as_com_ngrok_metadata_builder();
@@ -657,7 +657,7 @@ impl<'local> NativeSessionRsImpl<'local> {
             })
             .expect("cannot iterate over labels map");
 
-        bldr
+        Ok(bldr)
     }
 
     fn labels_map(
@@ -713,16 +713,14 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             .get_heartbeat_interval(self.env)
             .of_duration_ms(self.env)
         {
-            bldr.heartbeat_interval(interval)
-                .expect("invalid heartbeat interval");
+            bldr.heartbeat_interval(interval).map_err(io_exc)?;
         }
 
         if let Some(tolerance) = jsb
             .get_heartbeat_tolerance(self.env)
             .of_duration_ms(self.env)
         {
-            bldr.heartbeat_tolerance(tolerance)
-                .expect("invalid heartbeat tolerance");
+            bldr.heartbeat_tolerance(tolerance).map_err(io_exc)?;
         }
 
         let mut session_metadata = String::from("");
@@ -732,8 +730,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         }
 
         if let Some(server_addr) = jsb.get_server_addr(self.env).of_string(self.env) {
-            bldr.server_addr(server_addr)
-                .expect("invalid server address");
+            bldr.server_addr(server_addr).map_err(io_exc)?;
         }
 
         let ca_cert = jsb.get_ca_cert(self.env);
@@ -799,7 +796,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
-        let bldr = self.tcp_builder(sess, jttb);
+        let bldr = self.tcp_builder(sess, jttb)?;
 
         let tun = rt.block_on(bldr.listen());
         match tun {
@@ -828,9 +825,9 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
-        let bldr = self.tcp_builder(sess, jttb);
+        let bldr = self.tcp_builder(sess, jttb)?;
 
-        let url = Url::parse(jurl.as_string(self.env).as_str()).expect("cannot parse url");
+        let url = Url::parse(jurl.as_string(self.env).as_str()).map_err(io_exc)?;
 
         let tun = rt.block_on(bldr.listen_and_forward(url));
         match tun {
@@ -858,7 +855,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
-        let bldr = self.tls_builder(sess, jttb);
+        let bldr = self.tls_builder(sess, jttb)?;
 
         let tun = rt.block_on(bldr.listen());
         match tun {
@@ -887,9 +884,9 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
-        let bldr = self.tls_builder(sess, jttb);
+        let bldr = self.tls_builder(sess, jttb)?;
 
-        let url = Url::parse(jurl.as_string(self.env).as_str()).expect("cannot parse url");
+        let url = Url::parse(jurl.as_string(self.env).as_str()).map_err(io_exc)?;
 
         let tun = rt.block_on(bldr.listen_and_forward(url));
         match tun {
@@ -917,7 +914,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
-        let bldr = self.http_builder(sess, jttb);
+        let bldr = self.http_builder(sess, jttb)?;
 
         let tun = rt.block_on(bldr.listen());
         match tun {
@@ -946,9 +943,9 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
-        let bldr = self.http_builder(sess, jttb);
+        let bldr = self.http_builder(sess, jttb)?;
 
-        let url = Url::parse(jurl.as_string(self.env).as_str()).expect("cannot parse url");
+        let url = Url::parse(jurl.as_string(self.env).as_str()).map_err(io_exc)?;
 
         let tun = rt.block_on(bldr.listen_and_forward(url));
         match tun {
@@ -976,7 +973,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
-        let bldr = self.edge_builder(sess, jttb);
+        let bldr = self.edge_builder(sess, jttb)?;
 
         let tun = rt.block_on(bldr.listen());
         match tun {
@@ -1005,9 +1002,9 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let rt = RT.get().expect("runtime not initialized");
 
         let sess: MutexGuard<Session> = self.get_native(this);
-        let bldr = self.edge_builder(sess, jttb);
+        let bldr = self.edge_builder(sess, jttb)?;
 
-        let url = Url::parse(jurl.as_string(self.env).as_str()).expect("cannot parse url");
+        let url = Url::parse(jurl.as_string(self.env).as_str()).map_err(io_exc)?;
 
         let tun = rt.block_on(bldr.listen_and_forward(url));
         match tun {
