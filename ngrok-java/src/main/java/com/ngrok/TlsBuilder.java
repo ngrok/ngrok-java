@@ -32,7 +32,10 @@ public class TlsBuilder extends EndpointBuilder<TlsBuilder>
     }
 
     /**
-     * Set the domain for this builder.
+     * Sets the domain to request for this TLS endpoint. Any valid domain or hostname
+     * that you have previously registered with ngrok. If using a custom domain, this requires
+     * registering in the <a href="https://dashboard.ngrok.com/cloud-edge/domains">ngrok dashboard</a>
+     * and setting a DNS CNAME value.
      *
      * @param domain the domain
      * @return the builder instance
@@ -43,10 +46,13 @@ public class TlsBuilder extends EndpointBuilder<TlsBuilder>
     }
 
     /**
-     * Set the mutual TLS certificate authority for this builder.
+     * Sets the certificates to use for client authentication for this TLS endpoint.
      *
-     * @param mutualTLSCA the TLS certificate authority, in bytes
+     * @param mutualTLSCA the TLS certificate, in bytes
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/tls/mutual-tls/">Mutual TLS</a>
+     * in the ngrok docs for additional details.
      */
     public TlsBuilder mutualTLSCA(byte[] mutualTLSCA) {
         this.mutualTLSCA = Objects.requireNonNull(mutualTLSCA);
@@ -54,11 +60,14 @@ public class TlsBuilder extends EndpointBuilder<TlsBuilder>
     }
 
     /**
-     *  Set TLS termination for this builder.
+     * Sets the certificate and key to use for TLS termination for this TLS endpoint.
      *
      * @param terminationCertPEM the TLS certificate, in bytes
      * @param terminationKeyPEM the TLS key, in bytes
      * @return the builder instance
+     *
+     * @see <a href="https://ngrok.com/docs/tls/tls-termination/">TLS Termination</a>
+     * in the ngrok docs for additional details.
      */
     public TlsBuilder termination(byte[] terminationCertPEM, byte[] terminationKeyPEM) {
         this.terminationCertPEM = Objects.requireNonNull(terminationCertPEM);
@@ -67,7 +76,7 @@ public class TlsBuilder extends EndpointBuilder<TlsBuilder>
     }
 
     /**
-     * Returns the domain on this builder.
+     * Returns the domain to request for this TLS endpoint.
      *
      * @return the domain
      */
@@ -76,16 +85,16 @@ public class TlsBuilder extends EndpointBuilder<TlsBuilder>
     }
 
     /**
-     * Returns the mutual TLS certificate authority on this builder.
+     * Returns the certificates to use for client authentication for this TLS endpoint.
      *
-     * @return the TLS certificate authority, in bytes.
+     * @return the TLS certificates, in bytes.
      */
     public byte[] getMutualTLSCA() {
         return mutualTLSCA;
     }
 
     /**
-     * Returns the TLS termination certificate PEM on this builder.
+     * Sets the certificate to use for TLS termination for this TLS endpoint.
      *
      * @return the TLS termination certificate, in bytes.
      */
@@ -94,7 +103,7 @@ public class TlsBuilder extends EndpointBuilder<TlsBuilder>
     }
 
     /**
-     * Returns the TLS termination key PEM on this builder.
+     * Sets the key to use for TLS termination for this TLS endpoint.
      *
      * @return the TLS termination key, in bytes.
      */

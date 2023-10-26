@@ -62,6 +62,9 @@ public interface Http {
 
     /**
      * Represents basic authentication options for an HTTP listener.
+     *
+     * @see <a href="https://ngrok.com/docs/http/basic-auth/">Basic Auth</a>
+     * in the ngrok docs for additional details.
      */
     class BasicAuth {
         private final String username;
@@ -100,6 +103,9 @@ public interface Http {
 
     /**
      * Represents OAuth configuration for an HTTP listener.
+     *
+     * @see <a href="https://ngrok.com/docs/http/oauth/">OAuth</a>
+     * in the ngrok docs for additional details.
      */
     class OAuth {
         private final String provider;
@@ -230,6 +236,9 @@ public interface Http {
 
     /**
      * Represents OIDC configuration for an HTTP listener.
+     *
+     * @see <a href="https://ngrok.com/docs/http/openid-connect/">OpenID Connect</a>
+     * in the ngrok docs for additional details.
      */
     class OIDC {
         private final String issuerUrl;
@@ -343,6 +352,9 @@ public interface Http {
 
     /**
      * Represents webhook verification options for an HTTP listener.
+     *
+     * @see <a href="https://ngrok.com/docs/http/webhook-verification/">Webhook Verification</a>
+     * in the ngrok docs for additional details.
      */
     class WebhookVerification {
         private final String provider;
