@@ -3,7 +3,6 @@ package com.ngrok;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * An abstract builder sharing common attributes of endpoint listener builders.
@@ -14,7 +13,6 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     private final List<String> allowCIDR = new ArrayList<>();
     private final List<String> denyCIDR = new ArrayList<>();
     private ProxyProto proxyProto = ProxyProto.None;
-    private Optional<String> forwardsTo = Optional.empty();
 
     /**
      * Adds a CIDR to the list of allowed CIDRs for this endpoint.
@@ -60,17 +58,6 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     }
 
     /**
-     * Sets the forwarding address for this endpoint.
-     *
-     * @param forwardsTo the forwarding address for the builder
-     * @return An instance the builder represented by type T
-     */
-    public T forwardsTo(String forwardsTo) {
-        this.forwardsTo = Optional.of(forwardsTo);
-        return (T) this;
-    }
-
-    /**
      * Returns a list of strings representing allowed CIDR addresses for this endpoint.
      *
      * @return the currently set allow CIDR addresses
@@ -104,14 +91,5 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
      */
     public long getProxyProtoVersion() {
         return proxyProto.version();
-    }
-
-    /**
-     * Returns the forwarding address for this endpoint.
-     *
-     * @return the currently set forwarding address
-     */
-    public Optional<String> getForwardsTo() {
-        return forwardsTo;
     }
 }
