@@ -47,6 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Cow::from("com.ngrok.TlsBuilder"),
         Cow::from("com.ngrok.AbstractEdge"),
         Cow::from("com.ngrok.AbstractEndpoint"),
+        Cow::from("com.ngrok.NgrokException"),
     ];
     let output_dir = PathBuf::from(std::env::var("OUT_DIR").expect("OUT_DIR not set"));
 
