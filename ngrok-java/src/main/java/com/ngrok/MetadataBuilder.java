@@ -1,5 +1,6 @@
 package com.ngrok;
 
+import java.net.URL;
 import java.util.Optional;
 
 /**
@@ -23,9 +24,16 @@ public abstract class MetadataBuilder<T extends MetadataBuilder> {
     }
 
     /**
-     * Sets the forwarding address for this builder.
+     * Sets the forwarding information for this builder.
+     * 
+     * If you need to automatically forward connections, you can use {@link Forwarder}, either
+     * through using {@link Forwarder.Builder} or directly calling methods on {@link Session}
+     * such as {@link Session#forwardHttp(HttpBuilder, URL)}.
      *
-     * @param forwardsTo the forwarding address for the builder
+     * NOTE: Using the {@link Forwarder} will override what is set here
+     * with the actual URL you're forwarding to.
+     *
+     * @param forwardsTo the forwarding information
      * @return An instance the builder represented by type T
      */
     public T forwardsTo(String forwardsTo) {
@@ -44,9 +52,9 @@ public abstract class MetadataBuilder<T extends MetadataBuilder> {
 
 
     /**
-     * Returns the forwarding address for this builder.
+     * Returns the forwarding information for this builder.
      *
-     * @return the currently set forwarding address
+     * @return the forwarding information
      */
     public Optional<String> getForwardsTo() {
         return forwardsTo;
