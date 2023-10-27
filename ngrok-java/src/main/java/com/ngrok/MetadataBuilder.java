@@ -13,7 +13,7 @@ public abstract class MetadataBuilder<T extends MetadataBuilder> {
     private Optional<String> forwardsTo = Optional.empty();
 
     /**
-     * Sets the metadata for this builder.
+     * Sets the metadata for this endpoint.
      *
      * @param metadata the metadata
      * @return An instance the builder represented by type T
@@ -24,7 +24,7 @@ public abstract class MetadataBuilder<T extends MetadataBuilder> {
     }
 
     /**
-     * Sets the forwarding information for this builder.
+     * Sets the forwarding information for this endpoint.
      * 
      * If you need to automatically forward connections, you can use {@link Forwarder}, either
      * through using {@link Forwarder.Builder} or directly calling methods on {@link Session}
@@ -42,7 +42,7 @@ public abstract class MetadataBuilder<T extends MetadataBuilder> {
     }
 
     /**
-     * Returns the metadata for this builder.
+     * Returns the metadata for this endpoint.
      *
      * @return the metadata
      */
@@ -50,9 +50,8 @@ public abstract class MetadataBuilder<T extends MetadataBuilder> {
         return metadata;
     }
 
-
     /**
-     * Returns the forwarding information for this builder.
+     * Returns the forwarding information for this endpoint.
      *
      * @return the forwarding information
      */
