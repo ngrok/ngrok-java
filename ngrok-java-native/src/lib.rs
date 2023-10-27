@@ -447,12 +447,16 @@ impl<'local> NativeSessionRsImpl<'local> {
         let jeb = jttb.as_com_ngrok_endpoint_builder();
         let jmb = jeb.as_com_ngrok_metadata_builder();
 
-        // from Tunnel.Builder
+        // from MetadataBuilder
         if let Some(metadata) = jmb.get_metadata(self.env).of_string(self.env) {
             bldr.metadata(metadata);
         }
 
-        // from EndpointTunnel.Builder
+        if let Some(forwards_to) = jmb.get_forwards_to(self.env).of_string(self.env) {
+            bldr.forwards_to(forwards_to);
+        }
+
+        // from EndpointBuilder
         let allow_cidr = jeb.get_allow_cidr(self.env);
         for i in 0..allow_cidr.size(self.env) {
             bldr.allow_cidr(allow_cidr.get_string(self.env, i));
@@ -465,11 +469,7 @@ impl<'local> NativeSessionRsImpl<'local> {
 
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
 
-        if let Some(forwards_to) = jeb.get_forwards_to(self.env).of_string(self.env) {
-            bldr.forwards_to(forwards_to);
-        }
-
-        // from TcpTunnel.Builder
+        // from TcpBuilder
         if let Some(remote_addr) = jttb.get_remote_address(self.env).of_string(self.env) {
             bldr.remote_addr(remote_addr);
         }
@@ -487,12 +487,16 @@ impl<'local> NativeSessionRsImpl<'local> {
         let jeb = jttb.as_com_ngrok_endpoint_builder();
         let jmb = jeb.as_com_ngrok_metadata_builder();
 
-        // from Tunnel.Builder
+        // from MetadataBuilder
         if let Some(metadata) = jmb.get_metadata(self.env).of_string(self.env) {
             bldr.metadata(metadata);
         }
 
-        // from EndpointTunnel.Builder
+        if let Some(forwards_to) = jmb.get_forwards_to(self.env).of_string(self.env) {
+            bldr.forwards_to(forwards_to);
+        }
+
+        // from EndpointBuilder
         let allow_cidr = jeb.get_allow_cidr(self.env);
         for i in 0..allow_cidr.size(self.env) {
             bldr.allow_cidr(allow_cidr.get_string(self.env, i));
@@ -505,11 +509,7 @@ impl<'local> NativeSessionRsImpl<'local> {
 
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
 
-        if let Some(forwards_to) = jeb.get_forwards_to(self.env).of_string(self.env) {
-            bldr.forwards_to(forwards_to);
-        }
-
-        // from TlsTunnel.Builder
+        // from TlsBuilder
         if let Some(domain) = jttb.get_domain(self.env).of_string(self.env) {
             bldr.domain(domain);
         }
@@ -549,12 +549,16 @@ impl<'local> NativeSessionRsImpl<'local> {
         let jeb = jhtb.as_com_ngrok_endpoint_builder();
         let jmb = jeb.as_com_ngrok_metadata_builder();
 
-        // from Tunnel.Builder
+        // from MetadataBuilder
         if let Some(metadata) = jmb.get_metadata(self.env).of_string(self.env) {
             bldr.metadata(metadata);
         }
 
-        // from EndpointTunnel.Builder
+        if let Some(forwards_to) = jmb.get_forwards_to(self.env).of_string(self.env) {
+            bldr.forwards_to(forwards_to);
+        }
+
+        // from EndpointBuilder
         let allow_cidr = jeb.get_allow_cidr(self.env);
         for i in 0..allow_cidr.size(self.env) {
             bldr.allow_cidr(allow_cidr.get_string(self.env, i));
@@ -567,11 +571,7 @@ impl<'local> NativeSessionRsImpl<'local> {
 
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
 
-        if let Some(forwards_to) = jeb.get_forwards_to(self.env).of_string(self.env) {
-            bldr.forwards_to(forwards_to);
-        }
-
-        // from HttpTunnel.Builder
+        // from HttpBuilder
         if let Some(scheme) = jhtb.get_scheme_name(self.env).of_string(self.env) {
             let scheme = Scheme::from_str(scheme.as_str()).map_err(io_exc)?;
             bldr.scheme(scheme);
@@ -698,12 +698,16 @@ impl<'local> NativeSessionRsImpl<'local> {
 
         let jmb = jltb.as_com_ngrok_metadata_builder();
 
-        // from Tunnel.Builder
+        // from MetadataBuilder
         if let Some(metadata) = jmb.get_metadata(self.env).of_string(self.env) {
             bldr.metadata(metadata);
         }
 
-        // from LabeledTunnel.Builder
+        if let Some(forwards_to) = jmb.get_forwards_to(self.env).of_string(self.env) {
+            bldr.forwards_to(forwards_to);
+        }
+
+        // from EdgeBuilder
         let labels = self
             .env
             .get_map(jltb.get_labels(self.env).into())
