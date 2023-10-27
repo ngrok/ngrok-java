@@ -5,10 +5,11 @@ use com_ngrok::{
     ComNgrokNativeEdgeForwarder, ComNgrokNativeEdgeListener, ComNgrokNativeEndpointConnection,
     ComNgrokNativeHttpForwarder, ComNgrokNativeHttpListener, ComNgrokNativeSession,
     ComNgrokNativeSessionClass, ComNgrokNativeTcpForwarder, ComNgrokNativeTcpListener,
-    ComNgrokNativeTlsForwarder, ComNgrokNativeTlsListener, ComNgrokRuntimeLogger,
-    ComNgrokSessionBuilder, ComNgrokSessionClientInfo, ComNgrokSessionCommandHandler,
-    ComNgrokSessionHeartbeatHandler, ComNgrokTcpBuilder, ComNgrokTlsBuilder, IOException,
-    IOExceptionErr, JavaNetUrl, JavaUtilList, JavaUtilMap, JavaUtilOptional,
+    ComNgrokNativeTlsForwarder, ComNgrokNativeTlsListener, ComNgrokNgrokException,
+    ComNgrokRuntimeLogger, ComNgrokSessionBuilder, ComNgrokSessionClientInfo,
+    ComNgrokSessionCommandHandler, ComNgrokSessionHeartbeatHandler, ComNgrokTcpBuilder,
+    ComNgrokTlsBuilder, IOException, IOExceptionErr, JavaNetUrl, JavaUtilList, JavaUtilMap,
+    JavaUtilOptional,
 };
 use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
@@ -20,10 +21,10 @@ use url::Url;
 
 use jaffi_support::{
     jni::{
-        objects::{GlobalRef, JByteBuffer, JObject, JString, JValue},
+        objects::{GlobalRef, JByteBuffer, JObject, JString, JThrowable, JValue},
         JNIEnv, JavaVM,
     },
-    Error,
+    Error, NullObject,
 };
 
 use ngrok::{
@@ -189,6 +190,27 @@ trait JNIExt<'local> {
             )
         }
     }
+
+    fn ngrok_exc_err<
+        T: std::convert::From<jaffi_support::jni::objects::JObject<'local>>,
+        E: NError,
+    >(
+        &self,
+        err: E,
+    ) -> Result<T, Error<IOExceptionErr>> {
+        if let Some(code) = err.error_code() {
+            let nexc = ComNgrokNgrokException::new_1com_ngrok_ngrok_exception(
+                *self.get_env(),
+                code.into(),
+                err.msg(),
+            );
+            if self.get_env().throw(nexc).is_ok() {
+                return Ok(NullObject::null());
+            }
+            return io_exc_err(format!("{}\n\n{}", code, err.msg()));
+        }
+        io_exc_err(err)
+    }
 }
 
 impl<'local> JavaUtilList<'local> {
@@ -294,10 +316,6 @@ fn ngrok_exc<E: ngrok::Error>(e: E) -> Error<IOExceptionErr> {
     }
 }
 
-fn ngrok_exc_err<T, E: ngrok::Error>(e: E) -> Result<T, Error<IOExceptionErr>> {
-    Err(ngrok_exc(e))
-}
-
 fn accept_exc_err<T>(e: AcceptError) -> Result<T, Error<IOExceptionErr>> {
     match e {
         AcceptError::Reconnect(err) => match err.error_code() {
@@ -306,6 +324,15 @@ fn accept_exc_err<T>(e: AcceptError) -> Result<T, Error<IOExceptionErr>> {
         },
         AcceptError::Transport(err) => io_exc_err(err),
         _ => io_exc_err(e),
+    }
+}
+
+impl<'local> jaffi_support::jni::descriptors::Desc<'local, JThrowable<'local>>
+    for ComNgrokNgrokException<'local>
+{
+    fn lookup(self, _: &JNIEnv<'local>) -> jaffi_support::jni::errors::Result<JThrowable<'local>> {
+        let thr: JObject = self.into();
+        Ok(thr.into())
     }
 }
 
@@ -806,7 +833,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jsess, sess);
                 Ok(jsess)
             }
-            Err(err) => ngrok_exc_err(err),
+            Err(err) => self.ngrok_exc_err(err),
         }
     }
 
@@ -820,8 +847,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
         let sess: MutexGuard<Session> = self.get_native(this);
         let bldr = self.tcp_builder(sess, jttb)?;
 
-        let tun = rt.block_on(bldr.listen());
-        match tun {
+        match rt.block_on(bldr.listen()) {
             Ok(tun) => {
                 let jlistener = ComNgrokNativeTcpListener::new_1com_ngrok_native_tcp_listener(
                     self.env,
@@ -834,7 +860,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jlistener, tun);
                 Ok(jlistener)
             }
-            Err(err) => ngrok_exc_err(err),
+            Err(err) => self.ngrok_exc_err(err),
         }
     }
 
@@ -865,7 +891,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jforwarder, tun);
                 Ok(jforwarder)
             }
-            Err(err) => ngrok_exc_err(err),
+            Err(err) => self.ngrok_exc_err(err),
         }
     }
 
@@ -893,7 +919,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jlistener, tun);
                 Ok(jlistener)
             }
-            Err(err) => ngrok_exc_err(err),
+            Err(err) => self.ngrok_exc_err(err),
         }
     }
 
@@ -924,7 +950,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jforwarder, tun);
                 Ok(jforwarder)
             }
-            Err(err) => ngrok_exc_err(err),
+            Err(err) => self.ngrok_exc_err(err),
         }
     }
 
@@ -952,7 +978,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jlistener, tun);
                 Ok(jlistener)
             }
-            Err(err) => ngrok_exc_err(err),
+            Err(err) => self.ngrok_exc_err(err),
         }
     }
 
@@ -983,7 +1009,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jforwarder, tun);
                 Ok(jforwarder)
             }
-            Err(err) => ngrok_exc_err(err),
+            Err(err) => self.ngrok_exc_err(err),
         }
     }
 
@@ -1011,7 +1037,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jlistener, tun);
                 Ok(jlistener)
             }
-            Err(err) => ngrok_exc_err(err),
+            Err(err) => self.ngrok_exc_err(err),
         }
     }
 
@@ -1042,7 +1068,7 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
                 self.set_native(jforwarder, tun);
                 Ok(jforwarder)
             }
-            Err(err) => ngrok_exc_err(err),
+            Err(err) => self.ngrok_exc_err(err),
         }
     }
 
