@@ -20,3 +20,7 @@ install:
 .PHONY: reinstall
 reinstall:
 	mvn clean install --global-toolchains toolchains.xml
+
+.PHONY: javadoc
+javadoc:
+	mvn javadoc:aggregate --global-toolchains toolchains.xml -Dmaven.javadoc.skippedModules=ngrok-java-native

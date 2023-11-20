@@ -19,7 +19,7 @@ jobs:
           distribution: "temurin"
           cache: "maven"
       - name: Build Javadocs
-        run: mvn javadoc:aggregate
+        run: mvn javadoc:aggregate -Dmaven.javadoc.skippedModules=ngrok-java-native
       - name: Archive Javadoc site
         run: tar --directory target/site/apidocs -cvf "$RUNNER_TEMP/artifact.tar" .
       - name: Upload Archive
