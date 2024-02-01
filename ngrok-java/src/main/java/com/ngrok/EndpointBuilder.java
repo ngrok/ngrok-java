@@ -3,16 +3,18 @@ package com.ngrok;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An abstract builder sharing common attributes of endpoint listener builders.
  *
  * @param <T> the concrete builder impl to return to satisfy the builder pattern
  */
-public abstract class EndpointBuilder<T extends EndpointBuilder> extends MetadataBuilder<T> {
+public abstract class EndpointBuilder<T extends EndpointBuilder<T>> extends MetadataBuilder<T> {
     private final List<String> allowCIDR = new ArrayList<>();
     private final List<String> denyCIDR = new ArrayList<>();
     private ProxyProto proxyProto = ProxyProto.None;
+    private Optional<String> policy = Optional.empty();
 
     /**
      * Adds a CIDR to the list of allowed CIDRs for this endpoint.
@@ -58,6 +60,17 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
     }
 
     /**
+     * Sets the policy for this endpoint.
+     *
+     * @param policy the policy for the builder
+     * @return An instance the builder represented by type T
+     */
+    public T policy(final String policy) {
+        this.policy = Optional.ofNullable(policy);
+        return (T) this;
+    }
+
+    /**
      * Returns a list of strings representing allowed CIDR addresses for this endpoint.
      *
      * @return the currently set allow CIDR addresses
@@ -91,5 +104,14 @@ public abstract class EndpointBuilder<T extends EndpointBuilder> extends Metadat
      */
     public long getProxyProtoVersion() {
         return proxyProto.version();
+    }
+
+    /**
+     * Returns the policy for this endpoint.
+     *
+     * @return the currently set policy
+     */
+    public Optional<String> getPolicy() {
+        return this.policy;
     }
 }

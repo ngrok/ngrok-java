@@ -24,13 +24,13 @@ public class DataTest {
     @Test
     public void testTunnelClose() throws Exception {
         try (var session = Session.withAuthtokenFromEnv().connect();
-             var listener = session.httpEndpoint().metadata("java-endpoint").listen()) {
+                var listener = session.httpEndpoint().metadata("java-endpoint").listen()) {
             assertEquals("java-endpoint", listener.getMetadata());
             Runtime.getLogger().log("info", "session", listener.getUrl());
         }
     }
 
-//    @Test
+    // @Test
     public void testPingPong() throws Exception {
         var session = Session.withAuthtokenFromEnv().connect();
         assertNotNull(session);
@@ -47,5 +47,17 @@ public class DataTest {
         conn.write(buf);
 
         assertTrue(true);
+    }
+
+    @Test
+    public void testPolicy() throws Exception {
+        final ClassLoader classLoader = getClass().getClassLoader();
+        final String policy = new String(classLoader.getResourceAsStream("policy.json").readAllBytes());
+
+        try (var session = Session.withAuthtokenFromEnv().connect();
+                var listener = session.httpEndpoint().metadata("java-endpoint").policy(policy).listen()) {
+            assertEquals("java-endpoint", listener.getMetadata());
+            Runtime.getLogger().log("info", "session", listener.getUrl());
+        }
     }
 }
