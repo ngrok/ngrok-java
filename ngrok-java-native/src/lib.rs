@@ -469,6 +469,10 @@ impl<'local> NativeSessionRsImpl<'local> {
 
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
 
+        if let Some(policy) = jeb.get_policy(self.env).of_string(self.env) {
+            bldr.policy(policy.as_str()).map_err(io_exc)?;
+        }
+
         // from TcpBuilder
         if let Some(remote_addr) = jttb.get_remote_address(self.env).of_string(self.env) {
             bldr.remote_addr(remote_addr);
@@ -508,6 +512,10 @@ impl<'local> NativeSessionRsImpl<'local> {
         }
 
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
+
+        if let Some(policy) = jeb.get_policy(self.env).of_string(self.env) {
+            bldr.policy(policy.as_str()).map_err(io_exc)?;
+        }
 
         // from TlsBuilder
         if let Some(domain) = jttb.get_domain(self.env).of_string(self.env) {
@@ -570,6 +578,10 @@ impl<'local> NativeSessionRsImpl<'local> {
         }
 
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
+
+        if let Some(policy) = jeb.get_policy(self.env).of_string(self.env) {
+            bldr.policy(policy.as_str()).map_err(io_exc)?;
+        }
 
         // from HttpBuilder
         if let Some(scheme) = jhtb.get_scheme_name(self.env).of_string(self.env) {
