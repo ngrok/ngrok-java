@@ -38,3 +38,4 @@ jobs:
         run: mvn --batch-mode release:prepare -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}

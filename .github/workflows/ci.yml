@@ -27,9 +27,9 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Verification
+        run: mvn --batch-mode verify 
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
-        run: mvn --batch-mode verify 
 
   udeps:
     name: Udeps
