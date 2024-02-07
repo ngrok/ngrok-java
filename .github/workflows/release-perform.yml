@@ -100,6 +100,8 @@ jobs:
           distribution: "temurin"
       - name: Run mvn package for native
         run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
+        env:
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -137,6 +139,7 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
 
   deploy-github:
     if: ${{ github.event.inputs.deploy }}
@@ -161,3 +164,4 @@ jobs:
         run: mvn --batch-mode deploy --activate-profiles ci-distro,github-distro --fail-at-end
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
