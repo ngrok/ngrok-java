@@ -32,7 +32,7 @@
                         <configuration>
                             <toolchains>
                                 <jdk>
-                                    <version>11</version>
+                                    <version>17</version>
                                 </jdk>
                             </toolchains>
                         </configuration>
@@ -53,6 +53,11 @@
             <artifactId>jetty-server</artifactId>
             <version>${jetty.version}</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
     </dependencies>
 </project>
