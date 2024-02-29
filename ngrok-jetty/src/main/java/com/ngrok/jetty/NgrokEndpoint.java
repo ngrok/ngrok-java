@@ -30,8 +30,7 @@ public class NgrokEndpoint extends AbstractEndPoint {
     }
 
     /**
-     * Throws an {@link UnsupportedOperationException}, as incomplete flush is not
-     * supported
+     * Throws an {@link UnsupportedOperationException}, as incomplete flush is not supported
      * by ngrok endpoints.
      *
      * @throws UnsupportedOperationException if the method is called
