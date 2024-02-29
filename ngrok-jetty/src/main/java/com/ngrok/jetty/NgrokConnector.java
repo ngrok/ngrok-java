@@ -1,7 +1,5 @@
 package com.ngrok.jetty;
 
-import com.ngrok.Listener;
-import com.ngrok.ListenerInfo;
 import com.ngrok.Session;
 
 import org.eclipse.jetty.http.HttpVersion;
@@ -47,11 +45,6 @@ public class NgrokConnector extends AbstractConnector {
     protected void doStart() throws Exception {
         this.session = sessionSupplier.get();
         this.listener = listenerFunction.apply(this.session);
-        if (this.listener instanceof ListenerInfo.Endpoint) {
-            var endpointInfo = (ListenerInfo.Endpoint) this.listener;
-            System.out.printf("URL: %s\n", endpointInfo.getUrl());
-        }
-
         super.doStart();
     }
 
@@ -64,14 +57,13 @@ public class NgrokConnector extends AbstractConnector {
      */
     @Override
     protected void accept(int i) throws IOException, InterruptedException {
-        var nconn = listener.accept();
-        System.out.printf("[%s] Accepted for %d\n", nconn.getRemoteAddr(), i);
-        var ep = new NgrokEndpoint(getScheduler(), nconn);
+        var ngrokConnection = listener.accept();
+        var ep = new NgrokEndpoint(getScheduler(), ngrokConnection);
 
-        var conn = getDefaultConnectionFactory().newConnection(this, ep);
-        ep.setConnection(conn);
+        var connection = getDefaultConnectionFactory().newConnection(this, ep);
+        ep.setConnection(connection);
 
-        conn.onOpen();
+        connection.onOpen();
     }
 
     /**
