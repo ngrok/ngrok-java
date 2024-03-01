@@ -1,5 +1,6 @@
 package com.ngrok.jetty;
 
+import com.ngrok.Connection;
 import com.ngrok.Session;
 
 import org.eclipse.jetty.http.HttpVersion;
@@ -14,11 +15,11 @@ import java.util.function.Supplier;
 /**
  * A class representing a connector implementation for ngrok listeners.
  */
-public class NgrokConnector extends AbstractConnector {
+public class NgrokConnector<C extends Connection> extends AbstractConnector {
     private final Supplier<Session> sessionSupplier;
-    private final Function<Session, com.ngrok.Listener> listenerFunction;
+    private final Function<Session, com.ngrok.Listener<C>> listenerFunction;
     private Session session;
-    private com.ngrok.Listener listener;
+    private com.ngrok.Listener<C> listener;
 
     /**
      * Constructs a new ngrok connector with the specified server, session supplier,
@@ -28,7 +29,7 @@ public class NgrokConnector extends AbstractConnector {
      * @param sessionSupplier  the supplier for the session used by the connector
      * @param listenerFunction the function for creating the listener
      */
-    public NgrokConnector(Server server, Supplier<Session> sessionSupplier, Function<Session, com.ngrok.Listener> listenerFunction) {
+    public NgrokConnector(Server server, Supplier<Session> sessionSupplier, Function<Session, com.ngrok.Listener<C>> listenerFunction) {
         super(server, null, null, null, -1, new HttpConnectionFactory());
         setDefaultProtocol(HttpVersion.HTTP_1_1.asString());
 

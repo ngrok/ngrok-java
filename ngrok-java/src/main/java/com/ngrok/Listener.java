@@ -31,7 +31,7 @@ public interface Listener<C extends Connection> extends ListenerInfo, AutoClosea
      *
      * @param <L> the concrete type for the listener.
      */
-    interface Builder<L extends Listener> {
+    interface Builder<L extends Listener<?>> {
         /**
          * Starts listening and accepting new connections.
          *

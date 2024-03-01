@@ -1,5 +1,6 @@
 package com.ngrok.net;
 
+import com.ngrok.Connection;
 import com.ngrok.Listener;
 
 import java.io.IOException;
@@ -10,15 +11,15 @@ import java.net.SocketException;
 /**
  * A server socket for accepting connections from a {@link Listener}.
  */
-public class ListenerServerSocket extends ServerSocket {
+public class ListenerServerSocket<C extends Connection> extends ServerSocket {
     /**
      * Creates a new server socket for the given listener.
      *
      * @param listener the listener to accept connections for
      * @throws IOException if an I/O error occurs
      */
-    public ListenerServerSocket(Listener listener) throws IOException {
-        super(new ListenerSocketImpl(listener));
+    public ListenerServerSocket(Listener<C> listener) throws IOException {
+        super(new ListenerSocketImpl<C>(listener));
     }
 
     /**

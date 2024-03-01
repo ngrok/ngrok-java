@@ -8,7 +8,7 @@ import java.util.Optional;
  *
  * @param <T> the concrete builder impl to return to satisfy the builder pattern
  */
-public abstract class MetadataBuilder<T extends MetadataBuilder> {
+public abstract class MetadataBuilder<T extends MetadataBuilder<?>> {
     private Optional<String> metadata = Optional.empty();
     private Optional<String> forwardsTo = Optional.empty();
 

@@ -1,5 +1,6 @@
 package com.ngrok.net;
 
+import com.ngrok.Connection;
 import com.ngrok.Listener;
 
 import java.io.IOException;
@@ -9,15 +10,15 @@ import java.net.SocketImpl;
  * An implementation of the {@link AbstractSocketImpl} interface for
  * accepting connections on a {@link Listener}
  */
-public class ListenerSocketImpl extends AbstractSocketImpl {
-    private final Listener listener;
+public class ListenerSocketImpl<C extends Connection> extends AbstractSocketImpl {
+    private final Listener<C> listener;
 
     /**
      * Creates a new listener socket implementation for the given listener.
      *
      * @param listener the listener
      */
-    public ListenerSocketImpl(Listener listener) {
+    public ListenerSocketImpl(Listener<C> listener) {
         this.listener = listener;
     }
 
