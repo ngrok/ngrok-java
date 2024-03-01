@@ -4,9 +4,12 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.*;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.ProviderNotFoundException;
+import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 
 /**
@@ -52,30 +55,21 @@ class Runtime {
      */
     public static void load() {
         String filename = getLibname();
-        String tempDir = System.getProperty("java.io.tmpdir");
-        File temporaryDir = new File(tempDir, "libngrok_" + System.nanoTime());
-        temporaryDir.mkdir();
-        temporaryDir.deleteOnExit();
-
-        File temp = new File(temporaryDir, filename);
-        try (InputStream is = Runtime.class.getResourceAsStream("/" + filename)) {
-            Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException | NullPointerException e) {
-            temp.delete();
-            throw new RuntimeException(e);
-        }
-
         try {
+            File temp = Files.createTempFile(filename,".tmp").toFile();
+            temp.deleteOnExit();
+            try (InputStream is = Runtime.class.getResourceAsStream("/" + filename)) {
+                Files.copy(is, temp.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } 
+
             System.load(temp.getAbsolutePath());
-        } finally {
             if (isPosixCompliant()) {
                 // Assume POSIX compliant file system, can be deleted after loading
-                temp.delete();
-            } else {
-                // Assume non-POSIX, and don't delete until last file descriptor closed
-                temp.deleteOnExit();
+                Files.delete(temp.toPath());
             }
-        }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } 
     }
 
     /**
