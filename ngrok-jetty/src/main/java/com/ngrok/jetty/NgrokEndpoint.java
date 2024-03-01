@@ -1,13 +1,14 @@
 package com.ngrok.jetty;
 
-import com.ngrok.Connection;
+import java.io.IOException;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jetty.io.AbstractEndPoint;
 import org.eclipse.jetty.util.thread.Scheduler;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.TimeUnit;
+import com.ngrok.Connection;
 
 /**
  * A class representing an endpoint for ngrok connection.
@@ -88,5 +89,15 @@ public class NgrokEndpoint extends AbstractEndPoint {
     @Override
     public Object getTransport() {
         throw new UnsupportedOperationException("ohnoe");
+    }
+
+    @Override
+    public SocketAddress getLocalSocketAddress() {
+        return null;
+    }
+
+    @Override
+    public SocketAddress getRemoteSocketAddress() {
+        return conn.inetAddress();
     }
 }
