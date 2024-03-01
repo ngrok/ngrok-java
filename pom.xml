@@ -15,7 +15,7 @@
         <!-- dependencies -->
         <slf4j.version>2.0.6</slf4j.version>
         <junit.version>4.13.2</junit.version>
-        <jetty.version>11.0.14</jetty.version>
+        <jetty.version>12.0.6</jetty.version>
 
         <!-- plugins -->
         <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>

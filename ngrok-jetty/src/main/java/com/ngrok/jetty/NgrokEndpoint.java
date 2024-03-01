@@ -81,7 +81,8 @@ public class NgrokEndpoint extends AbstractEndPoint {
     }
 
     /**
-     * Throws an {@link UnsupportedOperationException}, as the transport used by ngrok
+     * Throws an {@link UnsupportedOperationException}, as the transport used by
+     * ngrok
      * endpoints is not supported.
      *
      * @throws UnsupportedOperationException if the method is called
