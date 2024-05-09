@@ -99,7 +99,12 @@ jobs:
         with:
           java-version: "11"
           distribution: "temurin"
-      - name: Install maven
+      - name: Run mvn package for native
+        if: ${{ ! matrix.config.container }}
+        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
+        env:
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+      - name: Install maven (with container)
         if: matrix.config.container
         run: |
           curl -sL https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o maven.tar.gz
@@ -109,12 +114,7 @@ jobs:
           echo "JAVA_11_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
           echo "JAVA_17_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
           echo "./apache-maven-3.8.8/bin/" >> $GITHUB_PATH
-      - name: Run mvn package for native
-        if: ${{ ! matrix.config.container }}
-        run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
-        env:
-          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
-      - name: Run mvn package for native
+      - name: Run mvn package for native (with container)
         if: matrix.config.container
         run: mvn --global-toolchains toolchains.xml --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
         env:
