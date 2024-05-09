@@ -53,9 +53,9 @@ jobs:
         run: |
           curl -sL https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o maven.tar.gz
           tar xvf maven.tar.gz
-          ls -la
+          rm maven.tar.gz
       - name: Verification
-        run: mvn --batch-mode verify 
+        run: apache-maven-3.8.8/mvn --batch-mode verify 
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
 
