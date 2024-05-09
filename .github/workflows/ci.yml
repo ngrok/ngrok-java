@@ -58,6 +58,8 @@ jobs:
         run: apache-maven-3.8.8/bin/mvn --global-toolchains toolchains.xml --batch-mode verify 
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+          JAVA_11_HOME: $JAVA_HOME_11_X64
+          JAVA_17_HOME: $JAVA_HOME_17_X64
 
   udeps:
     name: Udeps
