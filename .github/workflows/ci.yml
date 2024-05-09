@@ -31,6 +31,29 @@ jobs:
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
 
+  build-glibc-2.17:
+    name: Build Ngrok Java
+    runs-on: ubuntu-latest
+    container: quay.io/pypa/manylinux2014_x86_64
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-gnu
+      - uses: ./.github/workflows/rust-cache
+      - uses: actions/setup-java@v3
+        with:
+          java-version: |
+            17
+            11
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Verification
+        run: mvn --batch-mode verify 
+        env:
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+
   udeps:
     name: Udeps
     runs-on: ubuntu-latest
