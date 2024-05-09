@@ -49,6 +49,8 @@ jobs:
             11
           distribution: 'temurin'
           cache: 'maven'
+      - name: list opt
+        run: ls -la /opt
       - name: Verification
         run: mvn --batch-mode verify 
         env:
