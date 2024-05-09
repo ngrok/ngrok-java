@@ -111,7 +111,13 @@ jobs:
           echo "JAVA_17_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
           echo "./apache-maven-3.8.8/bin/" >> $GITHUB_PATH
       - name: Run mvn package for native
+        if: ${{ ! matrix.config.container }}
         run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
+        env:
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+      - name: Run mvn package for native
+        if: matrix.config.container
+        run: mvn --global-toolchains toolchains.xml --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
       - name: Upload Artifacts
