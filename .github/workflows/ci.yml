@@ -55,7 +55,7 @@ jobs:
           tar xvf maven.tar.gz
           rm maven.tar.gz
       - name: Verification
-        run: apache-maven-3.8.8/mvn --batch-mode verify 
+        run: apache-maven-3.8.8/bin/mvn --batch-mode verify 
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
 
