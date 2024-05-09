@@ -49,8 +49,11 @@ jobs:
             11
           distribution: 'temurin'
           cache: 'maven'
-      - name: list opt
-        run: ls -la /opt
+      - name: Install maven
+        run: |
+          curl -sL https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o maven.tar.gz
+          tar xvf maven.tar.gz
+          ls -la
       - name: Verification
         run: mvn --batch-mode verify 
         env:
