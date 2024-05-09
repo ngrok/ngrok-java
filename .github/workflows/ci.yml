@@ -54,12 +54,12 @@ jobs:
           curl -sL https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o maven.tar.gz
           tar xvf maven.tar.gz
           rm maven.tar.gz
+          echo "JAVA_11_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
+          echo "JAVA_17_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
       - name: Verification
         run: apache-maven-3.8.8/bin/mvn --global-toolchains toolchains.xml --batch-mode verify 
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
-          JAVA_11_HOME: $JAVA_HOME_11_X64
-          JAVA_17_HOME: $JAVA_HOME_17_X64
 
   udeps:
     name: Udeps
