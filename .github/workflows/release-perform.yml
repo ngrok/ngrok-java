@@ -22,7 +22,6 @@ jobs:
             target: i686-unknown-linux-gnu
             artifact: linux-x86_32
             linker: gcc-multilib
-            container: quay.io/pypa/manylinux_2_24_i686
             pkgFlags: "--define 'skipTests'"
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
@@ -33,7 +32,6 @@ jobs:
             artifact: linux-aarch_64
             linker: gcc-aarch64-linux-gnu
             pkgFlags: "--define 'skipTests'"
-            container: quay.io/pypa/manylinux_2_24_aarch64
           - host: ubuntu-latest
             target: armv7-linux-androideabi
             artifact: linux-android-armv7
@@ -102,6 +100,15 @@ jobs:
         with:
           java-version: "11"
           distribution: "temurin"
+      - name: Install maven
+        if: matrix.config.container
+        run: |
+          curl -sL https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o maven.tar.gz
+          echo "332088670d14fa9ff346e6858ca0acca304666596fec86eea89253bd496d3c90deae2be5091be199f48e09d46cec817c6419d5161fb4ee37871503f472765d00 maven.tar.gz" | sha512sum -c -
+          tar xvf maven.tar.gz
+          rm maven.tar.gz
+          echo "JAVA_11_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
+          echo "JAVA_17_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
       - name: Run mvn package for native
         run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
         env:
