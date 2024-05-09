@@ -31,7 +31,7 @@ jobs:
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
 
-  build-glibc-2.17:
+  build-glibc-2_17:
     name: Build Ngrok Java
     runs-on: ubuntu-latest
     container: quay.io/pypa/manylinux2014_x86_64
