@@ -108,7 +108,7 @@ jobs:
           tar xvf maven.tar.gz
           rm maven.tar.gz
           echo "JAVA_11_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
-          echo "JAVA_17_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
+          echo "JAVA_17_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
           echo "./apache-maven-3.8.8/bin/" >> $GITHUB_PATH
       - name: Run mvn package for native
         if: ${{ ! matrix.config.container }}
