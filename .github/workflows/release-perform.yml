@@ -49,13 +49,12 @@ jobs:
           - host: windows-latest
             target: x86_64-pc-windows-msvc
             artifact: windows-x86_64
-          - host: macos-latest
+          - host: macos-13
             target: x86_64-apple-darwin
             artifact: osx-x86_64
           - host: macos-latest
             target: aarch64-apple-darwin
             artifact: osx-aarch_64
-            pkgFlags: "--define 'skipTests'"
     runs-on: ${{ matrix.config.host }}
     container: ${{ matrix.config.container }}
     steps:
