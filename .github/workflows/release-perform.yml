@@ -26,6 +26,7 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact: linux-x86_64
+            container: quay.io/pypa/manylinux_2_24_x86_64
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             artifact: linux-aarch_64
@@ -48,14 +49,14 @@ jobs:
           - host: windows-latest
             target: x86_64-pc-windows-msvc
             artifact: windows-x86_64
-          - host: macos-latest
+          - host: macos-13
             target: x86_64-apple-darwin
             artifact: osx-x86_64
           - host: macos-latest
             target: aarch64-apple-darwin
             artifact: osx-aarch_64
-            pkgFlags: "--define 'skipTests'"
     runs-on: ${{ matrix.config.host }}
+    container: ${{ matrix.config.container }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -99,7 +100,23 @@ jobs:
           java-version: "11"
           distribution: "temurin"
       - name: Run mvn package for native
+        if: ${{ ! matrix.config.container }}
         run: mvn --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
+        env:
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+      - name: Install maven (with container)
+        if: matrix.config.container
+        run: |
+          curl -sL https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o maven.tar.gz
+          echo "332088670d14fa9ff346e6858ca0acca304666596fec86eea89253bd496d3c90deae2be5091be199f48e09d46cec817c6419d5161fb4ee37871503f472765d00 maven.tar.gz" | sha512sum -c -
+          tar xvf maven.tar.gz
+          rm maven.tar.gz
+          echo "JAVA_11_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
+          echo "JAVA_17_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
+          echo "./apache-maven-3.8.8/bin/" >> $GITHUB_PATH
+      - name: Run mvn package for native (with container)
+        if: matrix.config.container
+        run: mvn --global-toolchains toolchains.xml --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
       - name: Upload Artifacts

@@ -31,6 +31,38 @@ jobs:
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
 
+  build-glibc-2_24:
+    name: Build Ngrok Java (glibc 2.24)
+    runs-on: ubuntu-latest
+    container: quay.io/pypa/manylinux_2_24_x86_64
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-gnu
+      - uses: ./.github/workflows/rust-cache
+      - uses: actions/setup-java@v3
+        with:
+          java-version: |
+            17
+            11
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Install maven
+        run: |
+          curl -sL https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o maven.tar.gz
+          echo "332088670d14fa9ff346e6858ca0acca304666596fec86eea89253bd496d3c90deae2be5091be199f48e09d46cec817c6419d5161fb4ee37871503f472765d00 maven.tar.gz" | sha512sum -c -
+          tar xvf maven.tar.gz
+          rm maven.tar.gz
+          echo "JAVA_11_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
+          echo "JAVA_17_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
+          echo "./apache-maven-3.8.8/bin/" >> $GITHUB_PATH
+      - name: Verification
+        run: mvn --global-toolchains toolchains.xml --batch-mode verify 
+        env:
+          NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
+
   udeps:
     name: Udeps
     runs-on: ubuntu-latest
