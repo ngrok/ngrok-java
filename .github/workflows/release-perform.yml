@@ -26,7 +26,7 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact: linux-x86_64
-            container: quay.io/pypa/manylinux_2_24_x86_64
+            container: quay.io/pypa/manylinux_2_28_x86_64
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             artifact: linux-aarch_64
