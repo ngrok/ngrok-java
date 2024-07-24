@@ -34,7 +34,7 @@ jobs:
   build-glibc-2_24:
     name: Build Ngrok Java (glibc 2.24)
     runs-on: ubuntu-latest
-    container: quay.io/pypa/manylinux_2_24_x86_64
+    container: quay.io/pypa/manylinux_2_28_x86_64
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master
