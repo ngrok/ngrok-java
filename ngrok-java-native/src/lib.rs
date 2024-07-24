@@ -470,7 +470,11 @@ impl<'local> NativeSessionRsImpl<'local> {
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
 
         if let Some(policy) = jeb.get_policy(self.env).of_string(self.env) {
-            bldr.policy(policy.as_str()).map_err(io_exc)?;
+            bldr.traffic_policy(policy.as_str());
+        }
+
+        if let Some(traffic_policy) = jeb.get_traffic_policy(self.env).of_string(self.env) {
+            bldr.traffic_policy(traffic_policy);
         }
 
         // from TcpBuilder
@@ -514,7 +518,11 @@ impl<'local> NativeSessionRsImpl<'local> {
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
 
         if let Some(policy) = jeb.get_policy(self.env).of_string(self.env) {
-            bldr.policy(policy.as_str()).map_err(io_exc)?;
+            bldr.traffic_policy(policy.as_str());
+        }
+
+        if let Some(traffic_policy) = jeb.get_traffic_policy(self.env).of_string(self.env) {
+            bldr.traffic_policy(traffic_policy);
         }
 
         // from TlsBuilder
@@ -580,7 +588,11 @@ impl<'local> NativeSessionRsImpl<'local> {
         bldr.proxy_proto(ProxyProto::from(jeb.get_proxy_proto_version(self.env)));
 
         if let Some(policy) = jeb.get_policy(self.env).of_string(self.env) {
-            bldr.policy(policy.as_str()).map_err(io_exc)?;
+            bldr.traffic_policy(policy.as_str());
+        }
+
+        if let Some(traffic_policy) = jeb.get_traffic_policy(self.env).of_string(self.env) {
+            bldr.traffic_policy(traffic_policy);
         }
 
         // from HttpBuilder
