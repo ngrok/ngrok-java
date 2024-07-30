@@ -31,10 +31,14 @@ jobs:
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
 
-  build-glibc-2_24:
-    name: Build Ngrok Java (glibc 2.24)
+  # We need to target older glibc (as old as possible) to support customers on very old Linux versions. 
+  # If we end up needing to target older than 2.8, we will have to do a special workaround, as actions/checkout 
+  # won't work without newer glibc versions:
+  # https://github.com/actions/checkout/issues/1809
+  build-glibc-2_28:
+    name: Build Ngrok Java (glibc 2.28)
     runs-on: ubuntu-latest
-    container: quay.io/pypa/manylinux_2_24_x86_64
+    container: quay.io/pypa/manylinux_2_28_x86_64
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@master

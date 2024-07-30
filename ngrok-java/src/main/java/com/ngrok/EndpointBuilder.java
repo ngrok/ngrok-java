@@ -14,7 +14,7 @@ public abstract class EndpointBuilder<T extends EndpointBuilder<T>> extends Meta
     private final List<String> allowCIDR = new ArrayList<>();
     private final List<String> denyCIDR = new ArrayList<>();
     private ProxyProto proxyProto = ProxyProto.None;
-    private Optional<String> policy = Optional.empty();
+    private Optional<String> trafficPolicy = Optional.empty();
 
     /**
      * Adds a CIDR to the list of allowed CIDRs for this endpoint.
@@ -60,13 +60,24 @@ public abstract class EndpointBuilder<T extends EndpointBuilder<T>> extends Meta
     }
 
     /**
-     * Sets the policy for this endpoint.
+     * DEPRECATED: use trafficPolicy instead.
      *
      * @param policy the policy for the builder
      * @return An instance the builder represented by type T
      */
     public T policy(final String policy) {
-        this.policy = Optional.ofNullable(policy);
+        this.trafficPolicy = Optional.ofNullable(policy);
+        return (T) this;
+    }
+
+    /**
+     * Sets the policy for this endpoint.
+     *
+     * @param trafficPolicy the policy for the builder
+     * @return An instance the builder represented by type T
+     */
+    public T trafficPolicy(final String trafficPolicy) {
+        this.trafficPolicy = Optional.ofNullable(trafficPolicy);
         return (T) this;
     }
 
@@ -107,11 +118,20 @@ public abstract class EndpointBuilder<T extends EndpointBuilder<T>> extends Meta
     }
 
     /**
-     * Returns the policy for this endpoint.
+     * DEPRECATED: use getTrafficPolicy instead.
      *
      * @return the currently set policy
      */
     public Optional<String> getPolicy() {
-        return this.policy;
+        return this.trafficPolicy;
+    }
+
+    /**
+     * Returns the policy for this endpoint.
+     *
+     * @return the currently set policy
+     */
+    public Optional<String> getTrafficPolicy() {
+        return this.trafficPolicy;
     }
 }

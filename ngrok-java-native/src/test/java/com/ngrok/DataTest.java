@@ -60,4 +60,16 @@ public class DataTest {
             Runtime.getLogger().log("info", "session", listener.getUrl());
         }
     }
+
+    @Test
+    public void testTrafficPolicy() throws Exception {
+        final ClassLoader classLoader = getClass().getClassLoader();
+        final String trafficPolicy = new String(classLoader.getResourceAsStream("policy.json").readAllBytes());
+
+        try (var session = Session.withAuthtokenFromEnv().connect();
+                var listener = session.httpEndpoint().metadata("java-endpoint").trafficPolicy(trafficPolicy).listen()) {
+            assertEquals("java-endpoint", listener.getMetadata());
+            Runtime.getLogger().log("info", "session", listener.getUrl());
+        }
+    }
 }

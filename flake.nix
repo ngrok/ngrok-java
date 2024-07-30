@@ -32,6 +32,7 @@
           "rust-src"
           "rustc"
           "rustfmt"
+          "rust-analyzer"
         ];
         java-toolchain = with pkgs; [
           openjdk17_headless
