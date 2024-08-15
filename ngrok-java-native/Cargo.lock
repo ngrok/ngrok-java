@@ -543,7 +543,7 @@ dependencies = [
 [[package]]
 name = "jaffi_support"
 version = "0.2.0"
-source = "git+https://github.com/ngrok-oss/jaffi.git?branch=nikolay/add-bool-support#e1ad672ac2ade60757b843c9b92bf6d1dad90c63"
+source = "git+https://github.com/ngrok-oss/jaffi.git?branch=josh/lower-jni-version#131d4bbff0b4aed69fe5a8fe53920c8974d5d357"
 dependencies = [
  "jni",
 ]
