@@ -22,18 +22,26 @@
       let
         pkgs = import nixpkgs {
           inherit system;
+          config.android_sdk.accept_license = true;
           overlays = [
             fenix-flake.overlays.default
           ];
         };
-        rust-toolchain = pkgs.fenix.complete.withComponents [
-          "cargo"
-          "clippy"
-          "rust-src"
-          "rustc"
-          "rustfmt"
-          "rust-analyzer"
+        rust-toolchain = with pkgs.fenix; combine [
+          (complete.withComponents [
+            "cargo"
+            "clippy"
+            "rust-src"
+            "rustc"
+            "rustfmt"
+            "rust-analyzer"
+          ])
+          targets.aarch64-linux-android.latest.rust-std
+          targets.armv7-linux-androideabi.latest.rust-std
+          targets.arm-linux-androideabi.latest.rust-std
         ];
+        ANDROID_NDK = with pkgs.androidenv.androidPkgs; "${ndk-bundle}/libexec/android-sdk/ndk/${ndk-bundle.version}";
+        ndk-path = "${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/bin";
         java-toolchain = with pkgs; [
           openjdk17_headless
           openjdk11_headless
@@ -105,14 +113,19 @@
         '';
       in
       {
+        legacyPackages = pkgs;
         devShell = pkgs.mkShell {
+          inherit ANDROID_NDK;
           CHALK_OVERFLOW_DEPTH = 3000;
           CHALK_SOLVER_MAX_SIZE = 1500;
           OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
           OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
-          RUSTC_WRAPPER="${pkgs.sccache}/bin/sccache";
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
           JAVA_11_HOME = "${pkgs.openjdk11_headless}";
           JAVA_17_HOME = "${pkgs.openjdk17_headless}";
+          CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER = "${ndk-path}/aarch64-linux-android21-clang";
+          CC_aarch64_linux_android = "${ndk-path}/aarch64-linux-android21-clang";
+          AR_aarch64_linux_android = "${ndk-path}/llvm-ar";
           buildInputs = with pkgs; [
             rust-toolchain
             java-toolchain
