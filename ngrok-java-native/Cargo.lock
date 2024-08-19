@@ -527,8 +527,7 @@ checksum = "453ad9f582a441959e5f0d088b02ce04cfe8d51a8eaf077f12ac6d3e94164ca6"
 [[package]]
 name = "jaffi"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39c12eb8e7429e3f94aef72ffeffc92490c8ce0b6018ed058996a4b260e18590"
+source = "git+https://github.com/ngrok-oss/jaffi.git?branch=josh/lower-jni-version#131d4bbff0b4aed69fe5a8fe53920c8974d5d357"
 dependencies = [
  "cafebabe",
  "enum-as-inner",
