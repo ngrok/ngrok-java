@@ -25,3 +25,4 @@ crate_type = ["cdylib"]
 
 [patch.crates-io]
 jaffi_support = { git = 'https://github.com/ngrok-oss/jaffi.git', branch = 'josh/lower-jni-version' }
+jaffi = { git = 'https://github.com/ngrok-oss/jaffi.git', branch = 'josh/lower-jni-version' }
