@@ -110,9 +110,10 @@
           CHALK_SOLVER_MAX_SIZE = 1500;
           OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
           OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
-          RUSTC_WRAPPER="${pkgs.sccache}/bin/sccache";
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
           JAVA_11_HOME = "${pkgs.openjdk11_headless}";
           JAVA_17_HOME = "${pkgs.openjdk17_headless}";
+          RUSTFLAGS = "-C link-arg=-Wl,-soname,libngrok_java.so";
           buildInputs = with pkgs; [
             rust-toolchain
             java-toolchain
