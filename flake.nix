@@ -126,6 +126,7 @@
           CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER = "${ndk-path}/aarch64-linux-android21-clang";
           CC_aarch64_linux_android = "${ndk-path}/aarch64-linux-android21-clang";
           AR_aarch64_linux_android = "${ndk-path}/llvm-ar";
+          RUSTFLAGS = "-C link-arg=-Wl,-soname,libngrok_java.so";
           buildInputs = with pkgs; [
             rust-toolchain
             java-toolchain
@@ -134,6 +135,7 @@
             cargo-udeps
             semver-checks
             extract-version
+            jdt-language-server
           ] ++ lib.optionals stdenv.isDarwin [
             # nix darwin stdenv has broken libiconv: https://github.com/NixOS/nixpkgs/issues/158331
             libiconv
