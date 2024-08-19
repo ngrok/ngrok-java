@@ -88,7 +88,7 @@ jobs:
           if [[ "$adjusted_target" == *"aarch64"* ]]; then
             compiler="aarch64-linux-android21-clang"
           else
-            compiler="armv7a-linux-androideabi19-clang"
+            compiler="armv7a-linux-androideabi21-clang"
           fi
 
           echo "CC_${adjusted_target}=${ndk_root}/${compiler}" >> $GITHUB_ENV
