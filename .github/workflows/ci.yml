@@ -83,10 +83,8 @@ jobs:
           cache: 'maven'
       - name: generate rust files
         run: mvn --batch-mode --projects ngrok-java-native --also-make process-classes
-      - uses: actions-rs/cargo@v1
-        with:
-          command: udeps
-          args: '--workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml'
+      - name: Udeps
+        run: cargo udeps --workspace --all-targets --all-features --manifest-path ngrok-java-native/Cargo.toml
 
   fmt:
     name: Rustfmt
@@ -96,10 +94,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: jrobsonchase/direnv-action@v0.7
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: '--all --manifest-path ngrok-java-native/Cargo.toml -- --check'
+      - name: Rustfmt
+        run: cargo fmt --all --manifest-path ngrok-java-native/Cargo.toml -- --check
 
   clippy:
     name: Clippy
@@ -117,7 +113,5 @@ jobs:
           cache: 'maven'
       - name: generate rust files
         run: mvn --batch-mode --projects ngrok-java-native --also-make process-classes
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: '--all-targets --all-features --workspace --manifest-path ngrok-java-native/Cargo.toml -- -D warnings'
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features --workspace --manifest-path ngrok-java-native/Cargo.toml -- -D warnings
