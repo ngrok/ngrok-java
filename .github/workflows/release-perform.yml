@@ -58,7 +58,7 @@ jobs:
     runs-on: ${{ matrix.config.host }}
     container: ${{ matrix.config.container }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: v${{ github.event.inputs.releaseVersion }}
       - uses: dtolnay/rust-toolchain@master
@@ -95,7 +95,7 @@ jobs:
           echo "AR_${adjusted_target}=${ndk_root}/llvm-ar" >> $GITHUB_ENV
           echo "CARGO_TARGET_${adjusted_target_upper}_LINKER=${ndk_root}/${compiler}" >> $GITHUB_ENV
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: "11"
           distribution: "temurin"
@@ -132,10 +132,10 @@ jobs:
     needs:
       - build-native
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: v${{ github.event.inputs.releaseVersion }}
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           java-version: |
             17
@@ -164,10 +164,10 @@ jobs:
     needs:
       - build-native
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: v${{ github.event.inputs.releaseVersion }}
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           java-version: |
             17
