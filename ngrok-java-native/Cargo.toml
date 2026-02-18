@@ -21,7 +21,7 @@ tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 url = "2.4.1"
 
 [lib]
-crate_type = ["cdylib"]
+crate-type = ["cdylib"]
 
 [patch.crates-io]
 jaffi_support = { git = 'https://github.com/ngrok-oss/jaffi.git', branch = 'josh/lower-jni-version' }

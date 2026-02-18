@@ -45,6 +45,7 @@ use ngrok::{
 
 #[allow(clippy::all)]
 #[allow(dead_code)]
+#[allow(mismatched_lifetime_syntaxes)]
 mod com_ngrok {
     include!(concat!(env!("OUT_DIR"), "/generated_jaffi.rs"));
 }
@@ -176,19 +177,6 @@ trait JNIExt<'local> {
         self.get_env()
             .take_rust_field(this, "native_address")
             .expect("cannot take native value")
-    }
-
-    fn as_string(&self, jstr: JString) -> Option<String> {
-        if jstr.is_null() {
-            None
-        } else {
-            Some(
-                self.get_env()
-                    .get_string(jstr)
-                    .expect("could not convert to string")
-                    .into(),
-            )
-        }
     }
 
     fn ngrok_exc_err<
