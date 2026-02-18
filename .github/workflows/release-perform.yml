@@ -107,13 +107,13 @@ jobs:
       - name: Install maven (with container)
         if: matrix.config.container
         run: |
-          curl -sL https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o maven.tar.gz
-          echo "332088670d14fa9ff346e6858ca0acca304666596fec86eea89253bd496d3c90deae2be5091be199f48e09d46cec817c6419d5161fb4ee37871503f472765d00 maven.tar.gz" | sha512sum -c -
+          curl -sL https://dlcdn.apache.org/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz -o maven.tar.gz
+          echo "0a1be79f02466533fc1a80abbef8796e4f737c46c6574ede5658b110899942a94db634477dfd3745501c80aef9aac0d4f841d38574373f7e2d24cce89d694f70 maven.tar.gz" | sha512sum -c -
           tar xvf maven.tar.gz
           rm maven.tar.gz
           echo "JAVA_11_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
           echo "JAVA_17_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
-          echo "./apache-maven-3.8.8/bin/" >> $GITHUB_PATH
+          echo "./apache-maven-3.9.12/bin/" >> $GITHUB_PATH
       - name: Run mvn package for native (with container)
         if: matrix.config.container
         run: mvn --global-toolchains toolchains.xml --batch-mode --projects ngrok-java-native --also-make package --activate-profiles ci-native --define 'ngrok.native.classifier=${{ matrix.config.artifact }}' --define 'ngrok.native.target=${{ matrix.config.target }}' ${{ matrix.config.pkgFlags }}
