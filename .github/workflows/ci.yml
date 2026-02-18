@@ -13,13 +13,13 @@ jobs:
     name: Build Ngrok Java
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
       - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           java-version: |
             17
@@ -40,13 +40,13 @@ jobs:
     runs-on: ubuntu-latest
     container: quay.io/pypa/manylinux_2_28_x86_64
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
       - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           java-version: |
             17
@@ -73,10 +73,10 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: jrobsonchase/direnv-action@v0.7
       - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
@@ -94,7 +94,7 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: jrobsonchase/direnv-action@v0.7
       - uses: actions-rs/cargo@v1
         with:
@@ -107,10 +107,10 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: jrobsonchase/direnv-action@v0.7
       - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
