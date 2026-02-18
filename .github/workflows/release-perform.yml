@@ -120,7 +120,7 @@ jobs:
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-${{ matrix.config.artifact }}
           path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-${{ matrix.config.artifact }}.jar
@@ -146,7 +146,7 @@ jobs:
           server-password: MAVEN_PASSWORD
           gpg-private-key: ${{ secrets.OSSRH_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: ngrok-java-native/target/
       - run: mv ngrok-java-native/target/*/* ngrok-java-native/target/
@@ -173,7 +173,7 @@ jobs:
             17
             11
           distribution: "temurin"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: ngrok-java-native/target/
       - run: mv ngrok-java-native/target/*/* ngrok-java-native/target/
