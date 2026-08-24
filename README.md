@@ -218,7 +218,6 @@ JARs are provided on GitHub and Maven Central for the following platforms:
 - Check out [our official docs](https://docs.ngrok.com)
 - Read about updates on [our blog](https://ngrok.com/blog)
 - Open an [issue](https://github.com/ngrok/ngrok-java/issues) or [pull request](https://github.com/ngrok/ngrok-java/pulls)
-- Join our [Slack community](https://ngrok.com/slack)
 - Follow us on [X / Twitter (@ngrokHQ)](https://twitter.com/ngrokhq)
 - Subscribe to our [Youtube channel (@ngrokHQ)](https://www.youtube.com/@ngrokhq)
 
