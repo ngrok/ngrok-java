@@ -13,7 +13,7 @@ use com_ngrok::{
 };
 use futures::TryStreamExt;
 use once_cell::sync::OnceCell;
-use std::{collections::HashMap, str::FromStr, sync::MutexGuard, time::Duration};
+use std::{collections::HashMap, num::NonZeroU32, str::FromStr, sync::MutexGuard, time::Duration};
 use tokio::{io::AsyncReadExt, io::AsyncWriteExt, runtime::Runtime};
 use tracing::{level_filters::LevelFilter, Level};
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt};
@@ -301,6 +301,56 @@ impl<'local> JavaUtilOptional<'local> {
                 .expect("cannot get duration millis");
             let du: u64 = d.try_into().expect("cannot convert to unsigned");
             Some(Duration::from_millis(du))
+        } else {
+            None
+        }
+    }
+
+    /// The java.time.Duration this holds, to the nanosecond. Session.Builder
+    /// refuses negative durations, so a negative one here is a bug.
+    fn of_duration(self, env: JNIEnv<'local>) -> Option<Duration> {
+        if self.is_present(env) {
+            let d = self.get(env).expect("cannot get duration");
+            let secs = env
+                .call_method(d, "getSeconds", "()J", &[])
+                .and_then(|o| o.j())
+                .expect("cannot get duration seconds");
+            let nanos = env
+                .call_method(d, "getNano", "()I", &[])
+                .and_then(|o| o.i())
+                .expect("cannot get duration nanos");
+            Some(Duration::new(
+                secs.try_into().expect("duration must not be negative"),
+                nanos
+                    .try_into()
+                    .expect("duration nanos must not be negative"),
+            ))
+        } else {
+            None
+        }
+    }
+
+    fn of_bool(self, env: JNIEnv<'local>) -> Option<bool> {
+        if self.is_present(env) {
+            let b = self
+                .get(env)
+                .and_then(|o| env.call_method(o, "booleanValue", "()Z", &[]))
+                .and_then(|o| o.z())
+                .expect("could not get boolean");
+            Some(b)
+        } else {
+            None
+        }
+    }
+
+    fn of_int(self, env: JNIEnv<'local>) -> Option<i32> {
+        if self.is_present(env) {
+            let i = self
+                .get(env)
+                .and_then(|o| env.call_method(o, "intValue", "()I", &[]))
+                .and_then(|o| o.i())
+                .expect("could not get int");
+            Some(i)
         } else {
             None
         }
@@ -801,6 +851,30 @@ impl<'local> com_ngrok::NativeSessionRs<'local> for NativeSessionRsImpl<'local> 
             .of_duration_ms(self.env)
         {
             bldr.heartbeat_tolerance(tolerance).map_err(io_exc)?;
+        }
+
+        // Session.Builder.reconnectBackoff sets both or neither.
+        if let (Some(initial), Some(max)) = (
+            jsb.get_reconnect_backoff_initial(self.env)
+                .of_duration(self.env),
+            jsb.get_reconnect_backoff_max(self.env)
+                .of_duration(self.env),
+        ) {
+            bldr.reconnect_backoff(initial, max)
+                .map_err(|e| io_exc(format!("reconnectBackoff: {e}")))?;
+        }
+
+        if let Some(enabled) = jsb.get_reconnect_jitter(self.env).of_bool(self.env) {
+            bldr.reconnect_jitter(enabled);
+        }
+
+        if let Some(attempts) = jsb.get_reconnect_max_attempts(self.env).of_int(self.env) {
+            // Session.Builder.reconnectMaxAttempts refuses anything below 1.
+            let attempts = u32::try_from(attempts)
+                .ok()
+                .and_then(NonZeroU32::new)
+                .expect("reconnect max attempts must be at least 1");
+            bldr.reconnect_max_attempts(attempts);
         }
 
         let mut session_metadata = String::from("");

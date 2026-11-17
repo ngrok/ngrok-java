@@ -292,6 +292,12 @@ public interface Session extends AutoCloseable {
         private Optional<Duration> heartbeatInterval = Optional.empty();
         private Optional<Duration> heartbeatTolerance = Optional.empty();
 
+        // Both set together, by reconnectBackoff.
+        private Optional<Duration> reconnectBackoffInitial = Optional.empty();
+        private Optional<Duration> reconnectBackoffMax = Optional.empty();
+        private Optional<Boolean> reconnectJitter = Optional.empty();
+        private Optional<Integer> reconnectMaxAttempts = Optional.empty();
+
         private Optional<String> metadata = Optional.empty();
 
         private Optional<String> serverAddr = Optional.empty();
@@ -328,6 +334,80 @@ public interface Session extends AutoCloseable {
          */
         public Builder heartbeatTolerance(Duration duration) {
             this.heartbeatTolerance = Optional.of(duration);
+            return this;
+        }
+
+        /**
+         * Sets how long the session waits between attempts to reconnect after it
+         * loses its connection to the ngrok service.
+         * <p>
+         * The first attempt is immediate. After it, the session waits {@code initial},
+         * then twice as long before each attempt, up to {@code max}. Each wait is
+         * scaled by a random factor in [0, 1) unless {@link #reconnectJitter(boolean)}
+         * turns that off. The defaults are 50 ms and 30 s. For a fixed wait between
+         * every attempt, pass the same value for both and turn jitter off.
+         * <p>
+         * These waits never stop the session from reconnecting on their own:
+         * {@link #reconnectMaxAttempts(int)}, or closing the session, does.
+         * <p>
+         * The ngrok Rust SDK checks the range when the session connects: an
+         * {@code initial} below 1 ms or above {@code max}, or a {@code max} above one
+         * day, makes {@link #connect()} throw an {@link IOException} whose message
+         * starts with "reconnectBackoff: " and names the rule broken.
+         *
+         * @param initial the first wait between reconnect attempts
+         * @param max the longest wait between reconnect attempts
+         * @return the builder instance
+         * @throws NullPointerException if either argument is null
+         * @throws IllegalArgumentException if either argument is negative; the
+         *         builder is then unchanged
+         */
+        public Builder reconnectBackoff(Duration initial, Duration max) {
+            Objects.requireNonNull(initial, "initial");
+            Objects.requireNonNull(max, "max");
+            if (initial.isNegative()) {
+                throw new IllegalArgumentException("initial must not be negative, got " + initial);
+            }
+            if (max.isNegative()) {
+                throw new IllegalArgumentException("max must not be negative, got " + max);
+            }
+            this.reconnectBackoffInitial = Optional.of(initial);
+            this.reconnectBackoffMax = Optional.of(max);
+            return this;
+        }
+
+        /**
+         * Sets whether each wait between reconnect attempts is scaled by a random
+         * factor in [0, 1). On by default, so that sessions that lose their
+         * connections together don't all reconnect at the same moment.
+         *
+         * @param enabled whether to scale each wait by a random factor
+         * @return the builder instance
+         */
+        public Builder reconnectJitter(boolean enabled) {
+            this.reconnectJitter = Optional.of(enabled);
+            return this;
+        }
+
+        /**
+         * Sets the session to stop reconnecting after {@code attempts} failed attempts
+         * in one outage, counting the immediate first attempt. Each new outage starts
+         * the count again. By default the session never stops on its own.
+         * <p>
+         * When the session stops, every listener and forwarder stops with the last
+         * attempt's error: {@link Listener#accept()} and {@link Forwarder#join()}
+         * throw an {@link IOException}.
+         *
+         * @param attempts the number of failed attempts after which to stop
+         * @return the builder instance
+         * @throws IllegalArgumentException if {@code attempts} is below 1; the builder
+         *         is then unchanged
+         */
+        public Builder reconnectMaxAttempts(int attempts) {
+            if (attempts < 1) {
+                throw new IllegalArgumentException("attempts must be at least 1, got " + attempts);
+            }
+            this.reconnectMaxAttempts = Optional.of(attempts);
             return this;
         }
 
@@ -458,6 +538,44 @@ public interface Session extends AutoCloseable {
          */
         public Optional<Duration> getHeartbeatTolerance() {
             return heartbeatTolerance;
+        }
+
+        /**
+         * Returns the first wait between reconnect attempts set for this builder.
+         *
+         * @return the first wait, if {@link #reconnectBackoff(Duration, Duration)} set one
+         */
+        public Optional<Duration> getReconnectBackoffInitial() {
+            return reconnectBackoffInitial;
+        }
+
+        /**
+         * Returns the longest wait between reconnect attempts set for this builder.
+         *
+         * @return the longest wait, if {@link #reconnectBackoff(Duration, Duration)} set one
+         */
+        public Optional<Duration> getReconnectBackoffMax() {
+            return reconnectBackoffMax;
+        }
+
+        /**
+         * Returns whether reconnect waits are scaled by a random factor, as set for
+         * this builder.
+         *
+         * @return the setting, if {@link #reconnectJitter(boolean)} set one
+         */
+        public Optional<Boolean> getReconnectJitter() {
+            return reconnectJitter;
+        }
+
+        /**
+         * Returns the number of failed reconnect attempts after which the session
+         * stops, as set for this builder.
+         *
+         * @return the number, if {@link #reconnectMaxAttempts(int)} set one
+         */
+        public Optional<Integer> getReconnectMaxAttempts() {
+            return reconnectMaxAttempts;
         }
 
         /**
