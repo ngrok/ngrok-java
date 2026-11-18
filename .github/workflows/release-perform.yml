@@ -127,7 +127,7 @@ jobs:
           retention-days: 1
 
   deploy-central:
-    if: ${{ github.event.inputs.deploy }}
+    if: ${{ inputs.deploy }}
     runs-on: ubuntu-latest
     needs:
       - build-native
@@ -159,7 +159,7 @@ jobs:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
 
   deploy-github:
-    if: ${{ github.event.inputs.deploy }}
+    if: ${{ inputs.deploy }}
     runs-on: ubuntu-latest
     needs:
       - build-native
