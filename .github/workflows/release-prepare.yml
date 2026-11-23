@@ -16,15 +16,15 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
         with:
           ref: ${{ github.event.inputs.branch }}
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
-      - uses: ./.github/workflows/rust-cache
-      - uses: actions/setup-java@v4
+      - uses: $/.github/workflows/rust-cache
+      - uses: actions/setup-java@v4.9.1
         with:
           java-version: |
             17
