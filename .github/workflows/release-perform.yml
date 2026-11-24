@@ -58,7 +58,7 @@ jobs:
     runs-on: ${{ matrix.config.host }}
     container: ${{ matrix.config.container }}
     steps:
-      - uses: actions/checkout@v4.4.0
+      - uses: actions/checkout@v7.0.1
         with:
           ref: v${{ github.event.inputs.releaseVersion }}
       - uses: dtolnay/rust-toolchain@master
@@ -95,7 +95,7 @@ jobs:
           echo "AR_${adjusted_target}=${ndk_root}/llvm-ar" >> $GITHUB_ENV
           echo "CARGO_TARGET_${adjusted_target_upper}_LINKER=${ndk_root}/${compiler}" >> $GITHUB_ENV
       - name: Setup Java
-        uses: actions/setup-java@v4.9.1
+        uses: actions/setup-java@v6.3.0
         with:
           java-version: "11"
           distribution: "temurin"
@@ -120,7 +120,7 @@ jobs:
         env:
           NGROK_AUTHTOKEN: ${{ secrets.NGROK_AUTHTOKEN }}
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ngrok-java-native-${{ github.event.inputs.releaseVersion }}-${{ matrix.config.artifact }}
           path: ngrok-java-native/target/ngrok-java-native-${{ github.event.inputs.releaseVersion }}-${{ matrix.config.artifact }}.jar
@@ -132,10 +132,10 @@ jobs:
     needs:
       - build-native
     steps:
-      - uses: actions/checkout@v4.4.0
+      - uses: actions/checkout@v7.0.1
         with:
           ref: v${{ github.event.inputs.releaseVersion }}
-      - uses: actions/setup-java@v4.9.1
+      - uses: actions/setup-java@v6.3.0
         with:
           java-version: |
             17
@@ -146,7 +146,7 @@ jobs:
           server-password: MAVEN_PASSWORD
           gpg-private-key: ${{ secrets.OSSRH_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
-      - uses: actions/download-artifact@v4.3.0
+      - uses: actions/download-artifact@v8.0.2
         with:
           path: ngrok-java-native/target/
       - run: mv ngrok-java-native/target/*/* ngrok-java-native/target/
@@ -164,16 +164,16 @@ jobs:
     needs:
       - build-native
     steps:
-      - uses: actions/checkout@v4.4.0
+      - uses: actions/checkout@v7.0.1
         with:
           ref: v${{ github.event.inputs.releaseVersion }}
-      - uses: actions/setup-java@v4.9.1
+      - uses: actions/setup-java@v6.3.0
         with:
           java-version: |
             17
             11
           distribution: "temurin"
-      - uses: actions/download-artifact@v4.3.0
+      - uses: actions/download-artifact@v8.0.2
         with:
           path: ngrok-java-native/target/
       - run: mv ngrok-java-native/target/*/* ngrok-java-native/target/
