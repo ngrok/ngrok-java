@@ -10,8 +10,8 @@ jobs:
     name: Javadocs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v4.4.0
+      - uses: actions/setup-java@v4.9.1
         with:
           java-version: |
             17
@@ -21,7 +21,7 @@ jobs:
       - name: Build Javadocs
         run: mvn javadoc:aggregate -Dmaven.javadoc.skippedModules=ngrok-java-native
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v3.0.1
         with:
           path: target/site/apidocs
 
@@ -42,4 +42,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4.0.5
